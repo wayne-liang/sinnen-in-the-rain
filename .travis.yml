@@ -1,2 +1,4 @@
 language: java
 jdk: oraclejdk8
+notifications:
+    slack: danwong:9lxy7zcS4KA8ey1xKd8WZNf0
