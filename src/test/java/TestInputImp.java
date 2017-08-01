@@ -43,7 +43,7 @@ public class TestInputImp {
     	Input input = new InputImp(FILENAME, "3");
     	List<String[]> graph = input.getGraphData();
     	assertEquals(graph.get(2)[0], "a b"); //Third row, first col, should be Arc a->b.
-    	assertEquals(graph.get(0)[1], "1"); 
+    	assertEquals(graph.get(2)[1], "1"); 
     }
 
 }
