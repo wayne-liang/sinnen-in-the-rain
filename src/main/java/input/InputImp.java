@@ -17,7 +17,7 @@ import interfaces.Input;
  * @author Victor
  *
  */
-public class InputImp implements Input{
+public class InputImp implements Input {
 	private int _noOfProcessors;
 	private List<String[]> _graphData = new ArrayList<String[]>();
 	
@@ -26,7 +26,7 @@ public class InputImp implements Input{
 	 * @param filePath
 	 * @param noOfProcessors
 	 */
-	public InputImp (String filePath, String noOfProcessors){
+	public InputImp (String filePath, String noOfProcessors) {
 		_noOfProcessors = Integer.parseInt(noOfProcessors);
 		processFile(filePath);
 	}
@@ -51,7 +51,7 @@ public class InputImp implements Input{
 	 * This helper method will read from the input file, and create the List<String> needed
 	 * for graph data.
 	 */
-	private void processFile(String filePath){
+	private void processFile(String filePath) {
 		File file = new File (filePath);
 		try {
 			Scanner inputScanner = new Scanner (file);
@@ -59,11 +59,11 @@ public class InputImp implements Input{
 			inputScanner.nextLine(); //ignore line1.
 			
 			//Loop to read all lines. Only exit if reaches a single line with closing bracket }.
-			while (true){
+			while (true) {
 				String line = inputScanner.nextLine();
 				
 				//Final line escape.
-				if (line.trim().equals("}")){
+				if (line.trim().equals("}")) {
 					break;
 				}
 				
@@ -71,10 +71,10 @@ public class InputImp implements Input{
 				
 				//Processing the name (index 1)
 				lineArray[0] = lineArray[0].trim();				
-				if (lineArray[0].length() == 1){
+				if (lineArray[0].length() == 1) {
 					//Do nothing (single node already)
 				}
-				else{ //For an arc
+				else { //For an arc
 					String[] arcSplitted = lineArray[0].split("->");
 					lineArray[0] = arcSplitted[0].trim() + " " + arcSplitted[1].trim();
 				}

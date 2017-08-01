@@ -29,7 +29,7 @@ public class TestInputImp {
 	 * Correct line 1 (which is a node).
 	 */
     @Test
-    public void testNode(){
+    public void testNode() {
     	Input input = new InputImp(FILENAME, "3");
     	List<String[]> graph = input.getGraphData();
     	assertEquals(graph.get(0)[0], "a"); //First row, first col, should be node A.
@@ -40,7 +40,7 @@ public class TestInputImp {
 	 * Correct line 3 (which is an arc).
 	 */
     @Test
-    public void testArc(){
+    public void testArc() {
     	Input input = new InputImp(FILENAME, "3");
     	List<String[]> graph = input.getGraphData();
     	assertEquals(graph.get(2)[0], "a b"); //Third row, first col, should be Arc a->b.
