@@ -1,9 +1,20 @@
 package input;
 
+import java.io.BufferedInputStream;
 import java.util.List;
+import java.util.Scanner;
 
 import interfaces.Input;
 
+/**
+ * This class is in the module responsible for taking input files and 
+ * do some basic pre-processing.
+ *  
+ * It will implement the Input interface for the conversion module to
+ * convert the input into a DAG.
+ * @author Victor
+ *
+ */
 public class InputImp implements Input{
 	private int _nOOfProcessors;
 	private List<String[]> _graphData;
@@ -27,6 +38,10 @@ public class InputImp implements Input{
 	public List<String[]> getGraphData() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	private void inputProcess(){
+		Scanner inputScanner = new Scanner (new BufferedInputStream(System.in));
 	}
 
 }
