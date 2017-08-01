@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by st970 (Mike Lee) on 31/07/2017.
  */
-interface Node {
+public interface Node {
     /**
      * getName() returns the name of the current node.
      * @return String
