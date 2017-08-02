@@ -4,6 +4,7 @@ import interfaces.DAG;
 import interfaces.Node;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -13,15 +14,15 @@ import java.util.List;
 public class DAGImp implements DAG{
 
     /**
-     * List object containing all the Node objects currently held in this DAG.
+     * HashMapList object containing all the Node objects currently held in this DAG.
      */
-    private List<Node> _nodes;
+    private HashMap<String, Node> _nodes;
 
     /**
      * Creates a new, empty DAGImp object.
      */
     public DAGImp() {
-        _nodes = new ArrayList<>();
+        _nodes = new HashMap<>();
     }
 
     /**
@@ -30,7 +31,7 @@ public class DAGImp implements DAG{
      */
     @Override
     public void add(Node newNode) {
-        _nodes.add(newNode);
+        _nodes.put(newNode.getName(), newNode);
     }
 
     /**
@@ -39,6 +40,17 @@ public class DAGImp implements DAG{
      */
     @Override
     public List<Node> getAllNodes() {
-        return _nodes;
+        return new ArrayList<>(_nodes.values());
+    }
+
+    /**
+     * Searches through the DAG for a Node with the given name, returning that node if found.
+     * If none is found, null is returned.
+     * @param name - name of the node to search for
+     * @return {@code Node} with the corresponding name
+     */
+    @Override
+    public Node getNodeByName(String name) {
+        return _nodes.get(name);
     }
 }
