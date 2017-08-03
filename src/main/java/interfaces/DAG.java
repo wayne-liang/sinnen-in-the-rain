@@ -27,5 +27,11 @@ public interface DAG {
 	 * @return {@code Node} with the corresponding name
 	 */
 	public Node getNodeByName(String name);
+
+	/**
+	 * Adds the {@code Node} objects in the given {@code List<Node>} as starting nodes.
+	 * @param startNodes - {@code List<Node>} of all starting nodes to add
+	 */
+	public void addStartNodes(List<Node> startNodes);
 	
 }
