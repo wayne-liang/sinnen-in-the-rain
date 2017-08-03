@@ -7,6 +7,7 @@ import interfaces.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class converts the raw input data into a DAG object
@@ -56,4 +57,17 @@ public class ConversionImp implements Conversion {
 
         return dag;
     }
+
+	/**
+	 * This method returns the root node in a graph. This is done by finding all
+	 * nodes which do not have any incoming arcs.
+	 *
+	 * @param nodes - Hashmap of <Node name, Node object>
+	 * @return List of nodes which are the root node in the graph
+	 */
+	private List<Node> getRootNodes(HashMap<String, Node> nodes) {
+    	return nodes.values().stream()
+				.filter(n -> n.getPredecessors().size() == 0)
+				.collect(Collectors.toList());
+	}
 }
