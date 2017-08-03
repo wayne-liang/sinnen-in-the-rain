@@ -53,6 +53,7 @@ public class ConversionImp implements Conversion {
 
         //Add to the DAG object all the nodes
         DAG dag = new DAGImp();
+        dag.addStartNodes(getRootNodes(nodes)); //Add the root nodes to the DAG
         nodes.values().forEach(dag::add);
 
         return dag;
