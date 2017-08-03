@@ -53,4 +53,13 @@ public class DAGImp implements DAG{
     public Node getNodeByName(String name) {
         return _nodes.get(name);
     }
+
+    /**
+     * Adds the {@code Node} objects in the given {@code List<Node>} as starting nodes.
+     * @param startNodes - {@code List<Node>} of all starting nodes to add
+     */
+    @Override
+    public void addStartNodes(List<Node> startNodes) {
+
+    }
 }
