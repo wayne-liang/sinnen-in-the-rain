@@ -19,10 +19,18 @@ public class DAGImp implements DAG{
     private HashMap<String, Node> _nodes;
 
     /**
+     * ArrayList object containing all the starting Node objects.
+     * Start nodes are nodes with no incoming arcs, and therefore are reachable at the
+     * start of processing the DAG.
+     */
+    private ArrayList<Node> _startNodes;
+
+    /**
      * Creates a new, empty DAGImp object.
      */
     public DAGImp() {
         _nodes = new HashMap<>();
+        _startNodes = new ArrayList<>();
     }
 
     /**
@@ -60,6 +68,6 @@ public class DAGImp implements DAG{
      */
     @Override
     public void addStartNodes(List<Node> startNodes) {
-
+        _startNodes.addAll(startNodes);
     }
 }
