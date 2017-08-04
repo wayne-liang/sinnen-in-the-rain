@@ -1,12 +1,12 @@
 package testInput;
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
-import org.junit.Test;
 
 import implementations.input.InputImp;
 import interfaces.Input;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * This class tests the InputImp under the input module
