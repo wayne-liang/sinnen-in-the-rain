@@ -23,11 +23,6 @@ public class NodeImp implements Node {
 	private List<Arc> _outgoing;
 	private List<Arc> _ingoing;
 	
-	private int _bestStartTime;
-	private int _bestProcessor;
-	private int _currentStartTime;
-	private int _currentProcessor;
-	
 	/**
 	 * Constructor for the NodeImp to make a NodeImp object given a name and a weight
 	 * @param name - Letter representing the node
@@ -72,37 +67,5 @@ public class NodeImp implements Node {
 		return _outgoing.stream()
 				.map(a -> a.getDestination())
 				.collect(Collectors.toList());
-	}
-
-	public int getBestProcessor() {
-		return _bestProcessor;
-	}
-
-	public void setBestProcessor(int bestProcessor) {
-		_bestProcessor = bestProcessor;
-	}
-	
-	public int getCurrentProcessor() {
-		return _currentProcessor;
-	}
-
-	public void setCurrentProcessor(int currentProcessor) {
-		_currentProcessor = currentProcessor;
-	}
-	
-	public int getBestStartTime() {
-		return _bestStartTime;
-	}
-
-	public void setBestStartTime(int bestStartTime) {
-		_bestStartTime = bestStartTime;
-	}
-
-	public int getCurrentStartTime() {
-		return _currentStartTime;
-	}
-
-	public void setCurrentStartTime(int currentStartTime) {
-		_currentStartTime = currentStartTime;
 	}
 }
