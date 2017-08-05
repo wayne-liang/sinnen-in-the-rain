@@ -1,12 +1,11 @@
 package implementations;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import interfaces.Arc;
 import interfaces.Node;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class is responsible for representing a node in a DAG.
