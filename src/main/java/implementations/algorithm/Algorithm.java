@@ -12,12 +12,15 @@ import java.util.List;
 public class Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
+	private List<List<AlgorithmNode>> _generatedSchedules; //This holds all the generated schedules
 
 	public Algorithm(DAG dag, int numberOfCores) {
 		_dag = dag;
 		_numberOfCores = numberOfCores;
+		_generatedSchedules = new ArrayList<>();
 
 		List<Node> allNodes = _dag.getAllNodes();
+
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(allNodes));
 	}
 
@@ -30,10 +33,7 @@ public class Algorithm {
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes) {
 		//Base Case
 		if (remainingNodes.size() == 0) {
-			for (AlgorithmNode node : processed) {
-				System.out.printf(node.getNodeName() + node.getCore() + " ");
-			}
-			System.out.println();
+			_generatedSchedules.add(processed);
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				for (int j = 1; j <= _numberOfCores; j++) {
@@ -49,5 +49,10 @@ public class Algorithm {
 				}
 			}
 		}
+	}
+
+	//For testing
+	public List<List<AlgorithmNode>> getSchedules() {
+		return _generatedSchedules;
 	}
 }
