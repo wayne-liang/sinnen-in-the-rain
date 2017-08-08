@@ -43,4 +43,14 @@ public interface Node {
      * @return List<Node>
      */
     List<Node> getSuccessors( );
+
+    /**
+     * @return - a {@code List<Arc>} of all incoming Arc objects to this Node
+     */
+    List<Arc> getInArcs();
+
+    /**
+     * @return - a {@code List<Arc>} of all outgoing Arc objects to this Node
+     */
+    List<Arc> getOutArcs();
 }
