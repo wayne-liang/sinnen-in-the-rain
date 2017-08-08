@@ -33,5 +33,10 @@ public interface DAG {
 	 * @param startNodes - {@code List<Node>} of all starting nodes to add
 	 */
 	public void addStartNodes(List<Node> startNodes);
+
+	/**
+	 * Returns a {@code List<Node>} of all the starting nodes.
+	 */
+	public List<Node> getStartNodes();
 	
 }

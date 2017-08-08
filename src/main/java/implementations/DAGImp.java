@@ -70,4 +70,9 @@ public class DAGImp implements DAG{
     public void addStartNodes(List<Node> startNodes) {
         _startNodes.addAll(startNodes);
     }
+
+    @Override
+    public List<Node> getStartNodes() {
+        return _startNodes;
+    }
 }

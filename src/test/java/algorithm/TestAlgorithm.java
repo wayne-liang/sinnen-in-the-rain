@@ -14,6 +14,6 @@ public class TestAlgorithm {
 	public void testGenerateSchedule() {
 		Input input = new InputImp(FILENAME, "2");
 		Conversion conversion = new ConversionImp(input);
-		Algorithm alg = new Algorithm(conversion.getDAG());
+		Algorithm alg = new Algorithm(conversion.getDAG(), input.getProcessorCount());
 	}
 }
