@@ -59,15 +59,17 @@ public class Algorithm {
 	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - SchedulerTime object with cost and execution time information
 	 */
-	public SchedulerTime getCost(List<AlgorithmNode> algNodes) {
+	public SchedulerTime calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//making a copy that I can manipulate
 		//this copy is going work as a list of nodes that still need their start time calculated
-		List<AlgorithmNode> algNodesCopy = new ArrayList<>(algNodes);
-		List<Node> nodes = new ArrayList<>();
+		List<AlgorithmNode> remainingAlgNodes = new ArrayList<>(algNodes);
+		//creating a corresponding array of Nodes
+		//make sure to remove the corresponding Node object when you remove a AlgNode object
+		List<Node> remainingNodes = new ArrayList<>();
 
 		//populating new nodes array with corresponding Node objects
-		for (AlgorithmNode algNode : algNodesCopy) {
-			nodes.add(_dag.getNodeByName(algNode.getNodeName()));
+		for (AlgorithmNode algNode : remainingAlgNodes) {
+			remainingNodes.add(_dag.getNodeByName(algNode.getNodeName()));
 		}
 
 		//creating ArrayLists to represent the schedule for each core
@@ -79,21 +81,52 @@ public class Algorithm {
 		//creating a SchedulerTime object for holding the schedule start times for each node
 		SchedulerTime st = new SchedulerTime(algNodes);
 
-		while (!algNodesCopy.isEmpty()) {
-			for (AlgorithmNode algNode : algNodesCopy) {
-				Node currentNode = nodes.get(algNodesCopy.indexOf(algNode));
+		while (!remainingAlgNodes.isEmpty()) {
+			//maintained list of AlgNodes and Nodes which need to be removed after each finished for loop
+			List<AlgorithmNode> algNodesToRemove = new ArrayList<>();
+			List<Node> nodesToRemove = new ArrayList<>();
+
+			for (AlgorithmNode currentAlgNode : remainingAlgNodes) {
+				Node currentNode = remainingNodes.get(remainingAlgNodes.indexOf(currentAlgNode));
+				int highestCost = 0;
 
 				//check if dependencies have been scheduled
-				
+				//calculate the highest time delay caused by dependencies
+				boolean dependenciesNotFinished = false;
+				for (Node node : currentNode.getPredecessors()) { //NOTE: gotta make sure that the two node lists are consistent
+					if (remainingNodes.contains(node)) { //if one of the predecessor nodes hasn't been scheduled, skip this node for now
+						dependenciesNotFinished = true;
+						break;
+					} else {
+						//get index position of corresponding AlgNode object, to check the start time in SchedulerTime
+						int nodeIndex = 0;
+						for (AlgorithmNode anotherAlgNode : algNodes) {
+							if (anotherAlgNode.getNodeName().equals(node.getName())) {
+								nodeIndex = algNodes.indexOf(anotherAlgNode);
+								break;
+							}
+						}
+
+						//calculating the maximum delay caused by this particular dependent node
+						int cost = st.getNodeStartTime(nodeIndex) + node.getWeight();
+						if (!(algNodes.get(nodeIndex).getCore() == currentAlgNode.getCore())) {
+							//add on arc weight, since they're on different cores
+							cost += currentNode.getInArc(node).getWeight();
+						}
+
+						if (cost > highestCost) {
+							highestCost = cost;
+						}
+					}
+				}
 
 				//if the dependencies haven't been scheduled yet, move on and come back until they are
 				if (dependenciesNotFinished) {
-
-				} else {
-					int highestCost = 0;
-					int coreNum = algNode.getCore();
+					//wait until the next loop?
+				} else { //calculate the highest time delay caused by previous processes on the same core
+					int coreNum = currentAlgNode.getCore();
 					ArrayList<AlgorithmNode> currentCore = coreSchedules.get(coreNum);
-					currentCore.add(algNode);
+					currentCore.add(currentAlgNode);
 
 					//check when previous process on given core is finished, if there is one
 					if (currentCore.size() > 1) {
@@ -102,12 +135,22 @@ public class Algorithm {
 							highestCost = cost;
 						}
 					}
+				}
 
-					//check cost of dependencies
+				//set SchedulerTime startTime for this node
+				if (!dependenciesNotFinished) {
+					st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
+					algNodesToRemove.add(currentAlgNode);
+					nodesToRemove.add(currentNode);
 				}
 			}
 
 			//have to remove the nodes which have successfully had their start times calculated
+			//make sure to remove from both lists
+			remainingAlgNodes.removeAll(algNodesToRemove);
+			remainingNodes.removeAll(nodesToRemove);
 		}
+
+		return st;
 	}
 }
