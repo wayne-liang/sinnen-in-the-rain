@@ -1,9 +1,10 @@
 package implementations.algorithm;
 
+import implementations.SchedulerTime;
 import interfaces.DAG;
+import interfaces.Node;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class implements the algorithm to solve the scheduling problem
@@ -51,5 +52,62 @@ public class Algorithm {
 	//For testing
 	public List<List<AlgorithmNode>> getSchedules() {
 		return _generatedSchedules;
+	}
+
+	/**
+	 * Calculates the time cost of executing the given schedule, returning a complete SchedulerTime object.
+	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
+	 * @return - SchedulerTime object with cost and execution time information
+	 */
+	public SchedulerTime getCost(List<AlgorithmNode> algNodes) {
+		//making a copy that I can manipulate
+		//this copy is going work as a list of nodes that still need their start time calculated
+		List<AlgorithmNode> algNodesCopy = new ArrayList<>(algNodes);
+		List<Node> nodes = new ArrayList<>();
+
+		//populating new nodes array with corresponding Node objects
+		for (AlgorithmNode algNode : algNodesCopy) {
+			nodes.add(_dag.getNodeByName(algNode.getNodeName()));
+		}
+
+		//creating ArrayLists to represent the schedule for each core
+		ArrayList<ArrayList<AlgorithmNode>> coreSchedules = new ArrayList<>();
+		for (int i = 0; i < _numberOfCores; i++) {
+			coreSchedules.add(new ArrayList<>());
+		}
+
+		//creating a SchedulerTime object for holding the schedule start times for each node
+		SchedulerTime st = new SchedulerTime(algNodes);
+
+		while (!algNodesCopy.isEmpty()) {
+			for (AlgorithmNode algNode : algNodesCopy) {
+				Node currentNode = nodes.get(algNodesCopy.indexOf(algNode));
+
+				//check if dependencies have been scheduled
+				
+
+				//if the dependencies haven't been scheduled yet, move on and come back until they are
+				if (dependenciesNotFinished) {
+
+				} else {
+					int highestCost = 0;
+					int coreNum = algNode.getCore();
+					ArrayList<AlgorithmNode> currentCore = coreSchedules.get(coreNum);
+					currentCore.add(algNode);
+
+					//check when previous process on given core is finished, if there is one
+					if (currentCore.size() > 1) {
+						int cost = _dag.getNodeByName(currentCore.get(currentCore.size() - 2).getNodeName()).getWeight();
+						if (cost > highestCost) {
+							highestCost = cost;
+						}
+					}
+
+					//check cost of dependencies
+				}
+			}
+
+			//have to remove the nodes which have successfully had their start times calculated
+		}
 	}
 }
