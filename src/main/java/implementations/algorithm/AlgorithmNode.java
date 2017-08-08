@@ -34,6 +34,18 @@ public class AlgorithmNode {
 		return algorithmNodeList;
 	}
 
+	/**
+	 * Create a copy of the AlgorithmNode object
+	 *
+	 * @return a copy of the AlgorithmNode
+	 */
+	public AlgorithmNode createClone() {
+		AlgorithmNode node = new AlgorithmNode(_nodeName);
+		node.setCore(_core);
+
+		return node;
+	}
+
 	public String getNodeName() {
 		return _nodeName;
 	}

@@ -1,13 +1,12 @@
 package implementations.algorithm;
 
 import interfaces.DAG;
-import interfaces.Node;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class implements the algorithim to solve the scheduling problem
+ * This class implements the algorithm to solve the scheduling problem
  */
 public class Algorithm {
 	private DAG _dag;
@@ -19,9 +18,7 @@ public class Algorithm {
 		_numberOfCores = numberOfCores;
 		_generatedSchedules = new ArrayList<>();
 
-		List<Node> allNodes = _dag.getAllNodes();
-
-		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(allNodes));
+		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(_dag.getAllNodes()));
 	}
 
 	/**
@@ -36,9 +33,9 @@ public class Algorithm {
 			_generatedSchedules.add(processed);
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
-				for (int j = 1; j <= _numberOfCores; j++) {
+				for (int j = 0; j < _numberOfCores; j++) {
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
-					AlgorithmNode node = remainingNodes.get(i);
+					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
 
