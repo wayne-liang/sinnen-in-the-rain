@@ -45,12 +45,16 @@ public interface Node {
     List<Node> getSuccessors( );
 
     /**
-     * @return - a {@code List<Arc>} of all incoming Arc objects to this Node
+     * Finds and returns the incoming Arc with the corresponding source node.
+     * @param node - Source Node from which the desired Arc comes from
+     * @return Arc object with the given source Node and this Node as destination
      */
-    List<Arc> getInArcs();
+    Arc getInArc(Node node);
 
     /**
-     * @return - a {@code List<Arc>} of all outgoing Arc objects to this Node
+     * Finds and returns the outgoing Arc with the corresponding destination node.
+     * @param node - Destination Node from which the desired Arc points to
+     * @return Arc object with the given destination Node and this Node as source
      */
-    List<Arc> getOutArcs();
+    Arc getOutArc(Node node);
 }

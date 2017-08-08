@@ -4,6 +4,7 @@ import interfaces.Arc;
 import interfaces.Node;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,8 +21,8 @@ public class NodeImp implements Node {
 	//Node attributes
 	private String _name;
 	private int _weight;
-	private List<Arc> _outgoing;
-	private List<Arc> _ingoing;
+	private HashMap<Node,Arc> _outgoing;
+	private HashMap<Node,Arc> _ingoing;
 	
 	/**
 	 * Constructor for the NodeImp to make a NodeImp object given a name and a weight
@@ -31,8 +32,8 @@ public class NodeImp implements Node {
 	public NodeImp(String name, int weight){
 		_name = name;
 		_weight = weight;
-		_outgoing = new ArrayList<Arc>();
-		_ingoing = new ArrayList<Arc>();
+		_outgoing = new HashMap<>();
+		_ingoing = new HashMap<>();
 	}
 	
 	@Override
@@ -47,25 +48,35 @@ public class NodeImp implements Node {
 
 	@Override
 	public void addOutArc(Arc arc) {
-		_outgoing.add(arc);
+		_outgoing.put(arc.getDestination(), arc);
 	}
 
 	@Override
 	public void addInArc(Arc arc) {
-		_ingoing.add(arc);
+		_ingoing.put(arc.getSource(), arc);
 	}
 
 	@Override
 	public List<Node> getPredecessors() {
-		return _ingoing.stream()
+		return _ingoing.values().stream()
 				.map(a -> a.getSource())
 				.collect(Collectors.toList());
 	}
 
 	@Override
 	public List<Node> getSuccessors() {
-		return _outgoing.stream()
+		return _outgoing.values().stream()
 				.map(a -> a.getDestination())
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public Arc getInArc(Node node) {
+		return _ingoing.get(node);
+	}
+
+	@Override
+	public Arc getOutArc(Node node) {
+		return _outgoing.get(node);
 	}
 }
