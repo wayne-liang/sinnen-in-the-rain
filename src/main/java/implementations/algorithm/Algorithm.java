@@ -151,6 +151,19 @@ public class Algorithm {
 			remainingNodes.removeAll(nodesToRemove);
 		}
 
+		int totalTime = 0;
+		for (int i = 0; i < _numberOfCores; i++) {
+			ArrayList<AlgorithmNode> currentCore = coreSchedules.get(i);
+			AlgorithmNode algNode = currentCore.get(currentCore.size() - 1);
+			int timeTaken = st.getNodeStartTime(algNodes.indexOf(algNode)) + _dag.getNodeByName(algNode.getNodeName()).getWeight();
+
+			if (timeTaken > totalTime) {
+				totalTime = timeTaken;
+			}
+		}
+
+		st.setTotalTime(totalTime);
+
 		return st;
 	}
 }
