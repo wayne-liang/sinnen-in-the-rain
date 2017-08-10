@@ -54,6 +54,11 @@ public class Algorithm {
 		return _generatedSchedules;
 	}
 
+	/**
+	 * This method is purely for testing, as the original is declared as private.
+	 * @param algNodes
+	 * @return
+	 */
 	public SchedulerTime calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
 		return calculateTotalTime(algNodes);
 	}
@@ -115,6 +120,19 @@ public class Algorithm {
 			st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
 		}
 
+		setTimeForSchedulerTime(latestAlgNodeInSchedules, algNodes, st);
+
+		return st;
+	}
+
+	/**
+	 * Calculates and sets the total time in the {@code SchedulerTime} object given.
+	 * Main purpose is to make the code more readable.
+	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNode>} containing the last node in each processor
+	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code SchedulerTime} object
+	 * @param st - {@code SchedulerTime} object to set the total time of
+	 */
+	private void setTimeForSchedulerTime(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, SchedulerTime st) {
 		int totalTime = 0;
 		for (int i = 0; i < _numberOfCores; i++) {
 			AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i);
@@ -126,8 +144,6 @@ public class Algorithm {
 		}
 
 		st.setTotalTime(totalTime);
-
-		return st;
 	}
 
 	/**
