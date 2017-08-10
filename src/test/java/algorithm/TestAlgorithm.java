@@ -1,6 +1,7 @@
 package algorithm;
 
 import implementations.ConversionImp;
+import implementations.SchedulerTime;
 import implementations.algorithm.Algorithm;
 import implementations.algorithm.AlgorithmNode;
 import implementations.input.InputImp;
@@ -8,6 +9,7 @@ import interfaces.Conversion;
 import interfaces.Input;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
@@ -31,5 +33,34 @@ public class TestAlgorithm {
 		}
 
 		assertEquals("a0 b0 c0 d0", sb.toString().trim());
+	}
+
+	@Test
+	public void testCalculateNormalSchedule() {
+		Input input = new InputImp(FILENAME, "2");
+		Conversion conversion = new ConversionImp(input);
+		Algorithm alg = new Algorithm(conversion.getDAG(), input.getProcessorCount());
+
+		List<AlgorithmNode> testCase = new ArrayList<>();
+		AlgorithmNode a = new AlgorithmNode("a");
+		AlgorithmNode b = new AlgorithmNode("b");
+		AlgorithmNode c = new AlgorithmNode("c");
+		AlgorithmNode d = new AlgorithmNode("d");
+		a.setCore(1);
+		b.setCore(1);
+		c.setCore(2);
+		d.setCore(2);
+		testCase.add(a);
+		testCase.add(b);
+		testCase.add(c);
+		testCase.add(d);
+
+		SchedulerTime st = alg.calculateTotalTimeWrapper(testCase);
+
+		assertEquals(st.getTotalTime(), 9);
+		assertEquals(st.getNodeStartTime(0), 0);
+		assertEquals(st.getNodeStartTime(1), 2);
+		assertEquals(st.getNodeStartTime(2), 4);
+		assertEquals(st.getNodeStartTime(3), 7);
 	}
 }
