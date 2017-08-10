@@ -18,4 +18,5 @@ public interface GraphView {
 	
 	//Gets the table - the model of the MVC structure
 	public JTable getTable();
+
 }
