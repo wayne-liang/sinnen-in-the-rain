@@ -1,5 +1,5 @@
 package visualisation;
 
 public interface GraphView {
- // test commit
+	public void init();
 }
