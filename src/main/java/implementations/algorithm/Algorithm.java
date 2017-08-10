@@ -39,7 +39,7 @@ public class Algorithm {
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
-				for (int j = 0; j < _numberOfCores; j++) {
+				for (int j = 1; j <= _numberOfCores; j++) {
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
