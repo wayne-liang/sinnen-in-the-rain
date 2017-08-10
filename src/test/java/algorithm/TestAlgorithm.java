@@ -46,10 +46,10 @@ public class TestAlgorithm {
 		AlgorithmNode b = new AlgorithmNode("b");
 		AlgorithmNode c = new AlgorithmNode("c");
 		AlgorithmNode d = new AlgorithmNode("d");
-		a.setCore(0);
-		b.setCore(0);
-		c.setCore(1);
-		d.setCore(1);
+		a.setCore(1);
+		b.setCore(1);
+		c.setCore(2);
+		d.setCore(2);
 		testCase.add(a);
 		testCase.add(b);
 		testCase.add(c);

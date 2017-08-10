@@ -104,7 +104,7 @@ public class Algorithm {
 			}
 
 			//calculate the time delay caused by previous processes on the same core
-			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore());
+			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
 			if (latestNode != null) {
 				Node previousNode = _dag.getNodeByName(latestNode.getNodeName());
 				int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));
@@ -114,7 +114,7 @@ public class Algorithm {
 			}
 
 			//set currentAlgNode as the newest node to be scheduled on it's core
-			latestAlgNodeInSchedules.set(currentAlgNode.getCore(), currentAlgNode);
+			latestAlgNodeInSchedules.set(currentAlgNode.getCore() - 1, currentAlgNode);
 
 			//set SchedulerTime startTime for this node
 			st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
