@@ -8,7 +8,7 @@ import javax.swing.JTable;
  * This interface allows different for views using different libraries to be plugged into the 
  * MVC architecture.
  * 
- * @author dariusau
+ * @author dariusau pulkitkalra
  *
  */
 public interface GraphView {
