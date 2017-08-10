@@ -54,12 +54,16 @@ public class Algorithm {
 		return _generatedSchedules;
 	}
 
+	public SchedulerTime calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
+		return calculateTotalTime(algNodes);
+	}
+
 	/**
 	 * Calculates the time cost of executing the given schedule, returning a complete SchedulerTime object.
 	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - SchedulerTime object with cost and execution time information
 	 */
-	public SchedulerTime calculateTotalTime(List<AlgorithmNode> algNodes) {
+	private SchedulerTime calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
 
@@ -94,6 +98,7 @@ public class Algorithm {
 				}
 			}
 
+			//calculate the time delay caused by previous processes on the same core
 			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore());
 			if (latestNode != null) {
 				Node previousNode = _dag.getNodeByName(latestNode.getNodeName());

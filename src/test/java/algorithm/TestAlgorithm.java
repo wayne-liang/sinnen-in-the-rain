@@ -55,7 +55,7 @@ public class TestAlgorithm {
 		testCase.add(c);
 		testCase.add(d);
 
-		SchedulerTime st = alg.calculateTotalTime(testCase);
+		SchedulerTime st = alg.calculateTotalTimeWrapper(testCase);
 
 		assertEquals(st.getTotalTime(), 9);
 		assertEquals(st.getNodeStartTime(0), 0);
