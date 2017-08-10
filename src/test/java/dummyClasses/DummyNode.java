@@ -42,4 +42,14 @@ public class DummyNode implements Node{
     public List<Node> getSuccessors() {
         return null;
     }
+
+    @Override
+    public Arc getInArc(Node node) {
+        return null;
+    }
+
+    @Override
+    public Arc getOutArc(Node node) {
+        return null;
+    }
 }
