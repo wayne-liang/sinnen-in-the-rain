@@ -70,7 +70,7 @@ public class Algorithm {
 
 		//creating ArrayLists to represent the schedule for each core
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
-		ArrayList<AlgorithmNode> latestAlgNodeInSchedules = new ArrayList<>();
+		ArrayList<AlgorithmNode> latestAlgNodeInSchedules = new ArrayList<>(_numberOfCores);
 
 		//creating a SchedulerTime object for holding the schedule start times for each node
 		SchedulerTime st = new SchedulerTime(algNodes);
