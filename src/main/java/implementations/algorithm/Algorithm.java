@@ -4,7 +4,9 @@ import implementations.SchedulerTime;
 import interfaces.DAG;
 import interfaces.Node;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This class implements the algorithm to solve the scheduling problem
@@ -12,14 +14,12 @@ import java.util.*;
 public class Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
-	private List<List<AlgorithmNode>> _generatedSchedules; //This holds all the generated schedules
 
 	private int _bestTime = Integer.MAX_VALUE;
 
 	public Algorithm(DAG dag, int numberOfCores) {
 		_dag = dag;
 		_numberOfCores = numberOfCores;
-		_generatedSchedules = new ArrayList<>();
 
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(_dag.getAllNodes()));
 	}
@@ -71,18 +71,8 @@ public class Algorithm {
 	}
 
 	//Temp method
-	private SchedulerTime calculateTotalTime(List<AlgorithmNode> algNodes) {
-		return new SchedulerTime(algNodes);
-	}
-
-	//Temp method
 	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
 		return schedule.get(0).getNodeName().equals("a");
-	}
-
-	//For testing
-	public List<List<AlgorithmNode>> getSchedules() {
-		return _generatedSchedules;
 	}
 
 	/**
