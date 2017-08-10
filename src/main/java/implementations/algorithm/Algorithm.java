@@ -73,6 +73,7 @@ public class Algorithm {
 		}
 
 		//creating ArrayLists to represent the schedule for each core
+		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
 		ArrayList<ArrayList<AlgorithmNode>> coreSchedules = new ArrayList<>();
 		for (int i = 0; i < _numberOfCores; i++) {
 			coreSchedules.add(new ArrayList<>());
@@ -120,7 +121,8 @@ public class Algorithm {
 
 				//check when previous process on given core is finished, if there is one
 				if (currentCore.size() > 1) {
-					int cost = _dag.getNodeByName(currentCore.get(currentCore.size() - 2).getNodeName()).getWeight();
+					Node previousNode = _dag.getNodeByName(currentCore.get(currentCore.size() - 2).getNodeName());
+					int cost = previousNode.getWeight() + getStartTimeFromSchedulerTime(previousNode.getName(), algNodes, st);
 					if (cost > highestCost) {
 						highestCost = cost;
 					}
@@ -152,5 +154,24 @@ public class Algorithm {
 		st.setTotalTime(totalTime);
 
 		return st;
+	}
+
+	/**
+	 * Finds the corresponding index for accessing/setting the right startTime in a SchedulerTime object.
+	 * @param nodeName - name of the {@code Node} or {@code AlgorithmNode} to find the index for
+	 * @param algNodes - {@code List<AlgorithmNode>} that was originally passed to create the SchedulerTime object
+	 * @param st - {@code SchedulerTime} object to find the index within
+	 * @return - startTime of the given {@code Node/AlgorithmNode}
+	 */
+	private int getStartTimeFromSchedulerTime(String nodeName, List<AlgorithmNode> algNodes, SchedulerTime st) {
+		int index = 0;
+		for (AlgorithmNode algNode : algNodes) {
+			if (nodeName.equals(algNode.getNodeName())) {
+				index = algNodes.indexOf(algNode);
+				break;
+			}
+		}
+
+		return st.getNodeStartTime(index);
 	}
 }
