@@ -40,10 +40,7 @@ public class AlgorithmNode {
 	 * @return a copy of the AlgorithmNode
 	 */
 	public AlgorithmNode createClone() {
-		AlgorithmNode node = new AlgorithmNode(_nodeName);
-		node.setCore(_core);
-
-		return node;
+		return new AlgorithmNode(_nodeName);
 	}
 
 	public String getNodeName() {
