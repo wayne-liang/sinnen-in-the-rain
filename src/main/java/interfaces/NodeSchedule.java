@@ -12,6 +12,4 @@ public interface NodeSchedule {
 	int getBestStartTime();
 
 	int getBestProcessor();
-
-	void setBestTimes(int startTime, int core);
 }

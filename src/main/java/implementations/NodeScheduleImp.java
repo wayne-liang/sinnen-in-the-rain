@@ -12,8 +12,13 @@ import interfaces.NodeSchedule;
  * @author Victor
  */
 public class NodeScheduleImp implements NodeSchedule {
-	private int _bestStartTime = Integer.MAX_VALUE;
-	private int _bestCore = Integer.MAX_VALUE;
+	private final int _bestStartTime;
+	private final int _bestCore;
+
+	public NodeScheduleImp(int startTime, int core) {
+		_bestStartTime = startTime;
+		_bestCore = core;
+	}
 
 	@Override
 	public int getBestStartTime() {
@@ -23,14 +28,5 @@ public class NodeScheduleImp implements NodeSchedule {
 	@Override
 	public int getBestProcessor() {
 		return _bestCore;
-	}
-
-	/**
-	 * This method is called when a new best schedule is found
-	 */
-	@Override
-	public void setBestTimes(int startTime, int core) {
-		_bestStartTime = startTime;
-		_bestCore = core;
 	}
 }
