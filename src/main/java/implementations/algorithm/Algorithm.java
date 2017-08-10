@@ -70,7 +70,7 @@ public class Algorithm {
 
 		//creating ArrayLists to represent the schedule for each core
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
-		ArrayList<AlgorithmNode> latestAlgNodeInSchedules = new ArrayList<>(_numberOfCores);
+		List<AlgorithmNode> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNode[_numberOfCores]);
 
 		//creating a SchedulerTime object for holding the schedule start times for each node
 		SchedulerTime st = new SchedulerTime(algNodes);
@@ -104,7 +104,7 @@ public class Algorithm {
 			}
 
 			//set currentAlgNode as the newest node to be scheduled on it's core
-			latestAlgNodeInSchedules.add(currentAlgNode.getCore(), currentAlgNode);
+			latestAlgNodeInSchedules.set(currentAlgNode.getCore(), currentAlgNode);
 
 			//set SchedulerTime startTime for this node
 			st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
