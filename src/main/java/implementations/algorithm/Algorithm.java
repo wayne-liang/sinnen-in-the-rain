@@ -14,6 +14,8 @@ public class Algorithm {
 	private int _numberOfCores;
 	private List<List<AlgorithmNode>> _generatedSchedules; //This holds all the generated schedules
 
+	private int _bestTime = Integer.MAX_VALUE;
+
 	public Algorithm(DAG dag, int numberOfCores) {
 		_dag = dag;
 		_numberOfCores = numberOfCores;
@@ -31,7 +33,10 @@ public class Algorithm {
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes) {
 		//Base Case
 		if (remainingNodes.size() == 0) {
-			_generatedSchedules.add(processed);
+			SchedulerTime st = calculateTotalTime(processed);
+			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
+
+			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				for (int j = 0; j < _numberOfCores; j++) {
@@ -40,6 +45,22 @@ public class Algorithm {
 					node.setCore(j);
 					newProcessed.add(node);
 
+					if (checkValidSchedule(newProcessed)) {
+						SchedulerTime st = calculateTotalTime(newProcessed);
+						//Bound if >= best time
+						if (st.getTotalTime() >= _bestTime) {
+							continue;
+						}
+					} else {
+						continue;
+					}
+
+					newProcessed.forEach(n -> {
+						System.out.printf(n.getNodeName() + n.getCore() + " ");
+					});
+
+					System.out.println();
+
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
@@ -47,6 +68,16 @@ public class Algorithm {
 				}
 			}
 		}
+	}
+
+	//Temp method
+	private SchedulerTime calculateTotalTime(List<AlgorithmNode> algNodes) {
+		return new SchedulerTime(algNodes);
+	}
+
+	//Temp method
+	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
+		return schedule.get(0).getNodeName().equals("a");
 	}
 
 	//For testing
