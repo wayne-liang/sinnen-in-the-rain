@@ -46,10 +46,12 @@ public class TestAlgorithm {
 		Algorithm alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
 
 		//one assert is one invalid schedule
+		//invalid because its starting node is not the DAG starting node "a"//
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"b"})));
 
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"d"})));
 
+		// invalid because "d" cannot be processed before the sucessors "b", "c" are finished.//
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "c"})));
 
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "d", "b", "c"})));
@@ -113,7 +115,7 @@ public class TestAlgorithm {
 	
 	//===================TEST_FILE2====================//
 	/**
-	 * Tests the check valid schedule function using Example file 2 (modified to remove bd arc and add node e).
+	 * Tests the check valid schedule function using Example file 2 (modified to remove arc bd and add node e).
 	 * The schedules listed in here should be invalid.
 	 */
 	@Test
@@ -121,9 +123,10 @@ public class TestAlgorithm {
 		Algorithm alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
 
 		//one assert is one invalid schedule
-
+		//invalid because its starting node is not the DAG starting node "a"//
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"b"})));
 
+		// invalid because "d" cannot be processed before the sucessors "b", "c" are finished.//
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "e", "c"})));
 
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "c", "e"})));
