@@ -3,7 +3,7 @@ package testInput;
 import interfaces.Input;
 import org.junit.Test;
 
-import implementations.input.InputImp;
+import implementations.io.InputImp;
 
 import java.util.List;
 

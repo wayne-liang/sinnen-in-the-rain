@@ -4,7 +4,7 @@ import implementations.ConversionImp;
 import implementations.SchedulerTime;
 import implementations.algorithm.Algorithm;
 import implementations.algorithm.AlgorithmNode;
-import implementations.input.InputImp;
+import implementations.io.InputImp;
 import interfaces.Conversion;
 import interfaces.Input;
 import org.junit.Test;
