@@ -45,6 +45,7 @@ public class Algorithm {
 			SchedulerTime st = calculateTotalTime(processed);
 			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
 				setNewBestSchedule(st);
+				_bestTime = st.getTotalTime();
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
