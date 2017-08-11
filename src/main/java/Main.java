@@ -1,6 +1,6 @@
 import implementations.ConversionImp;
 import implementations.algorithm.Algorithm;
-import implementations.input.InputImp;
+import implementations.io.InputImp;
 import interfaces.Conversion;
 import interfaces.DAG;
 import interfaces.Input;
