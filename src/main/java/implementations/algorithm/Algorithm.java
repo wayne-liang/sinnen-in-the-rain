@@ -127,15 +127,6 @@ public class Algorithm {
 	}
 
 	/**
-	 * This method is purely for testing, as the original is declared as private.
-	 * @param algNodes
-	 * @return
-	 */
-	public SchedulerTime calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
-		return calculateTotalTime(algNodes);
-	}
-
-	/**
 	 * Calculates the time cost of executing the given schedule, returning a complete SchedulerTime object.
 	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - SchedulerTime object with cost and execution time information
@@ -237,8 +228,21 @@ public class Algorithm {
 
 		return -1;
 	}
-
+	
+	
+	/**
+	 * The wrapper methods purely for testing. (as the methods were declared to be private)
+	 * @param algNodes
+	 * @return
+	 */
+	public SchedulerTime calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
+		return calculateTotalTime(algNodes);
+	}
 	public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {
 		return checkValidSchedule(s1);
+	}
+	
+	public int getBestTotalTime(){
+		return _bestTime;
 	}
 }
