@@ -88,9 +88,36 @@ public class Algorithm {
 		}
 	}
 
-	//Temp method
+	/**
+	 * This method determines whether a schedule is valid. It does this by ensuring a nodes predecessors are scheduled
+	 * before the current node
+	 *
+	 * @param schedule
+	 * @return true if the schedule is valid, false if not
+	 */
 	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
-		return schedule.get(0).getNodeName().equals("a");
+		for (int i = 0; i < schedule.size(); i++) {
+			//Get the currentNode's predecessors
+			Node currentNode = _dag.getNodeByName(schedule.get(i).getNodeName());
+			List<Node> predecessors = currentNode.getPredecessors();
+
+			//Loop through the previous nodes in the schedule and count when a predecessor is found
+			int counter = 0;
+			for (int j = i - 1; j >= 0; j--) {
+				for (Node preNode : predecessors) {
+					if (schedule.get(j).getNodeName().equals(preNode.getName())) {
+						counter++;
+						break;
+					}
+				}
+			}
+
+			//Check if all the predecessors were found
+			if (counter != predecessors.size()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
