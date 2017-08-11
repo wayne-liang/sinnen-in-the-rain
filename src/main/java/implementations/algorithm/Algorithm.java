@@ -64,11 +64,11 @@ public class Algorithm {
 						continue;
 					}
 
-					newProcessed.forEach(n -> {
-						System.out.printf(n.getNodeName() + n.getCore() + " ");
-					});
-
-					System.out.println();
+//					newProcessed.forEach(n -> {
+//						System.out.printf(n.getNodeName() + n.getCore() + " ");
+//					});
+//
+//					System.out.println();
 
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
@@ -100,6 +100,11 @@ public class Algorithm {
 			//Get the currentNode's predecessors
 			Node currentNode = _dag.getNodeByName(schedule.get(i).getNodeName());
 			List<Node> predecessors = currentNode.getPredecessors();
+
+            //If there are no predecessors, continue
+            if (predecessors.size() == 0) {
+                continue;
+            }
 
 			//Loop through the previous nodes in the schedule and count when a predecessor is found
 			int counter = 0;
