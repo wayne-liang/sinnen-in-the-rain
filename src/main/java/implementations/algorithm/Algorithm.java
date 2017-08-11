@@ -1,11 +1,14 @@
 package implementations.algorithm;
 
+import implementations.NodeScheduleImp;
 import implementations.SchedulerTime;
 import interfaces.DAG;
 import interfaces.Node;
+import interfaces.NodeSchedule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -14,12 +17,14 @@ import java.util.List;
 public class Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
+	private HashMap<String, NodeSchedule> _currentBestSchedule;
 
 	private int _bestTime = Integer.MAX_VALUE;
 
 	public Algorithm(DAG dag, int numberOfCores) {
 		_dag = dag;
 		_numberOfCores = numberOfCores;
+		_currentBestSchedule = new HashMap<>();
 
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(_dag.getAllNodes()));
 	}
@@ -35,7 +40,7 @@ public class Algorithm {
 		if (remainingNodes.size() == 0) {
 			SchedulerTime st = calculateTotalTime(processed);
 			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
-
+				setNewBestSchedule(st);
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -67,6 +72,15 @@ public class Algorithm {
 					recursiveScheduleGeneration(newProcessed, newRemaining);
 				}
 			}
+		}
+	}
+
+	private void setNewBestSchedule(SchedulerTime st) {
+		for (int i = 0; i < st.getSizeOfScheduler(); i++) {
+			NodeSchedule nodeSchedule = new NodeScheduleImp(st.getNodeStartTime(i), st.getNodeCore(i));
+			_currentBestSchedule.put(st.getNodeName(i), nodeSchedule);
+
+			//TODO fireUpdates to visualisation
 		}
 	}
 
