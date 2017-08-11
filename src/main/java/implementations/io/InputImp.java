@@ -71,7 +71,7 @@ public class InputImp implements Input {
 				
 				//Processing the name (index 1)
 				lineArray[0] = lineArray[0].trim();				
-				if (lineArray[0].length() == 1) {
+				if (!lineArray[0].contains("->")) {
 					//Do nothing (single node already)
 				}
 				else { //For an arc
