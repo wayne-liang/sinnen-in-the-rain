@@ -29,6 +29,10 @@ public class Algorithm {
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithimNode(_dag.getAllNodes()));
 	}
 
+	public HashMap<String, NodeSchedule> getCurrentBestSchedule() {
+		return _currentBestSchedule;
+	}
+
 	/**
 	 * This method recursively generates all possible schedules given a list of nodes.
 	 *
