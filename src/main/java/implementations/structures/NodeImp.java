@@ -1,9 +1,8 @@
-package implementations;
+package implementations.structures;
 
-import interfaces.Arc;
-import interfaces.Node;
+import interfaces.structures.Arc;
+import interfaces.structures.Node;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;

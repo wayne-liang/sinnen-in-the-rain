@@ -1,7 +1,7 @@
 package dummyClasses;
 
-import interfaces.Arc;
-import interfaces.Node;
+import interfaces.structures.Arc;
+import interfaces.structures.Node;
 
 import java.util.List;
 

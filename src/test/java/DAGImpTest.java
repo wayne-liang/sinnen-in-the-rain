@@ -1,12 +1,12 @@
 import dummyClasses.DummyNode;
-import implementations.DAGImp;
-import interfaces.Node;
+import implementations.structures.DAGImp;
+import interfaces.structures.Node;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * This is a test suite for the DAGImp class.

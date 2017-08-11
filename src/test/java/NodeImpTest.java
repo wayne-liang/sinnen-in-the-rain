@@ -1,7 +1,7 @@
-import implementations.ArcImpl;
-import implementations.NodeImp;
-import interfaces.Arc;
-import interfaces.Node;
+import implementations.structures.ArcImpl;
+import implementations.structures.NodeImp;
+import interfaces.structures.Arc;
+import interfaces.structures.Node;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

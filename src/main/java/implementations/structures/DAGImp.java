@@ -1,7 +1,7 @@
-package implementations;
+package implementations.structures;
 
-import interfaces.DAG;
-import interfaces.Node;
+import interfaces.structures.DAG;
+import interfaces.structures.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
