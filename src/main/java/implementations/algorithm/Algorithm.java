@@ -231,4 +231,8 @@ public class Algorithm {
 
 		return -1;
 	}
+
+	public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {
+		return checkValidSchedule(s1);
+	}
 }
