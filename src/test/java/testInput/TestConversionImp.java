@@ -1,7 +1,7 @@
 package testInput;
 
 import implementations.ConversionImp;
-import implementations.input.InputImp;
+import implementations.io.InputImp;
 import interfaces.Node;
 import org.junit.Before;
 import org.junit.Test;

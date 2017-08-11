@@ -1,8 +1,8 @@
 package implementations;
 
-import java.util.List;
-
 import implementations.algorithm.AlgorithmNode;
+
+import java.util.List;
 
 /**
  * This class represents the time taken for a particular scheduler
