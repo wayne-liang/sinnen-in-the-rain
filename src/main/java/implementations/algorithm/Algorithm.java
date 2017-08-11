@@ -64,11 +64,11 @@ public class Algorithm {
 						continue;
 					}
 
-					newProcessed.forEach(n -> {
-						System.out.printf(n.getNodeName() + n.getCore() + " ");
-					});
-
-					System.out.println();
+//					newProcessed.forEach(n -> {
+//						System.out.printf(n.getNodeName() + n.getCore() + " ");
+//					});
+//
+//					System.out.println();
 
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
