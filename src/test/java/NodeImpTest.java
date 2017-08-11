@@ -1,16 +1,12 @@
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import implementations.ArcImpl;
 import implementations.NodeImp;
 import interfaces.Arc;
 import interfaces.Node;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * JUnit class to test the Node implementation class
@@ -79,11 +75,9 @@ public class NodeImpTest {
 	@Test
 	public void testPredecessors(){
 		assertTrue(nodeA.getPredecessors().isEmpty());
-		
-		List<Node> predD = new ArrayList<Node>();
-		predD.add(nodeB);
-		predD.add(nodeC);
-		assertTrue(nodeD.getPredecessors().equals(predD));
+
+		assertTrue(nodeD.getPredecessors().contains(nodeB));
+		assertTrue(nodeD.getPredecessors().contains(nodeC));
 	}
 	
 	/**
@@ -92,11 +86,9 @@ public class NodeImpTest {
 	@Test
 	public void testSuccessors(){
 		assertTrue(nodeD.getSuccessors().isEmpty());
-		
-		List<Node> succA = new ArrayList<Node>();
-		succA.add(nodeB);
-		succA.add(nodeC);
-		assertTrue(nodeA.getSuccessors().equals(succA));
+
+		assertTrue(nodeA.getSuccessors().contains(nodeB));
+		assertTrue(nodeA.getSuccessors().contains(nodeC));
 	}
 	
 	
