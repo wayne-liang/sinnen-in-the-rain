@@ -53,7 +53,7 @@ public class Output {
 				
 				//Processing the name (index 1)
 				lineArray[0] = lineArray[0].trim();				
-				if (lineArray[0].length() == 1) {//For a node
+				if (!lineArray[0].contains("->")) {//For a node
 					String nameOfNode = lineArray[0].trim();
 					NodeSchedule ns = _bestSchedule.get(nameOfNode);
 					
