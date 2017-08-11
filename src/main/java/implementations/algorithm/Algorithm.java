@@ -101,6 +101,11 @@ public class Algorithm {
 			Node currentNode = _dag.getNodeByName(schedule.get(i).getNodeName());
 			List<Node> predecessors = currentNode.getPredecessors();
 
+            //If there are no predecessors, continue
+            if (predecessors.size() == 0) {
+                continue;
+            }
+
 			//Loop through the previous nodes in the schedule and count when a predecessor is found
 			int counter = 0;
 			for (int j = i - 1; j >= 0; j--) {
