@@ -173,9 +173,13 @@ public class Algorithm {
 	 */
 	private void setTimeForSchedulerTime(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, SchedulerTime st) {
 		int totalTime = 0;
-		for (int i = 0; i < _numberOfCores; i++) {
-			AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i);
-			int timeTaken = st.getNodeStartTime(algNodes.indexOf(latestAlgNode)) + _dag.getNodeByName(latestAlgNode.getNodeName()).getWeight();
+		for (int i = 1; i <= _numberOfCores; i++) {
+			AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
+
+			int timeTaken = 0;
+			if (latestAlgNode != null) {
+				timeTaken = st.getNodeStartTime(algNodes.indexOf(latestAlgNode)) + _dag.getNodeByName(latestAlgNode.getNodeName()).getWeight();
+			}
 
 			if (timeTaken > totalTime) {
 				totalTime = timeTaken;
