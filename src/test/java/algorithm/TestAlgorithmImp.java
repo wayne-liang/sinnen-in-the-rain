@@ -1,12 +1,12 @@
 package algorithm;
 
 import implementations.ConversionImp;
-import implementations.SchedulerTime;
-import implementations.algorithm.Algorithm;
-import implementations.algorithm.AlgorithmNode;
+import implementations.algorithm.AlgorithmImp;
+import implementations.algorithm.AlgorithmNodeImp;
 import implementations.io.InputImp;
+import implementations.structures.SchedulerTimeImp;
 import interfaces.Conversion;
-import interfaces.Input;
+import interfaces.io.Input;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -16,19 +16,19 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-public class TestAlgorithm {
+public class TestAlgorithmImp {
 	public static final String EXAMPLE_FILE = "test.dot";
 	public static final String EXAMPLE_ISOLATED_NODE = "test2.dot";
 
 //	@Test
 //	public void testGenerateSchedule() {
-//		Algorithm alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-//		List<List<AlgorithmNode>> schedules = alg.getSchedules();
+//		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+//		List<List<AlgorithmNodeImp>> schedules = alg.getSchedules();
 //
 //		assertEquals(384, schedules.size());
 //
 //		StringBuilder sb = new StringBuilder();
-//		for (AlgorithmNode node : schedules.get(0)) {
+//		for (AlgorithmNodeImp node : schedules.get(0)) {
 //			sb.append(node.getNodeName() + node.getCore() + " ");
 //		}
 //
@@ -41,7 +41,7 @@ public class TestAlgorithm {
 	 */
 	@Test
 	public void testInvalidSchedule1() {
-		Algorithm alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
 
 		//one assert is one invalid schedule
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"b"})));
@@ -63,11 +63,11 @@ public class TestAlgorithm {
 	 */
 	@Test
 	public void testValidSchedule1() {
-		Algorithm alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-		List<AlgorithmNode> schedule1 = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		List<AlgorithmNodeImp> schedule1 = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule1));
 		setCoreForAlgorithmNodes(schedule1, new int[] {2, 2, 1, 1});
-		SchedulerTime st = alg.calculateTotalTimeWrapper(schedule1);
+		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule1);
 		assertEquals(st.getTotalTime(), 9);
 		assertEquals(st.getNodeStartTime(0), 0);
 		assertEquals(st.getNodeStartTime(1), 2);
@@ -84,10 +84,10 @@ public class TestAlgorithm {
 	 * @param names
 	 * @return
 	 */
-	private List<AlgorithmNode> generateAlgorithmNodes(String[] names){
-		List<AlgorithmNode> nodes = new ArrayList<AlgorithmNode>();
+	private List<AlgorithmNodeImp> generateAlgorithmNodes(String[] names) {
+		List<AlgorithmNodeImp> nodes = new ArrayList<AlgorithmNodeImp>();
 		for(String name : names){
-			AlgorithmNode algNode = new AlgorithmNode(name);
+			AlgorithmNodeImp algNode = new AlgorithmNodeImp(name);
 			nodes.add(algNode);
 		}
 
@@ -100,7 +100,7 @@ public class TestAlgorithm {
 	 * @param core
 	 * @return
 	 */
-	private void setCoreForAlgorithmNodes(List<AlgorithmNode> nodes, int[] cores){
+	private void setCoreForAlgorithmNodes(List<AlgorithmNodeImp> nodes, int[] cores) {
 		int[] index = {0}; //only one element. (int index won't work for lambda...)
 		nodes.forEach(n -> {
 			n.setCore(cores[index[0]]);
@@ -115,9 +115,9 @@ public class TestAlgorithm {
 	 * @param path : path of the graph .dot file.
 	 * @param core : number of cores.
 	 */
-	private Algorithm computeAlgorithmFromInput (String path, String core){
+	private AlgorithmImp computeAlgorithmFromInput(String path, String core) {
 		Input input = new InputImp(path, core);
 		Conversion conversion = new ConversionImp(input);
-		return new Algorithm(conversion.getDAG(), input.getProcessorCount());
+		return new AlgorithmImp(conversion.getDAG(), input.getProcessorCount());
 	}
 }

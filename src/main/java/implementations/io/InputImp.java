@@ -1,12 +1,12 @@
 package implementations.io;
 
+import interfaces.io.Input;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
-import interfaces.Input;
 
 /**
  * This class is in the module responsible for taking input files and 

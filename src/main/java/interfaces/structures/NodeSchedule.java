@@ -1,4 +1,4 @@
-package interfaces;
+package interfaces.structures;
 
 /**
  * This interface represents the concept of a scheduler.

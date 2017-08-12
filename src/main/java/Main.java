@@ -1,9 +1,10 @@
 import implementations.ConversionImp;
-import implementations.algorithm.Algorithm;
+import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
 import interfaces.Conversion;
-import interfaces.DAG;
-import interfaces.Input;
+import interfaces.algorithm.Algorithm;
+import interfaces.io.Input;
+import interfaces.structures.DAG;
 
 public class Main {
 	public static void Main(String args[]) {
@@ -12,6 +13,6 @@ public class Main {
 
 		DAG dag = conversion.getDAG();
 
-		Algorithm alg = new Algorithm(dag, input.getProcessorCount());
+		Algorithm alg = new AlgorithmImp(dag, input.getProcessorCount());
 	}
 }

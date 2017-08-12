@@ -1,23 +1,24 @@
 package implementations.io;
 
+import interfaces.io.Output;
+import interfaces.structures.NodeSchedule;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 
-import interfaces.NodeSchedule;
-
-public class Output {
+public class OutputImp implements Output {
 	private HashMap<String, NodeSchedule> _bestSchedule;
 	private String _inputPath;
 	private String _outputPath;
 	public final static String NEWLINE = System.getProperty("line.separator");
-	
-	public Output (HashMap<String, NodeSchedule> bestSchedule, String inputPath) {
+
+	public OutputImp(HashMap<String, NodeSchedule> bestSchedule, String inputPath) {
 		this (bestSchedule, inputPath, null);
 	}
-	
-	public Output (HashMap<String, NodeSchedule> bestSchedule, String inputPath, String outputPath) {
+
+	public OutputImp(HashMap<String, NodeSchedule> bestSchedule, String inputPath, String outputPath) {
 		_bestSchedule = bestSchedule;
 		_inputPath = inputPath;
 		_outputPath = outputPath;
