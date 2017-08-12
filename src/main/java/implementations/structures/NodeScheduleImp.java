@@ -1,6 +1,6 @@
-package implementations;
+package implementations.structures;
 
-import interfaces.NodeSchedule;
+import interfaces.structures.NodeSchedule;
 
 /**
  * This class represent a scheduler object.

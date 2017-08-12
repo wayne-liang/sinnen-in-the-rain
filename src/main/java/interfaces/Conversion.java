@@ -1,5 +1,7 @@
 package interfaces;
 
+import interfaces.structures.DAG;
+
 public interface Conversion {
 	/**
 	 * Converts raw input data into DAG object

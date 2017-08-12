@@ -1,9 +1,13 @@
 package implementations;
 
-import implementations.ArcImpl;
-import implementations.NodeImp;
-import implementations.DAGImp;
-import interfaces.*;
+import implementations.structures.ArcImpl;
+import implementations.structures.DAGImp;
+import implementations.structures.NodeImp;
+import interfaces.Conversion;
+import interfaces.io.Input;
+import interfaces.structures.Arc;
+import interfaces.structures.DAG;
+import interfaces.structures.Node;
 
 import java.util.HashMap;
 import java.util.List;
