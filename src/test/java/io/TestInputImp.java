@@ -1,7 +1,7 @@
-package testInput;
+package io;
 
-import implementations.input.InputImp;
-import interfaces.Input;
+import implementations.io.InputImp;
+import interfaces.io.Input;
 import org.junit.Test;
 
 import java.util.List;

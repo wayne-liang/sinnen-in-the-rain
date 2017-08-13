@@ -1,8 +1,8 @@
-package testInput;
+package io;
 
 import implementations.ConversionImp;
-import implementations.input.InputImp;
-import interfaces.Node;
+import implementations.io.InputImp;
+import interfaces.structures.Node;
 import org.junit.Before;
 import org.junit.Test;
 

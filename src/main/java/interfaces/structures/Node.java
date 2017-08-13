@@ -1,4 +1,4 @@
-package interfaces;
+package interfaces.structures;
 
 
 import java.util.List;
