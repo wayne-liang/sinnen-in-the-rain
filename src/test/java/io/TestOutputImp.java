@@ -32,5 +32,4 @@ public class TestOutputImp {
 		outputImp.printOutput();
 	}
 
-
 }
