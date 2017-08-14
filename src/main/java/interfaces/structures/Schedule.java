@@ -4,7 +4,7 @@ import implementations.algorithm.AlgorithmNodeImp;
 
 import java.util.List;
 
-public interface SchedulerTime {
+public interface Schedule {
     void setStartTimeForNode(int startTime, int index);
 
     @Deprecated
@@ -13,7 +13,7 @@ public interface SchedulerTime {
     @Deprecated
     int[] getstartTimeForNodes();
 
-    int getSizeOfScheduler();
+    int getSizeOfSchedule();
 
     String getNodeName(int index);
 
