@@ -14,7 +14,7 @@ SOFTENG306 Project One
 | --- | --- | --- | --- |
 | dan-wong | Daniel Wong | 137178800 | dwon184 |
 | victorlian | Victor Lian | 442213705 | vlia679 |
-| TacticalSandwich | Wayne Liang | 399652431 | dau782 |
+| TacticalSandwich | Wayne Liang | 780611815 | wlia631 |
 | pulkitkalra | Pulkit Kalra | ? | ? |
-| dariusau | Darius Au | ? | ? |
+| dariusau | Darius Au | 399652431 | dau782 |
 | st970703 | Mike Lee | ? | ? |
