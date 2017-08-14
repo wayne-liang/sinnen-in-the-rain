@@ -9,3 +9,12 @@ SOFTENG306 Project One
 * Darius Au
 * Mike Lee
 
+## Git Name Service (GNS)
+| Github Username | Full Name | ID | UPI |
+| --- | --- | --- | --- |
+| dan-wong | Daniel Wong | ? | ? |
+| victorlian | Victor Lian | 442213705 | vlia679 |
+| TacticalSandwich | Wayne Liang | ? | ? |
+| pulkitkalra | Pulkit Kalra | ? | ? |
+| dariusau | Darius Au | ? | ? |
+| st970703 | Mike Lee | ? | ? |
