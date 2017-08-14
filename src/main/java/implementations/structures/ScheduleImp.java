@@ -1,7 +1,7 @@
 package implementations.structures;
 
 import implementations.algorithm.AlgorithmNodeImp;
-import interfaces.structures.SchedulerTime;
+import interfaces.structures.Schedule;
 
 import java.util.List;
 
@@ -20,13 +20,13 @@ import java.util.List;
  * @author Victor
  *
  */
-public class SchedulerTimeImp implements SchedulerTime {
+public class ScheduleImp implements Schedule {
 	private List<AlgorithmNodeImp> _algNodes;
 	//The index for this field should match the index for the list of nodes.
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
 
-	public SchedulerTimeImp(List<AlgorithmNodeImp> algNodes) {
+	public ScheduleImp(List<AlgorithmNodeImp> algNodes) {
 		_algNodes = algNodes;
 		_startTimeForNode = new int[_algNodes.size()];
 	}
@@ -58,7 +58,7 @@ public class SchedulerTimeImp implements SchedulerTime {
 	 * @return
 	 */
 	@Override
-	public int getSizeOfScheduler() {
+	public int getSizeOfSchedule() {
 		return _algNodes.size();
 	}
 	
