@@ -12,9 +12,9 @@ SOFTENG306 Project One
 ## Git Name Service (GNS)
 | Github Username | Full Name | ID | UPI |
 | --- | --- | --- | --- |
-| dan-wong | Daniel Wong | ? | ? |
+| dan-wong | Daniel Wong | 137178800 | dwon184 |
 | victorlian | Victor Lian | 442213705 | vlia679 |
-| TacticalSandwich | Wayne Liang | ? | ? |
+| TacticalSandwich | Wayne Liang | 399652431 | dau782 |
 | pulkitkalra | Pulkit Kalra | ? | ? |
 | dariusau | Darius Au | ? | ? |
 | st970703 | Mike Lee | ? | ? |
