@@ -45,7 +45,7 @@ public class GraphStreamView extends JFrame implements GraphView {
 	private static Graph _GRAPH;
 	
 	public static void main(String[] args){
-			Input input = new InputImp("testFiles/Nodes_11_OutTree.dot", "2");
+			Input input = new InputImp("testMultipleInputs.dot", "2");
 			Conversion conversion = new ConversionImp(input);
 
 			DAG dag = conversion.getDAG();
@@ -139,6 +139,8 @@ public class GraphStreamView extends JFrame implements GraphView {
 		        + "     fill-color: black;"
 		        + "}");
 		
+		int count = 0;
+		
 		//Loop through all nodes
 		for (interfaces.structures.Node currentNode : nodes){
 			Node graphNode = _GRAPH.addNode(currentNode.getName());
@@ -151,10 +153,18 @@ public class GraphStreamView extends JFrame implements GraphView {
 			
 			graphNode.setAttribute("ui.label", currentNode.getName());
 			
+			
 			//Setting it to top of graph - needs editing with multiple start points
-			if (currentNode.getName().equals("a")){
+			if (_dag.getStartNodes().contains(currentNode)){
+				count++;
 				graphNode.addAttribute("layout.frozen");
-				graphNode.setAttribute("xy", 0, 1000);
+				
+				if (currentNode.getName().equals("a")){
+				graphNode.setAttribute("xy", -1, 100);
+				} else {
+					graphNode.setAttribute("xy",1,100);
+				}
+				
 			}
 		}
 		
