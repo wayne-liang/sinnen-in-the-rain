@@ -3,6 +3,7 @@ package testVisualisation;
 import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
+import implementations.io.OutputImp;
 import interfaces.Conversion;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
@@ -20,6 +21,24 @@ public class VisualMain {
 
 		AlgorithmImp alg = new AlgorithmImp(dag, input.getProcessorCount());
 		TableModel _schedule = new TableModel(alg,dag,input.getProcessorCount());
+		
+		OutputImp outputImp = new OutputImp(alg.getCurrentBestSchedule(), args[0]);
+		outputImp.printOutput();
 		GraphView schedule = new GraphViewImp(_schedule);
+		/*try        
+		{
+		    Thread.sleep(2000);
+		} 
+		catch(InterruptedException ex) 
+		{
+		    Thread.currentThread().interrupt();
+		}
+		String[][] newdata = { { "0", "A", "" },
+				{ "1", "A", "" },
+				{ "2", "B", "" },
+				{ "3", "B", "" },
+				{ "4", "", "C" } };
+		_schedule.changeData(newdata);
+		_schedule.fireTableDataChanged();*/
 	}
 }

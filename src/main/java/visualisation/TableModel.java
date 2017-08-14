@@ -50,8 +50,9 @@ public class TableModel extends AbstractTableModel {
 		// Initializing array with time values and empty strings.
 		for (int i =0; i < _bestTime;i++){
 			data[i][0] = (i + 1) + "";
-			data[i][1] = "";
-			data[i][2] = "";
+			for (int j = 1; j < _cores+1;j++){
+				data[i][j] = "";
+			}
 		}
 		
 		for (Entry<String, NodeSchedule> entry : map.entrySet()) {
