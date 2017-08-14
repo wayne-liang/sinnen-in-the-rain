@@ -6,11 +6,13 @@ import interfaces.structures.SchedulerTime;
 import java.util.List;
 
 /**
- * This class represents the time taken for a particular scheduler
- * to run.
+ * This class represents the abstraction of a schedule (or a partial schedule)
+ * A schedule contains an ordered list of nodes together with an assigned core. 
+ * (This is known as AlgorithmNode).
  * 
- * It contains the starting time for each node,
- * as well as the total running time.
+ * Schedule also contains the starting time for each node,
+ * as well as the total running time for the entire schedule. 
+ * (These time are computed and set using setters.)
  * 
  * An object of this class should be returned when the time for
  * a scheduler (or a partial scheduler) is calculated.

@@ -10,12 +10,32 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * This class takes the result from the algorithm module, and 
+ * prints this output to a .dot file.
+ * 
+ * The output file follows the exact format (and order) as the input file 
+ * by reading from the input line-by-line and appending information if necessary. 
+ * 
+ * The user can specify a name for the output .dot file through the commandline
+ * argument. If this is not provided, the default name is to append "_schedule" 
+ * to the end of the input file name.
+ * 
+ * @author Victor
+ *
+ */
 public class OutputImp implements Output {
 	private HashMap<String, NodeSchedule> _bestSchedule;
 	private String _inputPath;
 	private String _outputPath;
+	public final static String DEFAULT_OUT = "_schedule.dot"; 
 	public final static String NEWLINE = System.getProperty("line.separator");
 
+	/**
+	 * The best schedule hash map should come from the result of running the algorithm.
+	 * @param bestSchedule
+	 * @param inputPath
+	 */
 	public OutputImp(HashMap<String, NodeSchedule> bestSchedule, String inputPath) {
 		this (bestSchedule, inputPath, null);
 	}
@@ -32,7 +52,7 @@ public class OutputImp implements Output {
 
 	public void outputToFile() {
 		String output = generateStringOutput();
-		String outputPath = _inputPath.substring(0, _inputPath.length() - 4) + "_schedule.dot";
+		String outputPath = _inputPath.substring(0, _inputPath.length() - 4) + DEFAULT_OUT;
 		try {
 			PrintWriter writer = new PrintWriter(outputPath, "UTF-8");
 			writer.println(output);
