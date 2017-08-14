@@ -15,7 +15,7 @@ import java.util.List;
  * (These time are computed and set using setters.)
  * 
  * An object of this class should be returned when the time for
- * a scheduler (or a partial scheduler) is calculated.
+ * a schedule (or a partial schedule) is calculated.
  *  
  * @author Victor
  *
