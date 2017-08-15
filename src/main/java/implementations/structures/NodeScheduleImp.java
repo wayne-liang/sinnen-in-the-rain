@@ -3,11 +3,12 @@ package implementations.structures;
 import interfaces.structures.NodeSchedule;
 
 /**
- * This class represent a scheduler object.
- * An scheduler object is always tied to a node.
- * <p>
- * It stores information on the current and best
- * start time and processor number.
+ * This class represent a node scheduler object.
+ * (That is, when a node should start to execute and on which core)
+ * 
+ * Whenever a new best schedule is found, objects of this class
+ * will be created in the algorithm class, and stored into a hashmap 
+ * of Node / NodeSchedule. 
  *
  * @author Victor
  */
