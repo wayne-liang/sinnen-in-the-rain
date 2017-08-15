@@ -73,6 +73,13 @@ public class AlgorithmImp implements Algorithm {
                     newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
+                    /*
+					 * Heuristic #1 - If this is the first node in the list, assigning it to different cores is unnecessary
+					 * e.g. a0 etc. is the same as a1 etc.
+					 */
+                    if (processed.size() == 0) {
+                        break;
+                    }
 				}
 			}
 		}
