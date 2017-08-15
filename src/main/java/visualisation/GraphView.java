@@ -17,6 +17,9 @@ public interface GraphView {
 	// We don't need a model!
 	//Adds an ActionListener - the controller of the MVC structure
 	public void addButtonListener(ActionListener listener);
-
+	
+	//Gets the table - the model of the MVC structure
+	public JTable getTable();
+	
 
 }
