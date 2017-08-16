@@ -1,5 +1,5 @@
-import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
+import implementations.io.ConversionImp;
 import implementations.io.InputImp;
 import interfaces.Conversion;
 import interfaces.structures.DAG;
