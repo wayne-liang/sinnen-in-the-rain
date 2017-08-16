@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * This class is in the module responsible for taking input files and 
- * do some basic pre-processing.
+ * This class is in the module responsible for reading from the 
+ * input file and do some basic pre-processing.
  *  
  * It will implement the Input interface for the conversion module to
  * convert the input into a DAG.
+ * 
+ * The pre-processed information is then passed on to a conversion module 
+ * to convert to internal data structure.
  * @author Victor
  *
  */

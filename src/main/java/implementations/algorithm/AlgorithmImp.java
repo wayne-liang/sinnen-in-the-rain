@@ -1,7 +1,7 @@
 package implementations.algorithm;
 
 import implementations.structures.NodeScheduleImp;
-import implementations.structures.SchedulerTimeImp;
+import implementations.structures.ScheduleImp;
 import interfaces.algorithm.Algorithm;
 import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
@@ -20,6 +20,7 @@ public class AlgorithmImp implements Algorithm {
     private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
+	private int _recursiveCalls = 0; //For benchmarking purposes only
 
 	private int _bestTime = Integer.MAX_VALUE;
 
@@ -32,30 +33,41 @@ public class AlgorithmImp implements Algorithm {
     }
 
 	/**
+	 * Purely for benchmarking purposes
+	 *
+	 * @return number of times the recursive method was called
+	 */
+	public int getRecursiveCalls() {
+		return _recursiveCalls;
+	}
+
+	/**
 	 * This method recursively generates all possible schedules given a list of nodes.
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 */
-    private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
-        //Base Case
+	private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
+		_recursiveCalls++;
+
+		//Base Case
 		if (remainingNodes.size() == 0) {
-            SchedulerTimeImp st = calculateTotalTime(processed);
-            if (st.getTotalTime() < _bestTime) { //Found a new best schedule
+			ScheduleImp st = calculateTotalTime(processed);
+			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
 				setNewBestSchedule(st);
 				_bestTime = st.getTotalTime();
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				for (int j = 1; j <= _numberOfCores; j++) {
-                    List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
-                    AlgorithmNodeImp node = remainingNodes.get(i).createClone();
-                    node.setCore(j);
+					List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
+					AlgorithmNodeImp node = remainingNodes.get(i).createClone();
+					node.setCore(j);
 					newProcessed.add(node);
 
 					if (checkValidSchedule(newProcessed)) {
-                        SchedulerTimeImp st = calculateTotalTime(newProcessed);
-                        //Bound if >= best time
+						ScheduleImp st = calculateTotalTime(newProcessed);
+						//Bound if >= best time
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
 						}
@@ -69,17 +81,24 @@ public class AlgorithmImp implements Algorithm {
 //
 //					System.out.println();
 
-                    List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
-                    newRemaining.remove(i);
+					List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
+					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
+                    /*
+					 * Heuristic #1 - If this is the first node in the list, assigning it to different cores is unnecessary
+					 * e.g. a0 etc. is the same as a1 etc.
+					 */
+					if (processed.size() == 0) {
+						break;
+					}
 				}
 			}
 		}
 	}
 
-    private void setNewBestSchedule(SchedulerTimeImp st) {
-        for (int i = 0; i < st.getSizeOfScheduler(); i++) {
+    private void setNewBestSchedule(ScheduleImp st) {
+        for (int i = 0; i < st.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(st.getNodeStartTime(i), st.getNodeCore(i));
 			_currentBestSchedule.put(st.getNodeName(i), nodeSchedule);
 
@@ -129,7 +148,7 @@ public class AlgorithmImp implements Algorithm {
      * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
      * @return - SchedulerTimeImp object with cost and execution time information
      */
-    private SchedulerTimeImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
+    private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
         //creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
 
@@ -143,7 +162,7 @@ public class AlgorithmImp implements Algorithm {
         List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
 
         //creating a SchedulerTimeImp object for holding the schedule start times for each node
-        SchedulerTimeImp st = new SchedulerTimeImp(algNodes);
+        ScheduleImp st = new ScheduleImp(algNodes);
 
 		//looping through all the AlgorithmNodes to set startTimes
         for (AlgorithmNodeImp currentAlgNode : algNodes) {
@@ -193,7 +212,7 @@ public class AlgorithmImp implements Algorithm {
      * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code SchedulerTimeImp} object
      * @param st - {@code SchedulerTimeImp} object to set the total time of
      */
-    private void setTimeForSchedulerTime(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, SchedulerTimeImp st) {
+    private void setTimeForSchedulerTime(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
         int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
             AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
@@ -242,7 +261,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes
 	 * @return
 	 */
-    public SchedulerTimeImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
+    public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
         return calculateTotalTime(algNodes);
 	}
 

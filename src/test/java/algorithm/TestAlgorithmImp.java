@@ -4,7 +4,7 @@ import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.algorithm.AlgorithmNodeImp;
 import implementations.io.InputImp;
-import implementations.structures.SchedulerTimeImp;
+import implementations.structures.ScheduleImp;
 import interfaces.Conversion;
 import interfaces.io.Input;
 import org.junit.Test;
@@ -73,7 +73,7 @@ public class TestAlgorithmImp {
 		List<AlgorithmNodeImp> schedule1 = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule1));
 		setCoreForAlgorithmNodes(schedule1, new int[] {2, 2, 1, 1});
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule1);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule1);
 		assertEquals(st.getTotalTime(), 9);
 
 		alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
@@ -98,7 +98,7 @@ public class TestAlgorithmImp {
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		setCoreForAlgorithmNodes(schedule, new int[] {2});
 
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(st.getTotalTime(), 2);
 		assertEquals(st.getNodeStartTime(0), 0);
 	}
@@ -110,7 +110,7 @@ public class TestAlgorithmImp {
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1});
 		
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(10, st.getTotalTime());
 		
 		int [] expectedResults = new int[] {0, 2, 5, 8};
@@ -157,7 +157,7 @@ public class TestAlgorithmImp {
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 1});
 
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(14, st.getTotalTime());
 
 		int [] expectedResults = new int[] {0, 4, 6, 9, 12};
@@ -168,7 +168,7 @@ public class TestAlgorithmImp {
 		//2
 		setCoreForAlgorithmNodes(schedule, new int[] {2, 1, 1, 1, 1});
 
-		SchedulerTimeImp st2 = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st2 = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(10, st2.getTotalTime());
 
 		int [] expectedResults2 = new int[] {0, 0, 2, 5, 8};
@@ -179,7 +179,7 @@ public class TestAlgorithmImp {
 		//3
 		setCoreForAlgorithmNodes(schedule, new int[] {2, 1, 1, 2, 2});
 
-		SchedulerTimeImp st3 = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st3 = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(9, st3.getTotalTime());
 
 		int [] expectedResults3 = new int[] {0, 0, 2, 4, 7};
@@ -190,7 +190,7 @@ public class TestAlgorithmImp {
 		//4
 		setCoreForAlgorithmNodes(schedule, new int[] {2, 1, 1, 2, 1});
 
-		SchedulerTimeImp st4 = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st4 = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(10, st4.getTotalTime());
 
 		int [] expectedResults4 = new int[] {0, 0, 2, 4, 8};
@@ -207,7 +207,7 @@ public class TestAlgorithmImp {
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 1});
 
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(14, st.getTotalTime());
 
 		int [] expectedResults = new int[] {0, 2, 6, 9, 12};
@@ -224,7 +224,7 @@ public class TestAlgorithmImp {
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 2, 1});
 
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(6, st.getTotalTime());
 
 		int [] expectedResults = new int[] {0, 3, 2};
@@ -235,7 +235,7 @@ public class TestAlgorithmImp {
 		//2
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 2});
 
-		SchedulerTimeImp st2 = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st2 = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(5, st2.getTotalTime());
 
 		int [] expectedResults2 = new int[] {0, 2, 0};
@@ -252,7 +252,7 @@ public class TestAlgorithmImp {
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 2});
 
-		SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(10, st.getTotalTime());
 
 		int [] expectedResults = new int[] {0, 2, 5, 8, 0};
@@ -263,7 +263,7 @@ public class TestAlgorithmImp {
 		//2
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 2, 1, 1, 2});
 
-        SchedulerTimeImp st2 = alg.calculateTotalTimeWrapper(schedule);
+        ScheduleImp st2 = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(10, st.getTotalTime());
 
 		int [] expectedResults2 = new int[] {0, 3, 2, 5, 6};
@@ -280,7 +280,7 @@ public class TestAlgorithmImp {
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {2});
 
-        SchedulerTimeImp st = alg.calculateTotalTimeWrapper(schedule);
+        ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
 		assertEquals(4, st.getTotalTime());
 
 		int [] expectedResults = new int[] {0};

@@ -1,30 +1,32 @@
 package implementations.structures;
 
 import implementations.algorithm.AlgorithmNodeImp;
-import interfaces.structures.SchedulerTime;
+import interfaces.structures.Schedule;
 
 import java.util.List;
 
 /**
- * This class represents the time taken for a particular scheduler
- * to run.
+ * This class represents the abstraction of a schedule (or a partial schedule)
+ * A schedule contains an ordered list of nodes together with an assigned core. 
+ * (This is known as AlgorithmNode).
  * 
- * It contains the starting time for each node,
- * as well as the total running time.
+ * Schedule also contains the starting time for each node,
+ * as well as the total running time for the entire schedule. 
+ * (These time are computed and set using setters.)
  * 
  * An object of this class should be returned when the time for
- * a scheduler (or a partial scheduler) is calculated.
+ * a schedule (or a partial schedule) is calculated.
  *  
  * @author Victor
  *
  */
-public class SchedulerTimeImp implements SchedulerTime {
+public class ScheduleImp implements Schedule {
 	private List<AlgorithmNodeImp> _algNodes;
 	//The index for this field should match the index for the list of nodes.
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
 
-	public SchedulerTimeImp(List<AlgorithmNodeImp> algNodes) {
+	public ScheduleImp(List<AlgorithmNodeImp> algNodes) {
 		_algNodes = algNodes;
 		_startTimeForNode = new int[_algNodes.size()];
 	}
@@ -56,7 +58,7 @@ public class SchedulerTimeImp implements SchedulerTime {
 	 * @return
 	 */
 	@Override
-	public int getSizeOfScheduler() {
+	public int getSizeOfSchedule() {
 		return _algNodes.size();
 	}
 	
