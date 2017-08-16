@@ -1,7 +1,7 @@
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.ConversionImp;
 import implementations.io.InputImp;
-import interfaces.Conversion;
+import interfaces.io.Conversion;
 import interfaces.structures.DAG;
 import org.junit.Test;
 
