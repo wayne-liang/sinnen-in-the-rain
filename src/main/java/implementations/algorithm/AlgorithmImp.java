@@ -98,11 +98,11 @@ public class AlgorithmImp implements Algorithm {
 					List<Integer> coresAssigned = newProcessed.stream()
 							.map(n -> n.getCore())
 							.collect(Collectors.toList());
-					List<Integer> coresWithOutDuplicate = coresAssigned.stream()
+					long noOfDistinctCores = coresAssigned.stream()
 							.distinct()
-							.collect(Collectors.toList());
+							.count();
 					
-					if (coresAssigned.size() == coresWithOutDuplicate.size()) {
+					if (coresAssigned.size() == noOfDistinctCores) {
 						break; //I.e. there is no duplicate.
 					}
 				}
