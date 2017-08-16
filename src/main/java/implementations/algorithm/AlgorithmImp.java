@@ -20,6 +20,7 @@ public class AlgorithmImp implements Algorithm {
     private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
+	private int _recursiveCalls = 0; //For benchmarking purposes only
 
 	private int _bestTime = Integer.MAX_VALUE;
 
@@ -32,30 +33,41 @@ public class AlgorithmImp implements Algorithm {
     }
 
 	/**
+	 * Purely for benchmarking purposes
+	 *
+	 * @return number of times the recursive method was called
+	 */
+	public int getRecursiveCalls() {
+		return _recursiveCalls;
+	}
+
+	/**
 	 * This method recursively generates all possible schedules given a list of nodes.
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 */
-    private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
-        //Base Case
+	private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
+		_recursiveCalls++;
+
+		//Base Case
 		if (remainingNodes.size() == 0) {
-            ScheduleImp st = calculateTotalTime(processed);
-            if (st.getTotalTime() < _bestTime) { //Found a new best schedule
+			ScheduleImp st = calculateTotalTime(processed);
+			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
 				setNewBestSchedule(st);
 				_bestTime = st.getTotalTime();
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				for (int j = 1; j <= _numberOfCores; j++) {
-                    List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
-                    AlgorithmNodeImp node = remainingNodes.get(i).createClone();
-                    node.setCore(j);
+					List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
+					AlgorithmNodeImp node = remainingNodes.get(i).createClone();
+					node.setCore(j);
 					newProcessed.add(node);
 
 					if (checkValidSchedule(newProcessed)) {
-                        ScheduleImp st = calculateTotalTime(newProcessed);
-                        //Bound if >= best time
+						ScheduleImp st = calculateTotalTime(newProcessed);
+						//Bound if >= best time
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
 						}
@@ -69,10 +81,17 @@ public class AlgorithmImp implements Algorithm {
 //
 //					System.out.println();
 
-                    List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
-                    newRemaining.remove(i);
+					List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
+					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
+                    /*
+					 * Heuristic #1 - If this is the first node in the list, assigning it to different cores is unnecessary
+					 * e.g. a0 etc. is the same as a1 etc.
+					 */
+					if (processed.size() == 0) {
+						break;
+					}
 				}
 			}
 		}
