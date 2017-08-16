@@ -1,7 +1,7 @@
 package io;
 
-import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
+import implementations.io.ConversionImp;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
 import interfaces.Conversion;
