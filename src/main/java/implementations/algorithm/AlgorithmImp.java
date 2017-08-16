@@ -67,12 +67,12 @@ public class AlgorithmImp implements Algorithm {
 
 					if (checkValidSchedule(newProcessed)) {
 						ScheduleImp st = calculateTotalTime(newProcessed);
-						//Bound if >= best time
+						//If current >= best time, bound by moving to the next processor.
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
 						}
-					} else {
-						continue;
+					} else { //Schedule is invalid, then bound by moving to next node.
+						break;
 					}
 
 //					newProcessed.forEach(n -> {
