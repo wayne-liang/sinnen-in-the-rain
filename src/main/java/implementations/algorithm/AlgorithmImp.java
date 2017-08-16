@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class implements the algorithm to solve the scheduling problem
@@ -86,11 +87,23 @@ public class AlgorithmImp implements Algorithm {
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
                     /*
-					 * Heuristic #1 - If this is the first node in the list, assigning it to different cores is unnecessary
-					 * e.g. a0 etc. is the same as a1 etc.
+					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
+					 * a2 ...)
+					 * Also, (a1 b2 ...) would have a symmetry with (a1 b3...)
+					 * 
+					 * Implementation logic: we can break if schedules has no repetition of 
+					 * cores, because assigning it to a different core always causes symmetry.
 					 */
-					if (processed.size() == 0) {
-						break;
+					
+					List<Integer> coresAssigned = newProcessed.stream()
+							.map(n -> n.getCore())
+							.collect(Collectors.toList());
+					List<Integer> coresWithOutDuplicate = coresAssigned.stream()
+							.distinct()
+							.collect(Collectors.toList());
+					
+					if (coresAssigned.size() == coresWithOutDuplicate.size()) {
+						break; //I.e. there is no duplicate.
 					}
 				}
 			}
