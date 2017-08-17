@@ -1,11 +1,11 @@
 package algorithm;
 
-import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.algorithm.AlgorithmNodeImp;
+import implementations.io.ConversionImp;
 import implementations.io.InputImp;
 import implementations.structures.ScheduleImp;
-import interfaces.Conversion;
+import interfaces.io.Conversion;
 import interfaces.io.Input;
 import org.junit.Test;
 
