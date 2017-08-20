@@ -8,10 +8,7 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +65,7 @@ public class AlgorithmImp implements Algorithm {
 
 					if (checkValidSchedule(newProcessed)) {
 						ScheduleImp st = calculateTotalTime(newProcessed);
+						
 						//If current >= best time, bound by moving to the next processor.
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
@@ -96,7 +94,7 @@ public class AlgorithmImp implements Algorithm {
 					 */
 					
 					List<Integer> coresAssigned = newProcessed.stream()
-							.map(n -> n.getCore())
+							.map(AlgorithmNodeImp::getCore)
 							.collect(Collectors.toList());
 					long noOfDistinctCores = coresAssigned.stream()
 							.distinct()
@@ -187,17 +185,18 @@ public class AlgorithmImp implements Algorithm {
 			int highestCost = 0;
 
 			//calculate the highest time delay caused by dependencies
-			for (Node node : currentNode.getPredecessors()) {
-				//calculating the maximum delay caused by this particular dependent node
-				int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
-				if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
-					//add on arc weight, since they're on different cores
-					cost += currentNode.getInArc(node).getWeight();
-				}
+			try {
+				highestCost = currentNode.getPredecessors().stream().map(node -> {
+					int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
+					if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
+						//add on arc weight, since they're on different cores
+						cost += currentNode.getInArc(node).getWeight();
+					}
 
-				if (cost > highestCost) {
-					highestCost = cost;
-				}
+					return cost;
+				}).max(Comparator.naturalOrder()).get();
+			} catch (NoSuchElementException e) {
+				//Means there are no predecessors, highestCost stays 0
 			}
 
 			//calculate the time delay caused by previous processes on the same core
@@ -254,13 +253,11 @@ public class AlgorithmImp implements Algorithm {
 	 * @return the index position of the corresponding {@code AlgorithmNodeImp} object
 	 */
 	private int getIndexOfList(Node node, List<AlgorithmNodeImp> algNodes) {
-		for (AlgorithmNodeImp algNode : algNodes) {
-			if (node.getName().equals(algNode.getNodeName())) {
-				return algNodes.indexOf(algNode);
-			}
-		}
+		AlgorithmNodeImp correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
+				.findFirst()
+				.get();
 
-		return -1;
+		return algNodes.indexOf(correspondingNode);
 	}
 
 	@Override
