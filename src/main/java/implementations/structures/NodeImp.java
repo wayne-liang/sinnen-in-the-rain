@@ -58,14 +58,14 @@ public class NodeImp implements Node {
 	@Override
 	public List<Node> getPredecessors() {
 		return _ingoing.values().stream()
-				.map(a -> a.getSource())
+				.map(Arc::getSource)
 				.collect(Collectors.toList());
 	}
 
 	@Override
 	public List<Node> getSuccessors() {
 		return _outgoing.values().stream()
-				.map(a -> a.getDestination())
+				.map(Arc::getDestination)
 				.collect(Collectors.toList());
 	}
 
