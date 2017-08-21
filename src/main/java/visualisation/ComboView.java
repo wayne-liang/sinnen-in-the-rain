@@ -53,10 +53,10 @@ public class ComboView extends JFrame {
 		vertical.setValue(vertical.getMaximum());
 		_panelMiddle.add(pane);
 		
-		GraphStreamView gv = new GraphStreamView(_dag,_cores);
+		/*GraphStreamView gv = new GraphStreamView(_dag,_cores);
 		JFrame f = new JFrame();
 		f.add(gv);
-		f.setVisible(true);
+		f.setVisible(true);*/
 		
 		
 		//_panelLeft.add(gv.getPanel(),BorderLayout.CENTER);
