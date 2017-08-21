@@ -47,7 +47,7 @@ public class AlgorithmImp implements Algorithm {//####[19]####
 //####[24]####
     private final Semaphore _threads;//####[24]####
 //####[25]####
-    private final int _numberOfThreads = 8;//####[25]####
+    private final int _numberOfThreads = 16;//####[25]####
 //####[27]####
     private int _bestTime = Integer.MAX_VALUE;//####[27]####
 //####[29]####

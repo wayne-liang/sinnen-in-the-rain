@@ -22,7 +22,7 @@ public class AlgorithmImp implements Algorithm {
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 	private final Semaphore _threads;
-	private final int _numberOfThreads = 8;
+	private final int _numberOfThreads = 16;
 
 	private int _bestTime = Integer.MAX_VALUE;
 
