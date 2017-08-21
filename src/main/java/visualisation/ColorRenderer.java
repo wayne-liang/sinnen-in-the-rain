@@ -61,7 +61,7 @@ public class ColorRenderer extends JLabel implements TableCellRenderer {
 	 * @return Color with all R,G and B values between 0 and 153.
 	 */
 	public Color getRandomColour(){
-		int minHue = 150;
+		int minHue = 100;
 		int maxHue = 255;
 		
 		Random rand = new Random();

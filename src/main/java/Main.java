@@ -6,6 +6,9 @@ import interfaces.Conversion;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
+import visualisation.TableModel;
 
 public class Main {
 	public static void main(String args[]) {
@@ -13,7 +16,7 @@ public class Main {
 		Conversion conversion = new ConversionImp(input);
 
 		DAG dag = conversion.getDAG();
-
+		
 		Algorithm alg = new AlgorithmImp(dag, input.getProcessorCount());
 		OutputImp outputImp = new OutputImp(alg.getCurrentBestSchedule(), args[0]);
 		outputImp.outputToFile();

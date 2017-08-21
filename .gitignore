@@ -25,3 +25,5 @@ local.properties
 
 # Locally stored "Eclipse launch configurations"
 *.launch
+/test2_schedule.dot
+/test_schedule.dot

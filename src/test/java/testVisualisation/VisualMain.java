@@ -14,7 +14,7 @@ import visualisation.TableModel;
 
 public class VisualMain {
 	public static void main(String args[]) {
-		Input input = new InputImp(args[0], args[1]);
+		/*Input input = new InputImp(args[0], args[1]);
 		Conversion conversion = new ConversionImp(input);
 
 		DAG dag = conversion.getDAG();
