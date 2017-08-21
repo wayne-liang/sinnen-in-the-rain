@@ -82,7 +82,7 @@ public class NodeImp implements Node {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(_name + _weight + _ingoing + _outgoing);
+		return Objects.hash(_name);
 	}
 
 	@Override
@@ -90,9 +90,7 @@ public class NodeImp implements Node {
 		if (obj instanceof NodeImp) {
 			NodeImp node = (NodeImp) obj;
 			if (node.getName().equals(_name) && node.getWeight() == _weight) {
-				if (node.getSuccessors().equals(getSuccessors()) && node.getPredecessors().equals(getPredecessors())) {
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;
