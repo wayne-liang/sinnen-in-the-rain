@@ -63,7 +63,9 @@ public class ScheduleImp implements Schedule {
 		List<Integer> list = algNodes.stream().map(AlgorithmNode::getCore).collect(Collectors.toList());
 		for (int i = 0; i < _numberOfCores; i++){
 			int lastNodeIndex = list.lastIndexOf(i+1);//i+1 to match the core as cores starts from 1.
-			_lastAlgNodeOnCore.put(lastNodeIndex, algNodes.get(lastNodeIndex));
+			if (lastNodeIndex != -1){
+				_lastAlgNodeOnCore.put(lastNodeIndex, algNodes.get(lastNodeIndex));
+			}
 		}
 	}
 	
