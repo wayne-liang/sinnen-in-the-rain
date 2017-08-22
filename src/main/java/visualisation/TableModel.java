@@ -1,5 +1,6 @@
 package visualisation;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -55,7 +56,7 @@ public class TableModel extends AbstractTableModel {
 		_bestTime = betterTime;
 		_map = map;
 		_data = initData();
-		//fireTableDataChanged();
+		fireTableDataChanged();
 	}
 
 	public String[] initColumnNames(){
@@ -95,7 +96,6 @@ public class TableModel extends AbstractTableModel {
 				data[startTime+i][core] = key.toUpperCase();
 			}
 		}
-
 		return data;
 	}
 
@@ -112,9 +112,21 @@ public class TableModel extends AbstractTableModel {
 
 	@Override
 	public String getValueAt(int rowIndex, int columnIndex) {
-		return _data[rowIndex][columnIndex];
+		String s = "";
+		try {
+			s = _data[rowIndex][columnIndex];
+		} catch (Exception e){
+			e.printStackTrace();
+			printData(_data);
+		}
+		return s;
 	}
-
+	
+	public void printData(String[][] array){
+		System.out.println(Arrays.deepToString(array));
+	}
+	
+	
 	@Override
 	public String getColumnName(int col) {
 		return _columnNames[col];

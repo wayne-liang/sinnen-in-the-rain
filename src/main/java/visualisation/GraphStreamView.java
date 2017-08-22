@@ -118,7 +118,7 @@ public class GraphStreamView extends JFrame implements GraphView {
 		}
 		
 		//Display the graph with auto layout
-		Viewer viewer = _GRAPH.display();
+		//Viewer viewer = _GRAPH.display(false);
 		
 	}
 	@Override
@@ -143,9 +143,12 @@ public class GraphStreamView extends JFrame implements GraphView {
 	public JPanel getPanel(){
 		JPanel jp = new JPanel();
 		Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		
 		viewer.enableAutoLayout();
         ViewPanel viewPanel = viewer.addDefaultView(false);
+        //viewPanel.setVisible(true);
         jp.add(viewPanel);
+        //jp.setVisible(true);
         return jp;
 	}
 	/**

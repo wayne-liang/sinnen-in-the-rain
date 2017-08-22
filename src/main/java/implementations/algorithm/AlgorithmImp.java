@@ -78,9 +78,6 @@ public class AlgorithmImp implements Algorithm {
 				
 				
 				_model.changeData(_currentBestSchedule, _bestTime);
-				_model.fireTableDataChanged();
-				
-				
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {

@@ -41,7 +41,7 @@ public class ComboView extends JFrame {
 		_dag = dag;
 		_cores = numberOfCores;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
+		setBounds(100, 100, 1200, 700);
 		_contentPane = buildPanel();
 		_contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(_contentPane);
@@ -49,21 +49,24 @@ public class ComboView extends JFrame {
 		GraphViewImp table = new GraphViewImp(_tableModel);
 		// set scrolling to bottom of table
 		JScrollPane pane = table.getPane();
-		JScrollBar vertical = pane.getVerticalScrollBar();
-		vertical.setValue(vertical.getMaximum());
+		/*JScrollBar vertical = pane.getVerticalScrollBar();
+		vertical.setValue(vertical.getMaximum());*/
 		_panelMiddle.add(pane);
 		
-		/*GraphStreamView gv = new GraphStreamView(_dag,_cores);
-		JFrame f = new JFrame();
+		GraphStreamView gv = new GraphStreamView(_dag,_cores);
+		/*JFrame f = new JFrame();
 		f.add(gv);
 		f.setVisible(true);*/
 		
-		
-		//_panelLeft.add(gv.getPanel(),BorderLayout.CENTER);
+		JPanel p = gv.getPanel();
+		p.setVisible(true);
+		_panelLeft.add(p);
 		
 		//pack();
         setLocationRelativeTo(null);
-		setVisible(true);
+
+    	setVisible(true);
+
 	}
 	
 	
@@ -107,9 +110,9 @@ public class ComboView extends JFrame {
         panel.add(progressBar, "wrap");
 
         //align label triggers platform-specific label alignment
-        panel.add(_panelLeft, "width 38%,height 70%");
+        panel.add(_panelLeft, "width 50%,height 70%");
         panel.add(_panelMiddle, "width 38%, height 70%");
-        panel.add(_panelRight, "wrap, width 24%, height 70%");
+        panel.add(_panelRight, "wrap, width 12%, height 70%");
 
         //tag identifies the type of button
         panel.add(stopBttn, "tag ok, span, split 3, sizegroup bttn, height 10%");
