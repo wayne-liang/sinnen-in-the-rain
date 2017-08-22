@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *target*
 *.jar
 *.war
@@ -28,7 +27,6 @@ local.properties
 *.launch
 /test2_schedule.dot
 /test_schedule.dot
-=======
 *target*
 *.jar
 *.war
@@ -64,4 +62,3 @@ local.properties
 
 #.gitignore
 tinationqut
->>>>>>> c8fcfb4904b1a54f83ef01654f4bdcd3fc014f2d
