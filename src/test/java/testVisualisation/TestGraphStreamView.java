@@ -11,10 +11,10 @@ import java.util.TimerTask;
 import org.graphstream.graph.Node;
 import org.junit.Test;
 
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
-import interfaces.io.Conversion;
+import implementations.structures.DAGImp;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
@@ -25,10 +25,10 @@ public class TestGraphStreamView {
 	@Test
 	public void testStartUp(){
 		Input input = new InputImp("test.dot", "2");
-		Conversion conversion = new ConversionImp(input);
+		Conversion conversion = new Conversion(input);
 
 		//Create a GraphStreamView object to make a DAG visual
-		DAG dag = conversion.getDAG();
+		DAG dag = DAGImp.getInstance();
 		GraphStreamView g = new GraphStreamView(dag,input.getProcessorCount());
 		interfaces.structures.Node test = dag.getNodeByName("a");
 
@@ -38,7 +38,7 @@ public class TestGraphStreamView {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				AlgorithmImp alg = new AlgorithmImp(dag, input.getProcessorCount());
+				AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
 				HashMap<String,NodeSchedule> currentSchedule = alg.getCurrentBestSchedule();
 
 

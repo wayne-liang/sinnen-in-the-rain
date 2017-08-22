@@ -1,10 +1,9 @@
 package testVisualisation;
 
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
-import interfaces.io.Conversion;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
