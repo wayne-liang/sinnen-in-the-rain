@@ -6,10 +6,10 @@ import org.graphstream.ui.graphicGraph.stylesheet.StyleConstants.Units;
 import org.graphstream.ui.swingViewer.ViewPanel;
 import org.graphstream.ui.view.Viewer;
 
-import implementations.ConversionImp;
+import implementations.io.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
-import interfaces.Conversion;
+import interfaces.io.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
