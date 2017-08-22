@@ -1,12 +1,13 @@
 package io;
 
 import implementations.algorithm.AlgorithmImp;
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
-import interfaces.io.Conversion;
+import implementations.structures.DAGImp;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -16,6 +17,11 @@ import org.junit.Test;
  */
 public class TestOutputImp {
 	public static final String FILENAME = "test.dot";
+
+	@Before
+	public void before() {
+		DAGImp.getNewInstance();
+	}
 	
     /**
      * Correct process count
@@ -23,11 +29,9 @@ public class TestOutputImp {
 	@Test
     public void testProcessorNumber() {
 		Input input = new InputImp(FILENAME, "2");
-		Conversion conversion = new ConversionImp(input);
+		Conversion conversion = new Conversion(input);
 
-		DAG dag = conversion.getDAG();
-
-		AlgorithmImp alg = new AlgorithmImp(dag, input.getProcessorCount());
+		AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
 		OutputImp outputImp = new OutputImp(alg.getCurrentBestSchedule(), FILENAME);
 		outputImp.printOutput();
 	}

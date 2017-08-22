@@ -1,5 +1,6 @@
 package implementations.algorithm;
 
+import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
 import interfaces.algorithm.Algorithm;
@@ -22,8 +23,8 @@ public class AlgorithmImp implements Algorithm {
 
 	private int _bestTime = Integer.MAX_VALUE;
 
-	public AlgorithmImp(DAG dag, int numberOfCores) {
-		_dag = dag;
+	public AlgorithmImp(int numberOfCores) {
+		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
 
