@@ -1,6 +1,7 @@
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.Conversion;
 import implementations.io.InputImp;
+import implementations.structures.DAGImp;
 import org.junit.Test;
 
 public class ApplicationTest {
@@ -71,6 +72,7 @@ public class ApplicationTest {
 
     private void runAlgorithm(String fileName) {
         InputImp input = new InputImp(fileName, core);
+        DAGImp.getNewInstance();
         Conversion conversion = new Conversion(input);
 
         AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());

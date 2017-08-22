@@ -20,7 +20,7 @@ public class DAGImpTest {
 
     @Test
     public void addNodesTest() {
-        DAG dag = DAGImp.getInstance();
+        DAG dag = DAGImp.getNewInstance();
         DummyNode n1 = new DummyNode("node");
 
         dag.add(n1);

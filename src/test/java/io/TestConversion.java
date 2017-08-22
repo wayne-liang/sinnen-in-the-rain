@@ -33,6 +33,7 @@ public class TestConversion {
     public void testConversionToDAG() {
         InputImp input = mock(InputImp.class);
         when(input.getGraphData()).thenReturn(_input);
+        DAGImp.getNewInstance();
         Conversion conversion = new Conversion(input);
 
         List<Node> nodes = DAGImp.getInstance().getAllNodes();

@@ -40,6 +40,15 @@ public class DAGImp implements DAG {
     }
 
     /**
+     * For testing purposes only
+     * @return
+     */
+    public static DAG getNewInstance() {
+        instance = new DAGImp();
+        return instance;
+    }
+
+    /**
      * Creates a new, empty DAGImp object. Private due to singleton.
      */
     private DAGImp() {

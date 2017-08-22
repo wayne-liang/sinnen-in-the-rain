@@ -7,6 +7,7 @@ import implementations.io.OutputImp;
 import implementations.structures.DAGImp;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -16,6 +17,11 @@ import org.junit.Test;
  */
 public class TestOutputImp {
 	public static final String FILENAME = "test.dot";
+
+	@Before
+	public void before() {
+		DAGImp.getNewInstance();
+	}
 	
     /**
      * Correct process count
