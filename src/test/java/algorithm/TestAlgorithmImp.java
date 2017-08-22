@@ -53,9 +53,9 @@ public class TestAlgorithmImp {
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"d"})));
 
 		// invalid because "d" cannot be processed before the sucessors "b", "c" are finished.//
-		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "c"})));
+		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d"})));
 
-		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "d", "b", "c"})));
+		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "d"})));
 	}
 	
 	/**
@@ -106,7 +106,8 @@ public class TestAlgorithmImp {
 		assertTrue(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "e", "b", "c"})));
 
 		// invalid, because c requires e to be finished first
-		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "c", "e"})));
+		//	Removed "e".
+		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "c"})));
 
 		//test null, it should return invalid
 		assertFalse(alg.checkValidScheduleWrapper(null));
@@ -155,9 +156,7 @@ public class TestAlgorithmImp {
 		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"b"})));
 
 		// invalid because "d" cannot be processed before the sucessors "b", "c" are finished.//
-		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "e", "c"})));
-
-		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d", "c", "e"})));
+		assertFalse(alg.checkValidScheduleWrapper(generateAlgorithmNodes(new String[]{"a", "b", "d"})));
 	}
 
 	/**

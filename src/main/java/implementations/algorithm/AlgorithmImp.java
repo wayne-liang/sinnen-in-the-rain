@@ -65,7 +65,7 @@ public class AlgorithmImp implements Algorithm {
 
 					if (checkValidSchedule(newProcessed)) {
 						ScheduleImp st = calculateTotalTime(newProcessed);
-						
+
 						//If current >= best time, bound by moving to the next processor.
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
@@ -74,17 +74,11 @@ public class AlgorithmImp implements Algorithm {
 						break;
 					}
 
-//					newProcessed.forEach(n -> {
-//						System.out.printf(n.getNodeName() + n.getCore() + " ");
-//					});
-//
-//					System.out.println();
-
 					List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
-                    /*
+					/*
 					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
 					 * a2 ...)
 					 * Also, (a1 b2 ...) would have a symmetry with (a1 b3...)
@@ -92,14 +86,14 @@ public class AlgorithmImp implements Algorithm {
 					 * Implementation logic: we can break if schedules has no repetition of 
 					 * cores, because assigning it to a different core always causes symmetry.
 					 */
-					
+
 					List<Integer> coresAssigned = newProcessed.stream()
 							.map(AlgorithmNodeImp::getCore)
 							.collect(Collectors.toList());
 					long noOfDistinctCores = coresAssigned.stream()
 							.distinct()
 							.count();
-					
+
 					if (coresAssigned.size() == noOfDistinctCores) {
 						break; //I.e. there is no duplicate.
 					}
@@ -128,32 +122,32 @@ public class AlgorithmImp implements Algorithm {
 		if (schedule == null) {
 			return false;
 		}
+		
+		//Get the last node's predecessors
+		Node currentNode = _dag.getNodeByName(schedule.get(schedule.size()-1).getNodeName());
+		List<Node> predecessors = currentNode.getPredecessors();
 
-		for (int i = 0; i < schedule.size(); i++) {
-			//Get the currentNode's predecessors
-			Node currentNode = _dag.getNodeByName(schedule.get(i).getNodeName());
-			List<Node> predecessors = currentNode.getPredecessors();
+		//If there are no predecessors, then it is a starting node.
+		if (predecessors.size() == 0) {
+			return true;
+		} else if (schedule.size() == 1) { //if has predecessor, but is the only node, then invalid. 
+			return false;
+		}
 
-			//If there are no predecessors, continue
-			if (predecessors.size() == 0) {
-				continue;
-			}
-
-			//Loop through the previous nodes in the schedule and count when a predecessor is found
-			int counter = 0;
-			for (int j = i - 1; j >= 0; j--) {
-				for (Node preNode : predecessors) {
-					if (schedule.get(j).getNodeName().equals(preNode.getName())) {
-						counter++;
-						break;
-					}
+		//Loop through the previous nodes in the schedule and count when a predecessor is found
+		int counter = 0;
+		for (int i = schedule.size() - 2; i >= 0; i--) {
+			for (Node preNode : predecessors) {
+				if (schedule.get(i).getNodeName().equals(preNode.getName())) {
+					counter++;
+					break;
 				}
 			}
+		}
 
-			//Check if all the predecessors were found
-			if (counter != predecessors.size()) {
-				return false;
-			}
+		//Check if all the predecessors were found
+		if (counter != predecessors.size()) {
+			return false;
 		}
 		return true;
 	}
