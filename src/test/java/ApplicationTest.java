@@ -1,8 +1,7 @@
-import implementations.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
-import interfaces.Conversion;
-import interfaces.structures.DAG;
+import implementations.structures.DAGImp;
 import org.junit.Test;
 
 public class ApplicationTest {
@@ -13,11 +12,11 @@ public class ApplicationTest {
     public void testWithTwoCores() {
         core = "2";
 
-//        Nodes_7_OutTree();
-//        Nodes_8_Random();
-//        Nodes_9_SeriesParallel();
-//        Nodes_10_Random();
-        //Nodes_11_OutTree();
+		Nodes_7_OutTree();
+		Nodes_8_Random();
+		Nodes_9_SeriesParallel();
+		Nodes_10_Random();
+		//Nodes_11_OutTree();
     }
 
     @Test
@@ -73,15 +72,15 @@ public class ApplicationTest {
 
     private void runAlgorithm(String fileName) {
         InputImp input = new InputImp(fileName, core);
-        Conversion conversion = new ConversionImp(input);
+        DAGImp.getNewInstance();
+        Conversion conversion = new Conversion(input);
 
-        DAG dag = conversion.getDAG();
-
-        AlgorithmImp alg = new AlgorithmImp(dag, input.getProcessorCount());
+        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
         //Output output = new Output (alg.getCurrentBestSchedule(), fileName);
         //output.printOutput();
         System.out.println("BestTime: " + alg.getBestTotalTime());
-    }
+		System.out.println("Recursive Calls: " + alg.getRecursiveCalls());
+	}
 
     private void startTimer() {
         startTime = System.currentTimeMillis();

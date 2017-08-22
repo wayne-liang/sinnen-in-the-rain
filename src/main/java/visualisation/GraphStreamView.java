@@ -3,18 +3,20 @@ package visualisation;
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.graphicGraph.stylesheet.StyleConstants.Units;
+import org.graphstream.ui.swingViewer.ViewPanel;
 import org.graphstream.ui.view.Viewer;
 
-import implementations.ConversionImp;
+import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
-import interfaces.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import java.util.TimerTask;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 
 /**
@@ -34,7 +37,8 @@ import javax.swing.JTable;
  * @author dariusau
  *
  */
-public class GraphStreamView extends JFrame implements GraphView {
+//public class GraphStreamView extends JFrame implements GraphView {
+public class GraphStreamView implements GraphView {
 	
 	private static HashMap<interfaces.structures.Node,Node> _graphNodeNodeMap;
 	private static HashMap<String,Node> _graphStringNodeMap;
@@ -116,7 +120,27 @@ public class GraphStreamView extends JFrame implements GraphView {
 		}
 		
 		//Display the graph with auto layout
-		Viewer viewer = _GRAPH.display();
+		//Viewer viewer = _GRAPH.display();
+		
+		//Delete this part
+		 Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+	        JFrame frame = new JFrame("Graph");
+	        frame.setLayout(new BorderLayout());
+	        frame.setSize(500, 500);
+	        viewer.enableAutoLayout();
+	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+	        /*JPanel panel = new JPanel();
+	        
+	        ViewPanel view = viewer.addDefaultView(false);
+	        panel.setLayout(new BorderLayout());
+	        panel.add(view, BorderLayout.CENTER);*/
+
+	        frame.add(getPanel(), BorderLayout.CENTER);
+	        JPanel text = new JPanel();
+	        frame.add(text,BorderLayout.EAST);
+	        frame.setVisible(true);
+		
 	}
 	@Override
 	public void addButtonListener(ActionListener listener) {
@@ -132,6 +156,23 @@ public class GraphStreamView extends JFrame implements GraphView {
 		graphNode.setAttribute("ui.class","marked");
 	}
 	
+	/**
+	 * method to return GraphStream graph in a JPanel. Must call the constructor before calling this.
+	 * @author Pulkit
+	 * @return
+	 */
+	public JPanel getPanel(){
+		JPanel jp = new JPanel();
+		Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		
+		jp.setLayout(new BorderLayout());
+		viewer.enableAutoLayout();
+        ViewPanel viewPanel = viewer.addDefaultView(false);
+        //viewPanel.setVisible(true);
+        jp.add(viewPanel, BorderLayout.CENTER);
+        //jp.setVisible(true);
+        return jp;
+	}
 	/**
 	 * Method to assign different random colours to every processor
 	 * https://stackoverflow.com/questions/4246351/creating-random-colour-in-java

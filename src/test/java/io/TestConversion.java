@@ -1,7 +1,8 @@
 package io;
 
-import implementations.ConversionImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
+import implementations.structures.DAGImp;
 import interfaces.structures.Node;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestConversionImp {
+public class TestConversion {
     private List<String[]> _input;
 
     @Before
@@ -32,9 +33,10 @@ public class TestConversionImp {
     public void testConversionToDAG() {
         InputImp input = mock(InputImp.class);
         when(input.getGraphData()).thenReturn(_input);
-        ConversionImp conversion = new ConversionImp(input);
+        DAGImp.getNewInstance();
+        Conversion conversion = new Conversion(input);
 
-        List<Node> nodes = conversion.getDAG().getAllNodes();
+        List<Node> nodes = DAGImp.getInstance().getAllNodes();
         assertEquals(2, nodes.size());
 
         //Test correct node exists in the right place
