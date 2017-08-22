@@ -8,6 +8,8 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import visualisation.ComboView;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
 import visualisation.TableModel;
 
 import java.util.*;
@@ -31,7 +33,7 @@ public class AlgorithmImp implements Algorithm {
 		
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		ComboView schedule = new ComboView(_model,_dag,_numberOfCores);
+		GraphView schedule = new GraphViewImp(_model);
 		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 	}

@@ -29,6 +29,12 @@ public class GraphViewImp extends JFrame implements GraphView {
     
 		//table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, 0, true));
 		table.setFillsViewportHeight(true);
+		JScrollPane pane = new JScrollPane(table);
+		
+		add(pane, BorderLayout.CENTER);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setSize(500,520);
+		setVisible(true);
 	}
 	
 	public JScrollPane getPane(){

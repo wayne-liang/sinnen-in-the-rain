@@ -8,6 +8,8 @@ import interfaces.io.Conversion;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
+import visualisation.ComboView;
+import visualisation.GraphStreamView;
 import visualisation.GraphView;
 import visualisation.GraphViewImp;
 import visualisation.TableModel;
@@ -40,5 +42,6 @@ public class VisualMain {
 				{ "4", "", "C" } };
 		_schedule.changeData(newdata);
 		_schedule.fireTableDataChanged();*/
+		
 	}
 }
