@@ -24,4 +24,6 @@ public interface Schedule {
     int getTotalTime();
 
     void setTotalTime(int totalTime);
+    
+    AlgorithmNodeImp getLastNodeOnCore(int core);
 }
