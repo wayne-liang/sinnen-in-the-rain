@@ -7,6 +7,8 @@ import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
+import visualisation.ComboView;
+import visualisation.TableModel;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,14 +21,18 @@ public class AlgorithmImp implements Algorithm {
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
-
+	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE;
 
 	public AlgorithmImp(DAG dag, int numberOfCores) {
 		_dag = dag;
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-
+		
+		_model = TableModel.getInstance();
+		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+		ComboView schedule = new ComboView(_model,_dag,_numberOfCores);
+		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 	}
 
@@ -54,6 +60,17 @@ public class AlgorithmImp implements Algorithm {
 			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
 				setNewBestSchedule(st);
 				_bestTime = st.getTotalTime();
+				// update view, now that a new schedule is available. This is too fast for small schedules
+				
+				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+				/*try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e){
+					e.printStackTrace();
+				}*/
+				
+				
+				_model.changeData(_currentBestSchedule, _bestTime);
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
