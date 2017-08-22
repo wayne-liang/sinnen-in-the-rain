@@ -8,40 +8,33 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import visualisation.ComboView;
-import visualisation.GraphStreamView;
-import visualisation.GraphView;
-import visualisation.GraphViewImp;
 import visualisation.TableModel;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class implements the algorithm to solve the scheduling problem
  */
 public class AlgorithmImp implements Algorithm {
-    private DAG _dag;
+	private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
-	private TableModel _model; // Table Model (view)
-	
+	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE;
 
-    public AlgorithmImp(DAG dag, int numberOfCores) {
-        _dag = dag;
+	public AlgorithmImp(DAG dag, int numberOfCores) {
+		_dag = dag;
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
 		
-		// Retrieve and initialize the TableModel view:
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
 		ComboView schedule = new ComboView(_model,_dag,_numberOfCores);
 		
-        recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
-    }
+		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
+	}
 
 	/**
 	 * Purely for benchmarking purposes
@@ -89,12 +82,13 @@ public class AlgorithmImp implements Algorithm {
 
 					if (checkValidSchedule(newProcessed)) {
 						ScheduleImp st = calculateTotalTime(newProcessed);
-						//Bound if >= best time
+						
+						//If current >= best time, bound by moving to the next processor.
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
 						}
-					} else {
-						continue;
+					} else { //Schedule is invalid, then bound by moving to next node.
+						break;
 					}
 
 //					newProcessed.forEach(n -> {
@@ -108,19 +102,31 @@ public class AlgorithmImp implements Algorithm {
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
                     /*
-					 * Heuristic #1 - If this is the first node in the list, assigning it to different cores is unnecessary
-					 * e.g. a0 etc. is the same as a1 etc.
+					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
+					 * a2 ...)
+					 * Also, (a1 b2 ...) would have a symmetry with (a1 b3...)
+					 * 
+					 * Implementation logic: we can break if schedules has no repetition of 
+					 * cores, because assigning it to a different core always causes symmetry.
 					 */
-					if (processed.size() == 0) {
-						break;
+					
+					List<Integer> coresAssigned = newProcessed.stream()
+							.map(AlgorithmNodeImp::getCore)
+							.collect(Collectors.toList());
+					long noOfDistinctCores = coresAssigned.stream()
+							.distinct()
+							.count();
+					
+					if (coresAssigned.size() == noOfDistinctCores) {
+						break; //I.e. there is no duplicate.
 					}
 				}
 			}
 		}
 	}
 
-    private void setNewBestSchedule(ScheduleImp st) {
-        for (int i = 0; i < st.getSizeOfSchedule(); i++) {
+	private void setNewBestSchedule(ScheduleImp st) {
+		for (int i = 0; i < st.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(st.getNodeStartTime(i), st.getNodeCore(i));
 			_currentBestSchedule.put(st.getNodeName(i), nodeSchedule);
 
@@ -135,16 +141,20 @@ public class AlgorithmImp implements Algorithm {
 	 * @param schedule
 	 * @return true if the schedule is valid, false if not
 	 */
-    private boolean checkValidSchedule(List<AlgorithmNodeImp> schedule) {
-        for (int i = 0; i < schedule.size(); i++) {
+	private boolean checkValidSchedule(List<AlgorithmNodeImp> schedule) {
+		if (schedule == null) {
+			return false;
+		}
+
+		for (int i = 0; i < schedule.size(); i++) {
 			//Get the currentNode's predecessors
 			Node currentNode = _dag.getNodeByName(schedule.get(i).getNodeName());
 			List<Node> predecessors = currentNode.getPredecessors();
 
-            //If there are no predecessors, continue
-            if (predecessors.size() == 0) {
-                continue;
-            }
+			//If there are no predecessors, continue
+			if (predecessors.size() == 0) {
+				continue;
+			}
 
 			//Loop through the previous nodes in the schedule and count when a predecessor is found
 			int counter = 0;
@@ -166,48 +176,49 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-     * Calculates the time cost of executing the given schedule, returning a complete SchedulerTimeImp object.
-     * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
-     * @return - SchedulerTimeImp object with cost and execution time information
-     */
-    private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
-        //creating a corresponding array of Nodes
+	 * Calculates the time cost of executing the given schedule, returning a complete SchedulerTimeImp object.
+	 * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
+	 * @return - SchedulerTimeImp object with cost and execution time information
+	 */
+	private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
+		//creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
 
 		//populating new nodes array with corresponding Node objects
-        for (AlgorithmNodeImp algNode : algNodes) {
-            nodes.add(_dag.getNodeByName(algNode.getNodeName()));
+		for (AlgorithmNodeImp algNode : algNodes) {
+			nodes.add(_dag.getNodeByName(algNode.getNodeName()));
 		}
 
 		//creating ArrayLists to represent the schedule for each core
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
-        List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
+		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
 
-        //creating a SchedulerTimeImp object for holding the schedule start times for each node
-        ScheduleImp st = new ScheduleImp(algNodes);
+		//creating a SchedulerTimeImp object for holding the schedule start times for each node
+		ScheduleImp st = new ScheduleImp(algNodes);
 
 		//looping through all the AlgorithmNodes to set startTimes
-        for (AlgorithmNodeImp currentAlgNode : algNodes) {
-            Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));
+		for (AlgorithmNodeImp currentAlgNode : algNodes) {
+			Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));
 			int highestCost = 0;
 
 			//calculate the highest time delay caused by dependencies
-			for (Node node : currentNode.getPredecessors()) {
-				//calculating the maximum delay caused by this particular dependent node
-				int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
-				if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
-					//add on arc weight, since they're on different cores
-					cost += currentNode.getInArc(node).getWeight();
-				}
+			try {
+				highestCost = currentNode.getPredecessors().stream().map(node -> {
+					int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
+					if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
+						//add on arc weight, since they're on different cores
+						cost += currentNode.getInArc(node).getWeight();
+					}
 
-				if (cost > highestCost) {
-					highestCost = cost;
-				}
+					return cost;
+				}).max(Comparator.naturalOrder()).get();
+			} catch (NoSuchElementException e) {
+				//Means there are no predecessors, highestCost stays 0
 			}
 
 			//calculate the time delay caused by previous processes on the same core
-            AlgorithmNodeImp latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
-            if (latestNode != null) {
+			AlgorithmNodeImp latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
+			if (latestNode != null) {
 				Node previousNode = _dag.getNodeByName(latestNode.getNodeName());
 				int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));
 				if (cost > highestCost) {
@@ -218,8 +229,8 @@ public class AlgorithmImp implements Algorithm {
 			//set currentAlgNode as the newest node to be scheduled on it's core
 			latestAlgNodeInSchedules.set(currentAlgNode.getCore() - 1, currentAlgNode);
 
-            //set SchedulerTimeImp startTime for this node
-            st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
+			//set SchedulerTimeImp startTime for this node
+			st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
 		}
 
 		setTimeForSchedulerTime(latestAlgNodeInSchedules, algNodes, st);
@@ -228,16 +239,16 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-     * Calculates and sets the total time in the {@code SchedulerTimeImp} object given.
-     * Main purpose is to make the code more readable.
-     * @param latestAlgNodeInSchedules - {@code List<AlgorithmNodeImp>} containing the last node in each processor
-     * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code SchedulerTimeImp} object
-     * @param st - {@code SchedulerTimeImp} object to set the total time of
-     */
-    private void setTimeForSchedulerTime(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
-        int totalTime = 0;
+	 * Calculates and sets the total time in the {@code SchedulerTimeImp} object given.
+	 * Main purpose is to make the code more readable.
+	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNodeImp>} containing the last node in each processor
+	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code SchedulerTimeImp} object
+	 * @param st - {@code SchedulerTimeImp} object to set the total time of
+	 */
+	private void setTimeForSchedulerTime(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
+		int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
-            AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
+			AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
 
 			int timeTaken = 0;
 			if (latestAlgNode != null) {
@@ -253,41 +264,39 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-     * Finds and returns the index position of the corresponding {@code AlgorithmNodeImp} within the given {@code List<AlgorithmNodeImp}
-     * @param node - {@code Node} to find the corresponding index position for
-     * @param algNodes - {@code List<AlgorithmNodeImp>} to find the index for
-     * @return the index position of the corresponding {@code AlgorithmNodeImp} object
-     */
-    private int getIndexOfList(Node node, List<AlgorithmNodeImp> algNodes) {
-        for (AlgorithmNodeImp algNode : algNodes) {
-            if (node.getName().equals(algNode.getNodeName())) {
-				return algNodes.indexOf(algNode);
-			}
-		}
+	 * Finds and returns the index position of the corresponding {@code AlgorithmNodeImp} within the given {@code List<AlgorithmNodeImp}
+	 * @param node - {@code Node} to find the corresponding index position for
+	 * @param algNodes - {@code List<AlgorithmNodeImp>} to find the index for
+	 * @return the index position of the corresponding {@code AlgorithmNodeImp} object
+	 */
+	private int getIndexOfList(Node node, List<AlgorithmNodeImp> algNodes) {
+		AlgorithmNodeImp correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
+				.findFirst()
+				.get();
 
-		return -1;
+		return algNodes.indexOf(correspondingNode);
 	}
 
-    @Override
-    public HashMap<String, NodeSchedule> getCurrentBestSchedule() {
-        return _currentBestSchedule;
-    }
+	@Override
+	public HashMap<String, NodeSchedule> getCurrentBestSchedule() {
+		return _currentBestSchedule;
+	}
 
-    @Override
-    public int getBestTotalTime() {
-        return _bestTime;
-    }
+	@Override
+	public int getBestTotalTime() {
+		return _bestTime;
+	}
 
 	/**
 	 * The wrapper methods purely for testing. (as the methods were declared to be private)
 	 * @param algNodes
 	 * @return
 	 */
-    public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
-        return calculateTotalTime(algNodes);
+	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
+		return calculateTotalTime(algNodes);
 	}
 
-    public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
-        return checkValidSchedule(s1);
+	public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
+		return checkValidSchedule(s1);
 	}
 }

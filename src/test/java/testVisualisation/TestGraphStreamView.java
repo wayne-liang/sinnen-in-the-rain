@@ -11,10 +11,10 @@ import java.util.TimerTask;
 import org.graphstream.graph.Node;
 import org.junit.Test;
 
-import implementations.ConversionImp;
+import implementations.io.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
-import interfaces.Conversion;
+import interfaces.io.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;

@@ -4,7 +4,7 @@ import interfaces.algorithm.AlgorithmNode;
 
 /**
  * This class stores a representation of a node and core from the
- * algorithim class. This allows us to check for validity and calculate
+ * algorithm class. This allows us to check for validity and calculate
  * time to run without extra baggage of the node class.
  */
 public class AlgorithmNodeImp implements AlgorithmNode {

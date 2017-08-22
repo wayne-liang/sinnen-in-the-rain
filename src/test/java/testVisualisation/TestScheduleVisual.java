@@ -5,11 +5,11 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import implementations.ConversionImp;
+import implementations.io.ConversionImp;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
-import interfaces.Conversion;
+import interfaces.io.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import visualisation.GraphView;
