@@ -70,7 +70,7 @@ public class AlgorithmImp implements Algorithm {
 						if (st.getTotalTime() >= _bestTime) {
 							continue;
 						}
-					} else { //Schedule is invalid, then bound by moving to next node.
+					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
 
@@ -153,9 +153,9 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-	 * Calculates the time cost of executing the given schedule, returning a complete SchedulerTimeImp object.
+	 * Calculates the time cost of executing the given schedule, returning a complete ScheduleImp object.
 	 * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
-	 * @return - SchedulerTimeImp object with cost and execution time information
+	 * @return - ScheduleImp object with cost and execution time information
 	 */
 	private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
 		//creating a corresponding array of Nodes
@@ -170,7 +170,7 @@ public class AlgorithmImp implements Algorithm {
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
 		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
 
-		//creating a SchedulerTimeImp object for holding the schedule start times for each node
+		//creating a ScheduleImp object for holding the schedule start times for each node
 		ScheduleImp st = new ScheduleImp(algNodes);
 
 		//looping through all the AlgorithmNodes to set startTimes
@@ -206,23 +206,23 @@ public class AlgorithmImp implements Algorithm {
 			//set currentAlgNode as the newest node to be scheduled on it's core
 			latestAlgNodeInSchedules.set(currentAlgNode.getCore() - 1, currentAlgNode);
 
-			//set SchedulerTimeImp startTime for this node
+			//set ScheduleImp startTime for this node
 			st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));
 		}
 
-		setTimeForSchedulerTime(latestAlgNodeInSchedules, algNodes, st);
+		setTimeForSchedule(latestAlgNodeInSchedules, algNodes, st);
 
 		return st;
 	}
 
 	/**
-	 * Calculates and sets the total time in the {@code SchedulerTimeImp} object given.
+	 * Calculates and sets the total time in the {@code ScheduleImp} object given.
 	 * Main purpose is to make the code more readable.
 	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNodeImp>} containing the last node in each processor
-	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code SchedulerTimeImp} object
-	 * @param st - {@code SchedulerTimeImp} object to set the total time of
+	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code ScheduleImp} object
+	 * @param st - {@code ScheduleImp} object to set the total time of
 	 */
-	private void setTimeForSchedulerTime(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
+	private void setTimeForSchedule(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
 		int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
 			AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
