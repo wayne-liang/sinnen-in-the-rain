@@ -1,5 +1,6 @@
 package implementations.algorithm;
 
+import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
 import interfaces.structures.Schedule;
 
@@ -18,10 +19,10 @@ public class ScheduleCalculator {
 	private AlgorithmNodeImp _currentNode;
 	private DAG _dag;
 	
-	public ScheduleCalculator(Schedule prev, AlgorithmNodeImp current, DAG dag) {
+	public ScheduleCalculator(Schedule prev, AlgorithmNodeImp current) {
 		_prevSchedule = prev;
 		_currentNode = current;
-		_dag = dag;
+		_dag = DAGImp.getInstance();
 	}
 	
 	public Schedule generateSchedule() {
