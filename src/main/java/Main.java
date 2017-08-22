@@ -1,11 +1,9 @@
 import implementations.algorithm.AlgorithmImp;
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
 import interfaces.algorithm.Algorithm;
-import interfaces.io.Conversion;
 import interfaces.io.Input;
-import interfaces.structures.DAG;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,11 +71,9 @@ public class Main {
 
         Input input = new InputImp(filePath, noOfProcessors);
 
-        Conversion conversion = new ConversionImp(input);
+        Conversion conversion = new Conversion(input);
 
-        DAG dag = conversion.getDAG();
-
-        Algorithm alg = new AlgorithmImp(dag, input.getProcessorCount());
+        Algorithm alg = new AlgorithmImp(input.getProcessorCount());
 
         OutputImp outputImp;
 

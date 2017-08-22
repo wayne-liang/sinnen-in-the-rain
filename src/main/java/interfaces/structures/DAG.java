@@ -7,7 +7,6 @@ import java.util.List;
  * All uses of the implementation should only go through the defined methods in this interface.
  */
 public interface DAG {
-
 	/**
 	 * Adds a new {@code Node} onto this graph.
 	 * @param newNode - {@code Node} object to add to the graph
