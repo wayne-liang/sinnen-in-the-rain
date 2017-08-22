@@ -5,6 +5,7 @@ import interfaces.structures.Node;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -77,5 +78,21 @@ public class NodeImp implements Node {
 	@Override
 	public Arc getOutArc(Node node) {
 		return _outgoing.get(node);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(_name);
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj instanceof NodeImp) {
+			NodeImp node = (NodeImp) obj;
+			if (node.getName().equals(_name) && node.getWeight() == _weight) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
