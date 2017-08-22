@@ -1,10 +1,13 @@
 package implementations.structures;
 
 import implementations.algorithm.AlgorithmNodeImp;
+import implementations.io.InputImp;
+import interfaces.io.Input;
 import interfaces.structures.Schedule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents the abstraction of a schedule (or a partial schedule)
@@ -26,6 +29,8 @@ public class ScheduleImp implements Schedule {
 	//The index for this field should match the index for the list of nodes.
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
+	
+	private Map<Integer, AlgorithmNodeImp> _lastAlgNodeOnCore;
 
 	/**
 	 * The default constructor should only be called when 
@@ -33,6 +38,7 @@ public class ScheduleImp implements Schedule {
 	 */
 	public ScheduleImp() {
 		_algNodes = new ArrayList<AlgorithmNodeImp>();
+		//TODO: Work on lastAlgNode.
 	}
 	
 	public ScheduleImp(List<AlgorithmNodeImp> algNodes) {
