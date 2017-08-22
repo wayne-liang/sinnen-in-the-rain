@@ -34,7 +34,7 @@ public class AlgorithmImp implements Algorithm {
 		
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		GraphView schedule = new GraphViewImp(_model);
+		ComboView schedule = new ComboView(_model,_dag, _numberOfCores);
 		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 	}
