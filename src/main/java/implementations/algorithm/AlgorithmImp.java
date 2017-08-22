@@ -8,6 +8,8 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import visualisation.ComboView;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
 import visualisation.TableModel;
 
 import java.util.*;
@@ -31,7 +33,7 @@ public class AlgorithmImp implements Algorithm {
 		
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		ComboView schedule = new ComboView(_model,_dag,_numberOfCores);
+		GraphView schedule = new GraphViewImp(_model);
 		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 	}
@@ -64,13 +66,14 @@ public class AlgorithmImp implements Algorithm {
 				
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 				/*try {
-					Thread.sleep(1000);
+					Thread.sleep(17); // lol! Thread.sleep is fixing it. We need to implement a timer!
 				} catch (InterruptedException e){
 					e.printStackTrace();
 				}*/
 				
+				//_model.fireTableDataChanged();
+				//_model.changeData(_currentBestSchedule, _bestTime);
 				
-				_model.changeData(_currentBestSchedule, _bestTime);
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {

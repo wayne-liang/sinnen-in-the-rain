@@ -33,6 +33,9 @@ public class ColorRenderer extends JLabel implements TableCellRenderer {
 		cellLabel.setOpaque(true);
 		//Get the status for the current row.
 		TableModel gModel = (TableModel) table.getModel();
+		if (row >= gModel.getRowCount()) {
+			return null;
+		}
 		String rowVal = String.valueOf(gModel.getValueAt(row,column));  
 		// temporary fix, should be a better way.
 		cellLabel.setText(rowVal);
