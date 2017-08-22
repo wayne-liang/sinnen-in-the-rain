@@ -1,5 +1,6 @@
 package implementations.algorithm;
 
+import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
 import interfaces.algorithm.Algorithm;
@@ -26,8 +27,8 @@ public class AlgorithmImp implements Algorithm {
 	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE;
 
-	public AlgorithmImp(DAG dag, int numberOfCores) {
-		_dag = dag;
+	public AlgorithmImp(int numberOfCores) {
+		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
 		
@@ -66,14 +67,13 @@ public class AlgorithmImp implements Algorithm {
 				
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 				/*try {
-					Thread.sleep(17); // lol! Thread.sleep is fixing it. We need to implement a timer!
+					Thread.sleep(1000);
 				} catch (InterruptedException e){
 					e.printStackTrace();
 				}*/
 				
-				//_model.fireTableDataChanged();
-				//_model.changeData(_currentBestSchedule, _bestTime);
 				
+				_model.changeData(_currentBestSchedule, _bestTime);
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -191,7 +191,7 @@ public class AlgorithmImp implements Algorithm {
 		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
 
 		//creating a ScheduleImp object for holding the schedule start times for each node
-		ScheduleImp st = new ScheduleImp(algNodes);
+		ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);
 
 		//looping through all the AlgorithmNodes to set startTimes
 		for (AlgorithmNodeImp currentAlgNode : algNodes) {

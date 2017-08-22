@@ -6,16 +6,17 @@ import org.graphstream.ui.graphicGraph.stylesheet.StyleConstants.Units;
 import org.graphstream.ui.swingViewer.ViewPanel;
 import org.graphstream.ui.view.Viewer;
 
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
-import interfaces.io.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +37,8 @@ import javax.swing.JTable;
  * @author dariusau
  *
  */
-public class GraphStreamView extends JFrame implements GraphView {
+//public class GraphStreamView extends JFrame implements GraphView {
+public class GraphStreamView implements GraphView {
 	
 	private static HashMap<interfaces.structures.Node,Node> _graphNodeNodeMap;
 	private static HashMap<String,Node> _graphStringNodeMap;
@@ -118,7 +120,26 @@ public class GraphStreamView extends JFrame implements GraphView {
 		}
 		
 		//Display the graph with auto layout
-		//Viewer viewer = _GRAPH.display(false);
+		//Viewer viewer = _GRAPH.display();
+		
+		//Delete this part
+		 Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+	        JFrame frame = new JFrame("Graph");
+	        frame.setLayout(new BorderLayout());
+	        frame.setSize(500, 500);
+	        viewer.enableAutoLayout();
+	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+	        /*JPanel panel = new JPanel();
+	        
+	        ViewPanel view = viewer.addDefaultView(false);
+	        panel.setLayout(new BorderLayout());
+	        panel.add(view, BorderLayout.CENTER);*/
+
+	        frame.add(getPanel(), BorderLayout.CENTER);
+	        JPanel text = new JPanel();
+	        frame.add(text,BorderLayout.EAST);
+	        frame.setVisible(true);
 		
 	}
 	@Override
@@ -144,10 +165,11 @@ public class GraphStreamView extends JFrame implements GraphView {
 		JPanel jp = new JPanel();
 		Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 		
+		jp.setLayout(new BorderLayout());
 		viewer.enableAutoLayout();
         ViewPanel viewPanel = viewer.addDefaultView(false);
         //viewPanel.setVisible(true);
-        jp.add(viewPanel);
+        jp.add(viewPanel, BorderLayout.CENTER);
         //jp.setVisible(true);
         return jp;
 	}

@@ -1,9 +1,16 @@
 package implementations.structures;
 
 import implementations.algorithm.AlgorithmNodeImp;
+import implementations.io.InputImp;
+import interfaces.algorithm.AlgorithmNode;
+import interfaces.io.Input;
 import interfaces.structures.Schedule;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class represents the abstraction of a schedule (or a partial schedule)
@@ -25,10 +32,41 @@ public class ScheduleImp implements Schedule {
 	//The index for this field should match the index for the list of nodes.
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
+	private int _numberOfCores;
+	
+	private Map<Integer, AlgorithmNodeImp> _lastAlgNodeOnCore;
 
-	public ScheduleImp(List<AlgorithmNodeImp> algNodes) {
+	/**
+	 * The default constructor should only be called when 
+	 * the schedule is empty. (No node is in the schedule).
+	 */
+	public ScheduleImp(int numberOfCores) {
+		_algNodes = new ArrayList<AlgorithmNodeImp>();
+		_numberOfCores = numberOfCores;
+		
+		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNodeImp>();
+		for (int i = 0; i < _numberOfCores; i++){
+			_lastAlgNodeOnCore.put(i+1, null); //Empty schedule.
+		}
+	}
+	
+	public ScheduleImp(List<AlgorithmNodeImp> algNodes, int numberOfCores) {
 		_algNodes = algNodes;
 		_startTimeForNode = new int[_algNodes.size()];
+		_numberOfCores = numberOfCores;
+		
+		//Calculate last schedule on core.
+		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNodeImp>();
+		for (int i = 0; i < _numberOfCores; i++){
+			_lastAlgNodeOnCore.put(i+1, null); //Empty schedule.
+		}
+		List<Integer> list = algNodes.stream().map(AlgorithmNode::getCore).collect(Collectors.toList());
+		for (int i = 0; i < _numberOfCores; i++){
+			int lastNodeIndex = list.lastIndexOf(i+1);//i+1 to match the core as cores starts from 1.
+			if (lastNodeIndex != -1){
+				_lastAlgNodeOnCore.put(lastNodeIndex, algNodes.get(lastNodeIndex));
+			}
+		}
 	}
 	
 	/**
@@ -96,5 +134,10 @@ public class ScheduleImp implements Schedule {
 	@Override
 	public void setTotalTime(int totalTime) {
 		_totalTime = totalTime;
+	}
+	
+	@Override
+	public AlgorithmNodeImp getLastNodeOnCore (int core){
+		return _lastAlgNodeOnCore.get(core);
 	}
 }

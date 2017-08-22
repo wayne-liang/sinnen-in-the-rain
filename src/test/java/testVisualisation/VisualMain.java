@@ -1,13 +1,14 @@
 package testVisualisation;
 
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
 import implementations.io.OutputImp;
-import interfaces.io.Conversion;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
+import visualisation.ComboView;
+import visualisation.GraphStreamView;
 import visualisation.GraphView;
 import visualisation.GraphViewImp;
 import visualisation.TableModel;
@@ -40,5 +41,6 @@ public class VisualMain {
 				{ "4", "", "C" } };
 		_schedule.changeData(newdata);
 		_schedule.fireTableDataChanged();*/
+		
 	}
 }

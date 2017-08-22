@@ -1,8 +1,7 @@
 import implementations.algorithm.AlgorithmImp;
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
-import interfaces.io.Conversion;
-import interfaces.structures.DAG;
+import implementations.structures.DAGImp;
 import org.junit.Test;
 
 public class ApplicationTest {
@@ -73,11 +72,10 @@ public class ApplicationTest {
 
     private void runAlgorithm(String fileName) {
         InputImp input = new InputImp(fileName, core);
-        Conversion conversion = new ConversionImp(input);
+        DAGImp.getNewInstance();
+        Conversion conversion = new Conversion(input);
 
-        DAG dag = conversion.getDAG();
-
-        AlgorithmImp alg = new AlgorithmImp(dag, input.getProcessorCount());
+        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
         //Output output = new Output (alg.getCurrentBestSchedule(), fileName);
         //output.printOutput();
         System.out.println("BestTime: " + alg.getBestTotalTime());
