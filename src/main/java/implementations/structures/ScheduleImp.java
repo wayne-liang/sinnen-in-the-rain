@@ -70,6 +70,38 @@ public class ScheduleImp implements Schedule {
 	}
 	
 	/**
+	 * private constructor for copying purpose only.
+	 * 
+	 * @param algNodes
+	 * @param numberOfCores
+	 * @param lastAlgNodeOnCore
+	 */
+	private ScheduleImp(List<AlgorithmNodeImp> algNodes, int numberOfCores, Map<Integer, AlgorithmNodeImp> lastAlgNodeOnCore){
+		this(algNodes, numberOfCores);
+		_lastAlgNodeOnCore = lastAlgNodeOnCore;
+	}
+	
+	/**
+	 * This class should clone the old Schedule, create a new Schedule object
+	 * with the new node appended on the end. 
+	 * 
+	 * @param current
+	 * @param startTime
+	 * @return
+	 */
+	public Schedule appendNodeToSchedule(AlgorithmNodeImp current, int startTime) {
+		int size = this.getSizeOfSchedule();
+		
+		List<AlgorithmNodeImp> algNodes = _algNodes;
+		int[] startTimeForNode = _startTimeForNode;
+		algNodes.add(current);
+		startTimeForNode[size] = startTime;
+		
+		return new ScheduleImp (_algNodes, _numberOfCores, _lastAlgNodeOnCore);
+		
+	}
+	
+	/**
 	 * @param startTime
 	 * @param index --- The index should match the index for the List<AlgorithmNodes>.
 	 */
