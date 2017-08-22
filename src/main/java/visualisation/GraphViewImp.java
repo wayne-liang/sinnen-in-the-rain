@@ -41,8 +41,9 @@ public class GraphViewImp extends JFrame implements GraphView {
 		//add(south, BorderLayout.SOUTH);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(500, 520);
-		setVisible(true);
+
+		setSize(500,520);
+		//setVisible(true);
 	}
 	
 	public JScrollPane getPane(){
