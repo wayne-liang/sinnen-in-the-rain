@@ -3,7 +3,6 @@ package implementations.io;
 import implementations.structures.ArcImpl;
 import implementations.structures.DAGImp;
 import implementations.structures.NodeImp;
-import interfaces.io.Conversion;
 import interfaces.io.Input;
 import interfaces.structures.Arc;
 import interfaces.structures.DAG;
@@ -18,22 +17,22 @@ import java.util.stream.Collectors;
  *
  * @author Daniel
  */
-public class ConversionImp implements Conversion {
+public class Conversion {
     private List<String[]> _graphData;
 
     /**
-     * Constructor for ConversionImp module.
+     * Constructor for Conversion module.
      * @param input - Input class
      */
-    public ConversionImp(Input input) {
+    public Conversion(Input input) {
         _graphData = input.getGraphData();
+        generateDAG();
     }
 
     /**
-     * Generate and return the DAG from the input data.
-     * @return DAG - Graph generated
+     * Generate a DAG from raw data
      */
-    public DAG getDAG() {
+    private void generateDAG() {
         HashMap<String, Node> nodes = new HashMap<>();
 
         for (String[] values : _graphData) {
@@ -56,11 +55,9 @@ public class ConversionImp implements Conversion {
         }
 
         //Add to the DAG object all the nodes
-        DAG dag = new DAGImp();
+        DAG dag = DAGImp.getInstance();
         dag.addStartNodes(getRootNodes(nodes)); //Add the root nodes to the DAG
         nodes.values().forEach(dag::add);
-
-        return dag;
     }
 
 	/**

@@ -10,8 +10,11 @@ import java.util.List;
 /**
  * This class is an implementation of the DAG interface.
  * It represents a Directed Acyclic Graph.
+ * Singleton Class
  */
-public class DAGImp implements DAG{
+public class DAGImp implements DAG {
+    //Holds an instance of DAG
+    private static DAGImp instance = null;
 
     /**
      * HashMapList object containing all the Node objects currently held in this DAG.
@@ -26,9 +29,20 @@ public class DAGImp implements DAG{
     private ArrayList<Node> _startNodes;
 
     /**
-     * Creates a new, empty DAGImp object.
+     * Get an instance of DAG
+     * @return DAG
      */
-    public DAGImp() {
+    public static DAG getInstance() {
+        if (instance == null) {
+            instance = new DAGImp();
+        }
+        return instance;
+    }
+
+    /**
+     * Creates a new, empty DAGImp object. Private due to singleton.
+     */
+    private DAGImp() {
         _nodes = new HashMap<>();
         _startNodes = new ArrayList<>();
     }

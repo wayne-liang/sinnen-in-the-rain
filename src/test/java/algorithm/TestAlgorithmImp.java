@@ -2,10 +2,9 @@ package algorithm;
 
 import implementations.algorithm.AlgorithmImp;
 import implementations.algorithm.AlgorithmNodeImp;
-import implementations.io.ConversionImp;
+import implementations.io.Conversion;
 import implementations.io.InputImp;
 import implementations.structures.ScheduleImp;
-import interfaces.io.Conversion;
 import interfaces.io.Input;
 import org.junit.Test;
 
@@ -348,7 +347,7 @@ public class TestAlgorithmImp {
 	 */
 	private AlgorithmImp computeAlgorithmFromInput(String path, String core) {
 		Input input = new InputImp(path, core);
-		Conversion conversion = new ConversionImp(input);
-		return new AlgorithmImp(conversion.getDAG(), input.getProcessorCount());
+		Conversion conversion = new Conversion(input);
+		return new AlgorithmImp(input.getProcessorCount());
 	}
 }

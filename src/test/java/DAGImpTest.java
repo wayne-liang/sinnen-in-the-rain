@@ -1,5 +1,6 @@
 import dummyClasses.DummyNode;
 import implementations.structures.DAGImp;
+import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +20,7 @@ public class DAGImpTest {
 
     @Test
     public void addNodesTest() {
-        DAGImp dag = new DAGImp();
+        DAG dag = DAGImp.getInstance();
         DummyNode n1 = new DummyNode("node");
 
         dag.add(n1);
