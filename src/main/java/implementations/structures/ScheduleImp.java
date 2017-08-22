@@ -3,6 +3,7 @@ package implementations.structures;
 import implementations.algorithm.AlgorithmNodeImp;
 import interfaces.structures.Schedule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,6 +27,14 @@ public class ScheduleImp implements Schedule {
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
 
+	/**
+	 * The default constructor should only be called when 
+	 * the schedule is empty. (No node is in the schedule).
+	 */
+	public ScheduleImp() {
+		_algNodes = new ArrayList<AlgorithmNodeImp>();
+	}
+	
 	public ScheduleImp(List<AlgorithmNodeImp> algNodes) {
 		_algNodes = algNodes;
 		_startTimeForNode = new int[_algNodes.size()];
