@@ -171,7 +171,7 @@ public class AlgorithmImp implements Algorithm {
 		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
 
 		//creating a ScheduleImp object for holding the schedule start times for each node
-		ScheduleImp st = new ScheduleImp(algNodes);
+		ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);
 
 		//looping through all the AlgorithmNodes to set startTimes
 		for (AlgorithmNodeImp currentAlgNode : algNodes) {
