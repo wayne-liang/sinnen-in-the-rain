@@ -29,7 +29,7 @@ public class TestGraphStreamView {
 
 		//Create a GraphStreamView object to make a DAG visual
 		DAG dag = DAGImp.getInstance();
-		GraphStreamView g = new GraphStreamView(dag,input.getProcessorCount());
+		GraphStreamView g = new GraphStreamView(input.getProcessorCount());
 		interfaces.structures.Node test = dag.getNodeByName("a");
 
 		Timer timer = new Timer();

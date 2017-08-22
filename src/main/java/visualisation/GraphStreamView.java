@@ -9,6 +9,7 @@ import org.graphstream.ui.view.Viewer;
 import implementations.io.Conversion;
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.InputImp;
+import implementations.structures.DAGImp;
 import interfaces.io.Input;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
@@ -53,7 +54,7 @@ public class GraphStreamView implements GraphView {
 	 * @param dag
 	 * @param processorCount
 	 */
-	public GraphStreamView(DAG dag, int processorCount){
+	public GraphStreamView(int processorCount){
 		
 		//Initialising fields
 		_graphNodeNodeMap = new HashMap<interfaces.structures.Node,Node>();
@@ -63,9 +64,9 @@ public class GraphStreamView implements GraphView {
 		
 		//Gets random colours for different processors
 		setProcessorColours();
-		_dag = dag;
+		_dag = DAGImp.getInstance();
 		
-		List<interfaces.structures.Node> nodes = dag.getAllNodes();
+		List<interfaces.structures.Node> nodes = _dag.getAllNodes();
 		
 		
 		//Create a graph visual
@@ -74,21 +75,18 @@ public class GraphStreamView implements GraphView {
 		//Stylesheet settings - needs to be modified
 		_GRAPH.setAttribute("stylesheet", 
 				"node { "
-		        + "     shape: rounded-box; "
-		        + "     padding: 5px;"
-		        + "		size: 20px; "
+		        + "     shape: circle; "
+		        + "		size: 30px; "
 		        + "     fill-mode: dyn-plain; "
 		        + "     stroke-mode: plain; "
 		        + "		stroke-color: black;"
-		        + "		stroke-width: 5;"
-		        + "     size-mode: fit;"
+		        + "		fill-color: white;"
+		        + "		text-alignment: center;"
+		        + "		text-size: 15px;"
+		        + "		text-padding: 5px;"
 		        + "} "
 		        + "edge { "
-		        + "     shape: freeplane;"
 		        + "		fill-color: black; "
-		        + "}"
-		        + "edge.marked { "
-		        + "     fill-color: black;"
 		        + "}");
 		
 		//Loop through all nodes
@@ -119,27 +117,6 @@ public class GraphStreamView implements GraphView {
 		    }
 		}
 		
-		//Display the graph with auto layout
-		//Viewer viewer = _GRAPH.display();
-		
-		//Delete this part
-		 Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-	        JFrame frame = new JFrame("Graph");
-	        frame.setLayout(new BorderLayout());
-	        frame.setSize(500, 500);
-	        viewer.enableAutoLayout();
-	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-	        /*JPanel panel = new JPanel();
-	        
-	        ViewPanel view = viewer.addDefaultView(false);
-	        panel.setLayout(new BorderLayout());
-	        panel.add(view, BorderLayout.CENTER);*/
-
-	        frame.add(getPanel(), BorderLayout.CENTER);
-	        JPanel text = new JPanel();
-	        frame.add(text,BorderLayout.EAST);
-	        frame.setVisible(true);
 		
 	}
 	@Override
@@ -147,14 +124,17 @@ public class GraphStreamView implements GraphView {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
 	/**
 	 * Interesting method??? Review this method if needed
 	 * @param node
 	 */
+	/*
 	public void changeNodeColour(interfaces.structures.Node node){
 		Node graphNode = _graphNodeNodeMap.get(node);
 		graphNode.setAttribute("ui.class","marked");
-	}
+	}*/
 	
 	/**
 	 * method to return GraphStream graph in a JPanel. Must call the constructor before calling this.
@@ -165,12 +145,13 @@ public class GraphStreamView implements GraphView {
 		JPanel jp = new JPanel();
 		Viewer viewer = new Viewer(_GRAPH, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 		
+		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		
+		//Creating a JPanel with BorderLayout properties in order to display the GraphStream view
 		jp.setLayout(new BorderLayout());
 		viewer.enableAutoLayout();
         ViewPanel viewPanel = viewer.addDefaultView(false);
-        //viewPanel.setVisible(true);
         jp.add(viewPanel, BorderLayout.CENTER);
-        //jp.setVisible(true);
         return jp;
 	}
 	/**
