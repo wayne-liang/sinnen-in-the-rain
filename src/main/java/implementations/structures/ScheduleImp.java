@@ -1,16 +1,13 @@
 package implementations.structures;
 
-import implementations.algorithm.AlgorithmNodeImp;
-import implementations.io.InputImp;
-import interfaces.algorithm.AlgorithmNode;
-import interfaces.io.Input;
-import interfaces.structures.Schedule;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import interfaces.algorithm.AlgorithmNode;
+import interfaces.structures.Schedule;
 
 /**
  * This class represents the abstraction of a schedule (or a partial schedule)
@@ -28,35 +25,35 @@ import java.util.stream.Collectors;
  *
  */
 public class ScheduleImp implements Schedule {
-	private List<AlgorithmNodeImp> _algNodes;
+	private List<AlgorithmNode> _algNodes;
 	//The index for this field should match the index for the list of nodes.
 	private int[] _startTimeForNode;// = new int[];
 	private int _totalTime;
 	private int _numberOfCores;
 	
-	private Map<Integer, AlgorithmNodeImp> _lastAlgNodeOnCore;
+	private Map<Integer, AlgorithmNode> _lastAlgNodeOnCore;
 
 	/**
 	 * The default constructor should only be called when 
 	 * the schedule is empty. (No node is in the schedule).
 	 */
 	public ScheduleImp(int numberOfCores) {
-		_algNodes = new ArrayList<AlgorithmNodeImp>();
+		_algNodes = new ArrayList<AlgorithmNode>();
 		_numberOfCores = numberOfCores;
 		
-		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNodeImp>();
+		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNode>();
 		for (int i = 0; i < _numberOfCores; i++){
 			_lastAlgNodeOnCore.put(i+1, null); //Empty schedule.
 		}
 	}
 	
-	public ScheduleImp(List<AlgorithmNodeImp> algNodes, int numberOfCores) {
+	public ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores) {
 		_algNodes = algNodes;
 		_startTimeForNode = new int[_algNodes.size()];
 		_numberOfCores = numberOfCores;
 		
 		//Calculate last schedule on core.
-		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNodeImp>();
+		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNode>();
 		for (int i = 0; i < _numberOfCores; i++){
 			_lastAlgNodeOnCore.put(i+1, null); //Empty schedule.
 		}
@@ -76,7 +73,7 @@ public class ScheduleImp implements Schedule {
 	 * @param numberOfCores
 	 * @param lastAlgNodeOnCore
 	 */
-	private ScheduleImp(List<AlgorithmNodeImp> algNodes, int numberOfCores, Map<Integer, AlgorithmNodeImp> lastAlgNodeOnCore){
+	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore){
 		this(algNodes, numberOfCores);
 		_lastAlgNodeOnCore = lastAlgNodeOnCore;
 	}
@@ -89,16 +86,35 @@ public class ScheduleImp implements Schedule {
 	 * @param startTime
 	 * @return
 	 */
-	public Schedule appendNodeToSchedule(AlgorithmNodeImp current, int startTime) {
+	@Override
+	public Schedule appendNodeToSchedule(AlgorithmNode current, int startTime) {
 		int size = this.getSizeOfSchedule();
 		
-		List<AlgorithmNodeImp> algNodes = _algNodes;
+		List<AlgorithmNode> algNodes = _algNodes;
 		int[] startTimeForNode = _startTimeForNode;
 		algNodes.add(current);
 		startTimeForNode[size] = startTime;
 		
 		return new ScheduleImp (_algNodes, _numberOfCores, _lastAlgNodeOnCore);
+	}
+	
+	public Schedule generateSchedule(AlgorithmNode currentNode) {
+		Schedule newSchedule;
+		if (this.getSizeOfSchedule() == 0) { //Empty scheule, this is the first node.
+			newSchedule = this.appendNodeToSchedule(currentNode, 0); //start on time 0 
+		} else {
+			AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(currentNode.getCore());
+			
+			int endTimeForCore;
+			if (lastNodeOnCore == null) { 
+				endTimeForCore = 0;
+			} else {
+				//TODO
+			}
+			newSchedule = null;
+		}
 		
+		return newSchedule;
 	}
 	
 	/**
@@ -117,7 +133,7 @@ public class ScheduleImp implements Schedule {
 	 * @return
 	 */
 	@Deprecated
-	public List<AlgorithmNodeImp> getAlgorithmNodes() {
+	public List<AlgorithmNode> getAlgorithmNodes() {
 		return _algNodes;
 	}
 
@@ -169,7 +185,7 @@ public class ScheduleImp implements Schedule {
 	}
 	
 	@Override
-	public AlgorithmNodeImp getLastNodeOnCore (int core){
+	public AlgorithmNode getLastNodeOnCore (int core){
 		return _lastAlgNodeOnCore.get(core);
 	}
 }

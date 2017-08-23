@@ -2,6 +2,7 @@ package algorithm;
 
 import implementations.algorithm.AlgorithmImp;
 import implementations.algorithm.AlgorithmNodeImp;
+import interfaces.algorithm.AlgorithmNode;
 import implementations.io.Conversion;
 import implementations.io.InputImp;
 import implementations.structures.ScheduleImp;
@@ -23,12 +24,12 @@ public class TestAlgorithmImp {
 //	@Test
 //	public void testGenerateSchedule() {
 //		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-//		List<List<AlgorithmNodeImp>> schedules = alg.getSchedules();
+//		List<List<AlgorithmNode>> schedules = alg.getSchedules();
 //
 //		assertEquals(384, schedules.size());
 //
 //		StringBuilder sb = new StringBuilder();
-//		for (AlgorithmNodeImp node : schedules.get(0)) {
+//		for (AlgorithmNode node : schedules.get(0)) {
 //			sb.append(node.getNodeName() + node.getCore() + " ");
 //		}
 //
@@ -70,14 +71,14 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule1() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-		List<AlgorithmNodeImp> schedule1 = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
+		List<AlgorithmNode> schedule1 = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule1));
 		setCoreForAlgorithmNodes(schedule1, new int[] {2, 2, 1, 1});
 		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule1);
 		assertEquals(st.getTotalTime(), 9);
 
 		alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		setCoreForAlgorithmNodes(schedule, new int[] {2, 2, 1, 1});
 
@@ -115,7 +116,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule2() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		setCoreForAlgorithmNodes(schedule, new int[] {2});
 
@@ -127,7 +128,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule3() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a", "c", "b", "d"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a", "c", "b", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1});
 		
@@ -171,7 +172,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule4() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"e", "a", "b", "c", "d"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"e", "a", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 1});
@@ -221,7 +222,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule5() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a", "e", "b", "c", "d"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a", "e", "b", "c", "d"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 1});
@@ -238,7 +239,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule6() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a", "b", "e"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a", "b", "e"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 2, 1});
@@ -266,7 +267,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule7() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"a", "b", "c", "d", "e"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"a", "b", "c", "d", "e"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {1, 1, 1, 1, 2});
@@ -294,7 +295,7 @@ public class TestAlgorithmImp {
 	@Test
 	public void testValidSchedule8() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
-		List<AlgorithmNodeImp> schedule = generateAlgorithmNodes(new String[]{"e"});
+		List<AlgorithmNode> schedule = generateAlgorithmNodes(new String[]{"e"});
 		assertTrue(alg.checkValidScheduleWrapper(schedule));
 		//1
 		setCoreForAlgorithmNodes(schedule, new int[] {2});
@@ -314,10 +315,10 @@ public class TestAlgorithmImp {
 	 * @param names
 	 * @return
 	 */
-	private List<AlgorithmNodeImp> generateAlgorithmNodes(String[] names) {
-		List<AlgorithmNodeImp> nodes = new ArrayList<AlgorithmNodeImp>();
+	private List<AlgorithmNode> generateAlgorithmNodes(String[] names) {
+		List<AlgorithmNode> nodes = new ArrayList<AlgorithmNode>();
 		for(String name : names){
-			AlgorithmNodeImp algNode = new AlgorithmNodeImp(name);
+			AlgorithmNode algNode = new AlgorithmNodeImp(name);
 			nodes.add(algNode);
 		}
 
@@ -330,7 +331,7 @@ public class TestAlgorithmImp {
 	 * @param cores
 	 * @return
 	 */
-	private void setCoreForAlgorithmNodes(List<AlgorithmNodeImp> nodes, int[] cores) {
+	private void setCoreForAlgorithmNodes(List<AlgorithmNode> nodes, int[] cores) {
 		int[] index = {0}; //only one element. (int index won't work for lambda...)
 		nodes.forEach(n -> {
 			n.setCore(cores[index[0]]);

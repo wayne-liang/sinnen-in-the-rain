@@ -27,8 +27,9 @@ public class AlgorithmImp implements Algorithm {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
+		
 
-		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 	}
 
 	/**
@@ -46,7 +47,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes) {
 		_recursiveCalls++;
 
 		//Base Case
@@ -59,8 +60,8 @@ public class AlgorithmImp implements Algorithm {
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				for (int j = 1; j <= _numberOfCores; j++) {
-					List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
-					AlgorithmNodeImp node = remainingNodes.get(i).createClone();
+					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
+					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
 
@@ -75,7 +76,7 @@ public class AlgorithmImp implements Algorithm {
 						break;
 					}
 
-					List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
+					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining);
@@ -89,7 +90,7 @@ public class AlgorithmImp implements Algorithm {
 					 */
 
 					List<Integer> coresAssigned = newProcessed.stream()
-							.map(AlgorithmNodeImp::getCore)
+							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
 					long noOfDistinctCores = coresAssigned.stream()
 							.distinct()
@@ -119,7 +120,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param schedule
 	 * @return true if the schedule is valid, false if not
 	 */
-	private boolean checkValidSchedule(List<AlgorithmNodeImp> schedule) {
+	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
 		if (schedule == null) {
 			return false;
 		}
@@ -155,27 +156,27 @@ public class AlgorithmImp implements Algorithm {
 
 	/**
 	 * Calculates the time cost of executing the given schedule, returning a complete ScheduleImp object.
-	 * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
+	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - ScheduleImp object with cost and execution time information
 	 */
-	private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
+	private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
 
 		//populating new nodes array with corresponding Node objects
-		for (AlgorithmNodeImp algNode : algNodes) {
+		for (AlgorithmNode algNode : algNodes) {
 			nodes.add(_dag.getNodeByName(algNode.getNodeName()));
 		}
 
 		//creating ArrayLists to represent the schedule for each core
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
-		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
+		List<AlgorithmNode> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNode[_numberOfCores]);
 
 		//creating a ScheduleImp object for holding the schedule start times for each node
 		ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);
 
 		//looping through all the AlgorithmNodes to set startTimes
-		for (AlgorithmNodeImp currentAlgNode : algNodes) {
+		for (AlgorithmNode currentAlgNode : algNodes) {
 			Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));
 			int highestCost = 0;
 
@@ -195,7 +196,7 @@ public class AlgorithmImp implements Algorithm {
 			}
 
 			//calculate the time delay caused by previous processes on the same core
-			AlgorithmNodeImp latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
+			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
 			if (latestNode != null) {
 				Node previousNode = _dag.getNodeByName(latestNode.getNodeName());
 				int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));
@@ -219,14 +220,14 @@ public class AlgorithmImp implements Algorithm {
 	/**
 	 * Calculates and sets the total time in the {@code ScheduleImp} object given.
 	 * Main purpose is to make the code more readable.
-	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNodeImp>} containing the last node in each processor
+	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNode>} containing the last node in each processor
 	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code ScheduleImp} object
 	 * @param st - {@code ScheduleImp} object to set the total time of
 	 */
-	private void setTimeForSchedule(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
+	private void setTimeForSchedule(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, ScheduleImp st) {
 		int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
-			AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
+			AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
 
 			int timeTaken = 0;
 			if (latestAlgNode != null) {
@@ -242,13 +243,13 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-	 * Finds and returns the index position of the corresponding {@code AlgorithmNodeImp} within the given {@code List<AlgorithmNodeImp}
+	 * Finds and returns the index position of the corresponding {@code AlgorithmNode} within the given {@code List<AlgorithmNode}
 	 * @param node - {@code Node} to find the corresponding index position for
-	 * @param algNodes - {@code List<AlgorithmNodeImp>} to find the index for
-	 * @return the index position of the corresponding {@code AlgorithmNodeImp} object
+	 * @param algNodes - {@code List<AlgorithmNode>} to find the index for
+	 * @return the index position of the corresponding {@code AlgorithmNode} object
 	 */
-	private int getIndexOfList(Node node, List<AlgorithmNodeImp> algNodes) {
-		AlgorithmNodeImp correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
+	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
+		AlgorithmNode correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
 				.findFirst()
 				.get();
 
@@ -270,11 +271,11 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes
 	 * @return
 	 */
-	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
+	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
 		return calculateTotalTime(algNodes);
 	}
 
-	public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
+	public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {
 		return checkValidSchedule(s1);
 	}
 }

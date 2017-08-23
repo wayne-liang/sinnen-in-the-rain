@@ -25,22 +25,5 @@ public class ScheduleCalculator {
 		_dag = DAGImp.getInstance();
 	}
 	
-	public Schedule generateSchedule() {
-		Schedule newSchedule;
-		if (_prevSchedule.getSizeOfSchedule() == 0) { //Empty scheule, this is the first node.
-			newSchedule = _prevSchedule.appendNodeToSchedule(_currentNode, 0); //start on time 0 
-		} else {
-			AlgorithmNodeImp lastNodeOnCore = _prevSchedule.getLastNodeOnCore(_currentNode.getCore());
-			
-			int endTimeForCore;
-			if (lastNodeOnCore == null) { 
-				endTimeForCore = 0;
-			} else {
-				//TODO
-			}
-			newSchedule = null;
-		}
-		
-		return newSchedule;
-	}
+	
 }
