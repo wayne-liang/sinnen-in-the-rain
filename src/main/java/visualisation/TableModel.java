@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import javax.swing.table.AbstractTableModel;
 
 import implementations.algorithm.AlgorithmImp;
+import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
 
@@ -17,7 +18,7 @@ public class TableModel extends AbstractTableModel {
 	protected TableModel() {
 		// Exists only to defeat instantiation.
 	}
-	
+
 	public static TableModel getInstance() {
 		if(instance == null) {
 			instance = new TableModel();
@@ -32,7 +33,7 @@ public class TableModel extends AbstractTableModel {
 	private int _bestTime;// total best time possible - will represent number of rows.
 	private HashMap<String, NodeSchedule> _map;
 	private DAG _dag;
-	
+
 	/**
 	 * Must be called the first time the singleton is initialized. Should only be called only once, since DAG and 
 	 * cores don't change.
@@ -88,11 +89,21 @@ public class TableModel extends AbstractTableModel {
 			NodeSchedule value = entry.getValue();
 			int startTime = value.getBestStartTime();
 			int core = value.getBestProcessor();
-			int nodeWeight = _dag.getNodeByName(key).getWeight();
-
+			int nodeWeight = 0;
+			if (DAGImp.getInstance().getNodeByName(key) != null){
+				nodeWeight = DAGImp.getInstance().getNodeByName(key).getWeight(); 
+			} else {
+				continue;
+			}
 			// go through all rows which have the same node based on node weight.
 			for (int i =0;i<nodeWeight;i++){
-				data[startTime+i][core] = key.toUpperCase();
+				try {
+					data[startTime+i][core] = key.toUpperCase();
+				} catch (RuntimeException e){
+					System.out.println("Nodeweight (and i): "+ nodeWeight + "\nstartTime = " + startTime + " core = "+core);
+					e.printStackTrace();
+				}
+				
 			}
 		}
 		return data;
@@ -120,12 +131,12 @@ public class TableModel extends AbstractTableModel {
 		}
 		return s;
 	}
-	
+
 	public void printData(String[][] array){
 		System.out.println(Arrays.deepToString(array));
 	}
-	
-	
+
+
 	@Override
 	public String getColumnName(int col) {
 		return _columnNames[col];
