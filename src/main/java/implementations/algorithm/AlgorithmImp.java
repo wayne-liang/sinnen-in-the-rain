@@ -8,6 +8,7 @@ import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
+import visualisation.Clock;
 import visualisation.ComboView;
 import visualisation.GraphView;
 import visualisation.GraphViewImp;
@@ -15,6 +16,8 @@ import visualisation.TableModel;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.swing.SwingUtilities;
 
 /**
  * This class implements the algorithm to solve the scheduling problem
@@ -25,18 +28,28 @@ public class AlgorithmImp implements Algorithm {
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 	private TableModel _model;
-	private int _bestTime = Integer.MAX_VALUE;
+	private int _bestTime = Integer.MAX_VALUE; 
+	private boolean firstSchedule = true;
+	
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-		
+		// Check if visualisation is true, only then do we create the gui. 
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+
 		ComboView schedule = new ComboView(_model,_dag, _numberOfCores);
 		
+		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
+		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
+		_model.changeData(_currentBestSchedule, _bestTime);
+		
+		_model = TableModel.setInstance();
+		
 	}
 
 	/**
@@ -56,7 +69,7 @@ public class AlgorithmImp implements Algorithm {
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
 		_recursiveCalls++;
-
+		
 		//Base Case
 		if (remainingNodes.size() == 0) {
 			ScheduleImp st = calculateTotalTime(processed);
@@ -64,16 +77,16 @@ public class AlgorithmImp implements Algorithm {
 				setNewBestSchedule(st);
 				_bestTime = st.getTotalTime();
 				// update view, now that a new schedule is available. This is too fast for small schedules
-				
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
-				/*try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e){
-					e.printStackTrace();
-				}*/
+
+				// GUI does not update faster than 50 ms.  
+				int timeNow = Clock.getInstance().getMilliseconds();
 				
-				
-				_model.changeData(_currentBestSchedule, _bestTime);
+				if (firstSchedule||timeNow > Clock.lastUpdate + 50){
+					Clock.lastUpdate = timeNow;
+					_model.changeData(_currentBestSchedule, _bestTime);
+					firstSchedule = false;
+				}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -129,6 +142,7 @@ public class AlgorithmImp implements Algorithm {
 
 			//TODO fireUpdates to visualisation
 		}
+
 	}
 
 	/**
@@ -142,7 +156,7 @@ public class AlgorithmImp implements Algorithm {
 		if (schedule == null) {
 			return false;
 		}
-		
+
 		//Get the last node's predecessors
 		Node currentNode = _dag.getNodeByName(schedule.get(schedule.size()-1).getNodeName());
 		List<Node> predecessors = currentNode.getPredecessors();
@@ -295,5 +309,16 @@ public class AlgorithmImp implements Algorithm {
 
 	public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
 		return checkValidSchedule(s1);
+	}
+	
+	/**
+	 * Gets the total number of arcs in the algorithm. Used only for testing at the moment.
+	 */
+	public int getAllArcSize(List<Node> nodeList){
+		int count = 0;
+		for (Node n: nodeList){
+			count += n.getPredecessors().size();
+		}
+		return count;
 	}
 }

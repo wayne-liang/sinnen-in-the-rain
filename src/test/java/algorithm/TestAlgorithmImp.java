@@ -41,7 +41,7 @@ public class TestAlgorithmImp {
 	 * Tests the check valid schedule function using Example file.
 	 * The schedules listed in here should be invalid.
 	 */
-	@Test
+	//@Test
 	public void testInvalidSchedule1() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
 
@@ -146,7 +146,7 @@ public class TestAlgorithmImp {
 	 * Tests the check valid schedule function using Example file 2 (modified to remove arc bd and add node e).
 	 * The schedules listed in here should be invalid.
 	 */
-	@Test
+	//@Test
 	public void testInvalidSchedule2() {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
 
