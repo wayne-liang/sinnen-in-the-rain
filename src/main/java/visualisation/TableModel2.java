@@ -1,44 +1,37 @@
 package visualisation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.swing.table.AbstractTableModel;
 
-import implementations.algorithm.AlgorithmImp;
 import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
 import interfaces.structures.NodeSchedule;
 
 @SuppressWarnings("serial")
-public class TableModel extends AbstractTableModel {
+public class TableModel2 extends AbstractTableModel {
 
-	private static TableModel instance = null;
-	protected TableModel() {
-		// Exists only to defeat instantiation.
-	}
-
-	public static TableModel getInstance() {
-		if(instance == null) {
-			instance = new TableModel();
-		}
-		return instance;
-	}
-	
-	public static TableModel setInstance(){
-		instance = null;
-		return instance;
-	}
-	
+	private static TableModel2 instance = null;
 	private String[] _columnNames; // initialize based on number of processors.
-
-	private String[][] _data; // initialize based on schedular object.
+	private ArrayList<String[]> _data; // initialize based on schedular object.
 	private int _cores;
 	private int _bestTime;// total best time possible - will represent number of rows.
 	private HashMap<String, NodeSchedule> _map;
 	private DAG _dag;
+	
+	protected TableModel2() {
+		// Exists only to defeat instantiation.
+	}
 
+	public static TableModel2 getInstance() {
+		if(instance == null) {
+			instance = new TableModel2();
+		}
+		return instance;
+	}
 	/**
 	 * Must be called the first time the singleton is initialized. Should only be called only once, since DAG and 
 	 * cores don't change.
@@ -51,7 +44,7 @@ public class TableModel extends AbstractTableModel {
 		_map = map;
 		_dag = dag;
 		_columnNames = initColumnNames();
-		_data = new String[][]{};
+		_data = new ArrayList<String[]>();
 	}
 	/**
 	 * Method is called when a better schedule object (with lower schedule time) is available. The TableModel is updated
@@ -59,10 +52,9 @@ public class TableModel extends AbstractTableModel {
 	 * @param map
 	 */
 	public void changeData(HashMap<String, NodeSchedule> map, int betterTime){
-		_dag = DAGImp.getInstance();
 		_bestTime = betterTime;
 		_map = map;
-		initData();
+		_data = initData();
 		fireTableDataChanged();
 	}
 
@@ -79,19 +71,19 @@ public class TableModel extends AbstractTableModel {
 	 * Effectively, the adapter method.
 	 * @return
 	 */
-	public void initData(){
-		_data = new String[_bestTime][_cores+1];
+	public ArrayList<String[]> initData(){
+		ArrayList<String[]> data = new ArrayList<String[]>();
 		// Initializing array with time values and empty strings.
 		for (int i =0; i < _bestTime;i++){
-			_data[i][0] = (i + 1) + "";
+			String[] arr = new String[_cores+1];
+			arr[0] = (i + 1) + "";
 			for (int j = 1; j < _cores+1;j++){
-				_data[i][j] = "";
+				arr[j] = "";
 			}
+			data.add(arr);
 		}
 
-		fireTableDataChanged();
 		for (Entry<String, NodeSchedule> entry : _map.entrySet()) {
-
 			String key = entry.getKey();
 			NodeSchedule value = entry.getValue();
 			int startTime = value.getBestStartTime();
@@ -105,9 +97,10 @@ public class TableModel extends AbstractTableModel {
 			// go through all rows which have the same node based on node weight.
 			for (int i =0;i<nodeWeight;i++){
 				try {
-					//setValueAt(key.toUpperCase(),startTime+i,core);
-					_data[startTime+i][core] = key.toUpperCase();
-					
+					String[] arr = data.get(startTime+i);
+					arr[core] = key.toUpperCase();
+					//data.add(startTime+i, arr);
+					//data[startTime+i][core] = key.toUpperCase();
 				} catch (RuntimeException e){
 					System.out.println("Nodeweight (and i): "+ nodeWeight + "\nstartTime = " + startTime + " core = "+core);
 					e.printStackTrace();
@@ -115,13 +108,13 @@ public class TableModel extends AbstractTableModel {
 				
 			}
 		}
+		return data;
 	}
 
 	@Override
 	public int getRowCount() {
-		return _data.length;
+		return _data.size();
 	}
-	
 
 	@Override
 	public int getColumnCount() {
@@ -131,8 +124,18 @@ public class TableModel extends AbstractTableModel {
 
 	@Override
 	public String getValueAt(int rowIndex, int columnIndex) {
-		return _data[rowIndex][columnIndex];
+		String s = "";
+		try {
+			s = _data.get(rowIndex)[columnIndex];
+		} catch (Exception e){
+			e.printStackTrace();
+			//printData(_data);
+		}
+		return s;
+	}
 
+	public void printData(String[][] array){
+		System.out.println(Arrays.deepToString(array));
 	}
 
 
@@ -145,13 +148,18 @@ public class TableModel extends AbstractTableModel {
 	 * Don't need to implement this method unless your table's
 	 * data can change.
 	 */
-	public void setValueAt(Object value, int row, int col) {
+	/*public void setValueAt(Object value, int row, int col) {
 		_data[row][col] = (String) value;
 		fireTableCellUpdated(row, col);
-	}
+	}*/
 
 	public boolean isCellEditable(int row, int col){ 
 		return false; 
 	}
 
+	/*public void changeData(String[][] newdata){
+		_data = newdata;
+	}*/
+
 }
+

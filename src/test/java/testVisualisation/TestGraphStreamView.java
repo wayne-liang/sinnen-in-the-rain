@@ -22,7 +22,7 @@ import visualisation.GraphStreamView;
 
 public class TestGraphStreamView {
 
-	@Test
+	//@Test
 	public void testStartUp(){
 		Input input = new InputImp("test.dot", "2");
 		Conversion conversion = new Conversion(input);
@@ -31,7 +31,7 @@ public class TestGraphStreamView {
 		DAG dag = DAGImp.getInstance();
 		GraphStreamView g = new GraphStreamView(input.getProcessorCount());
 		interfaces.structures.Node test = dag.getNodeByName("a");
-
+		
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask(){
 
@@ -40,35 +40,35 @@ public class TestGraphStreamView {
 				// TODO Auto-generated method stub
 				AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
 				HashMap<String,NodeSchedule> currentSchedule = alg.getCurrentBestSchedule();
-
-
+				
+				
 				Iterator itSchedule = currentSchedule.entrySet().iterator();
 				while (itSchedule.hasNext()) {
 					Map.Entry pair = (Map.Entry)itSchedule.next();
-
+					
 					HashMap<String,Node> mapping = g.getStringNodeHashMap();			
 					Node currentNode = mapping.get((String) pair.getKey());
-
+					
 					//public static view :(
 					currentNode.addAttribute("ui.color", GraphStreamView._processorColours.get(((NodeSchedule) pair.getValue()).getBestProcessor()-1));
 					currentNode.addAttribute("bestStartTime", ((NodeSchedule) pair.getValue()).getBestStartTime());
 				}
-
-
-
+				
+				
+				
 			}
-
+			
 		}, 2*1000);
-
+		
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 
-
-
-	}
+	
+}
 
 }

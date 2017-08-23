@@ -26,13 +26,23 @@ public class GraphViewImp extends JFrame implements GraphView {
 		        return super.getCellRenderer(row, column);
 		    }
 		};
+		//table = new JTable(tableModel);
     
 		//table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, 0, true));
 		table.setFillsViewportHeight(true);
 		JScrollPane pane = new JScrollPane(table);
 		
+		/*addColumnBtn = new JButton("Change Schedule");
+		addColumnBtn.setActionCommand(GraphController.NEW_SCHEDULE);
+		
+		JPanel south = new JPanel();
+		south.add(addColumnBtn);*/
+		
 		add(pane, BorderLayout.CENTER);
+		//add(south, BorderLayout.SOUTH);
+		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+
 		setSize(500,520);
 		//setVisible(true);
 	}

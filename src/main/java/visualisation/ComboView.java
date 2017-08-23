@@ -13,6 +13,7 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
+import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
 import net.miginfocom.swing.MigLayout;
 /**
@@ -37,8 +38,8 @@ public class ComboView extends JFrame {
 	 * @param _dag 
 	 */
 	public ComboView(TableModel tableModel, DAG dag, int numberOfCores) {
-		_tableModel = tableModel;
-		_dag = dag;
+		_tableModel = TableModel.getInstance();
+		_dag = DAGImp.getInstance();
 		_cores = numberOfCores;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1200, 700);
@@ -94,10 +95,7 @@ public class ComboView extends JFrame {
         _panelMiddle.setLayout(new BorderLayout());
         
         // JPanel for Statistics:
-        _panelRight = new JPanel();
-        _panelRight.setLayout(new BorderLayout());
-        _panelRight.add(new JLabel("Statistics"),BorderLayout.NORTH);
-        _panelRight.add(new JLabel("Time Elapsed: 0:10"),BorderLayout.SOUTH);
+        _panelRight = Clock.getInstance();
 
         JButton stopBttn = new JButton("Stop Process");
         JButton helpBttn = new JButton("Help");
