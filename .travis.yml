@@ -2,3 +2,8 @@ language: java
 jdk: oraclejdk8
 notifications:
     slack: danwong:9lxy7zcS4KA8ey1xKd8WZNf0
+    
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
