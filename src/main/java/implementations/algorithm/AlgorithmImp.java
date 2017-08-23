@@ -30,12 +30,12 @@ public class AlgorithmImp implements Algorithm {
 	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE;
 	private boolean _firstSchedule = true; // for printing the first available schedule. 
+	private static int lastUpdate = 0;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-
 		// Check if visualisation is true, only then do we create the gui. 
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
@@ -44,6 +44,8 @@ public class AlgorithmImp implements Algorithm {
 
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 		_model.changeData(_currentBestSchedule, _bestTime);
+		
+		_model = TableModel.setInstance();
 		
 	}
 
@@ -72,20 +74,19 @@ public class AlgorithmImp implements Algorithm {
 				setNewBestSchedule(st);
 				_bestTime = st.getTotalTime();
 				// update view, now that a new schedule is available. This is too fast for small schedules
-				System.out.println("New schedule found; Recursive Calls: "+_recursiveCalls);
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 				/*try {
 					Thread.sleep(500);
 				} catch (InterruptedException e){
 					e.printStackTrace();
 				}*/
+				// trying to give 30 msec 
+				int timeNow = Clock.getInstance().getMilliseconds();
 				
-				if (_firstSchedule){
+				if (timeNow > lastUpdate + 50){
+					lastUpdate = Clock.getInstance().getMilliseconds();
 					_model.changeData(_currentBestSchedule, _bestTime);
-					_firstSchedule = false;
-				} 
-				
-				
+				}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -141,6 +142,7 @@ public class AlgorithmImp implements Algorithm {
 
 			//TODO fireUpdates to visualisation
 		}
+
 	}
 
 	/**

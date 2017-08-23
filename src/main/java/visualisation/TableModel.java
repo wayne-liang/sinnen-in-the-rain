@@ -25,7 +25,12 @@ public class TableModel extends AbstractTableModel {
 		}
 		return instance;
 	}
-
+	
+	public static TableModel setInstance(){
+		instance = null;
+		return instance;
+	}
+	
 	private String[] _columnNames; // initialize based on number of processors.
 
 	private String[][] _data; // initialize based on schedular object.
@@ -56,7 +61,7 @@ public class TableModel extends AbstractTableModel {
 	public void changeData(HashMap<String, NodeSchedule> map, int betterTime){
 		_bestTime = betterTime;
 		_map = map;
-		_data = initData();
+		initData();
 		fireTableDataChanged();
 	}
 
@@ -73,16 +78,17 @@ public class TableModel extends AbstractTableModel {
 	 * Effectively, the adapter method.
 	 * @return
 	 */
-	public String[][] initData(){
-		String[][] data = new String[_bestTime][_cores+1];
+	public void initData(){
+		_data = new String[_bestTime][_cores+1];
 		// Initializing array with time values and empty strings.
 		for (int i =0; i < _bestTime;i++){
-			data[i][0] = (i + 1) + "";
+			_data[i][0] = (i + 1) + "";
 			for (int j = 1; j < _cores+1;j++){
-				data[i][j] = "";
+				_data[i][j] = "";
 			}
 		}
 
+		fireTableDataChanged();
 		for (Entry<String, NodeSchedule> entry : _map.entrySet()) {
 
 			String key = entry.getKey();
@@ -98,7 +104,9 @@ public class TableModel extends AbstractTableModel {
 			// go through all rows which have the same node based on node weight.
 			for (int i =0;i<nodeWeight;i++){
 				try {
-					data[startTime+i][core] = key.toUpperCase();
+					//setValueAt(key.toUpperCase(),startTime+i,core);
+					_data[startTime+i][core] = key.toUpperCase();
+					
 				} catch (RuntimeException e){
 					System.out.println("Nodeweight (and i): "+ nodeWeight + "\nstartTime = " + startTime + " core = "+core);
 					e.printStackTrace();
@@ -106,13 +114,13 @@ public class TableModel extends AbstractTableModel {
 				
 			}
 		}
-		return data;
 	}
 
 	@Override
 	public int getRowCount() {
 		return _data.length;
 	}
+	
 
 	@Override
 	public int getColumnCount() {
@@ -122,18 +130,8 @@ public class TableModel extends AbstractTableModel {
 
 	@Override
 	public String getValueAt(int rowIndex, int columnIndex) {
-		String s = "";
-		try {
-			s = _data[rowIndex][columnIndex];
-		} catch (Exception e){
-			e.printStackTrace();
-			printData(_data);
-		}
-		return s;
-	}
+		return _data[rowIndex][columnIndex];
 
-	public void printData(String[][] array){
-		System.out.println(Arrays.deepToString(array));
 	}
 
 
@@ -153,10 +151,6 @@ public class TableModel extends AbstractTableModel {
 
 	public boolean isCellEditable(int row, int col){ 
 		return false; 
-	}
-
-	public void changeData(String[][] newdata){
-		_data = newdata;
 	}
 
 }
