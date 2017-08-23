@@ -248,6 +248,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes - {@code List<AlgorithmNode>} to find the index for
 	 * @return the index position of the corresponding {@code AlgorithmNode} object
 	 */
+	@Deprecated
 	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
 		AlgorithmNode correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
 				.findFirst()

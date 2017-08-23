@@ -29,5 +29,4 @@ public interface Schedule {
     
     Schedule getNextSchedule(AlgorithmNode currentNode);
     
-    Schedule appendNodeToSchedule(AlgorithmNode current, int startTime);
 }

@@ -1,12 +1,15 @@
 package implementations.structures;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import interfaces.algorithm.AlgorithmNode;
+import interfaces.structures.DAG;
+import interfaces.structures.Node;
 import interfaces.structures.Schedule;
 
 /**
@@ -27,9 +30,10 @@ import interfaces.structures.Schedule;
 public class ScheduleImp implements Schedule {
 	private List<AlgorithmNode> _algNodes;
 	//The index for this field should match the index for the list of nodes.
-	private int[] _startTimeForNode;// = new int[];
+	private int[] _startTimeForNodes;// = new int[];
 	private int _totalTime;
 	private int _numberOfCores;
+	private DAG _dag = DAGImp.getInstance();
 	
 	private Map<Integer, AlgorithmNode> _lastAlgNodeOnCore;
 
@@ -49,7 +53,7 @@ public class ScheduleImp implements Schedule {
 	
 	public ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores) {
 		_algNodes = algNodes;
-		_startTimeForNode = new int[_algNodes.size()];
+		_startTimeForNodes = new int[_algNodes.size()];
 		_numberOfCores = numberOfCores;
 		
 		//Calculate last schedule on core.
@@ -73,30 +77,39 @@ public class ScheduleImp implements Schedule {
 	 * @param numberOfCores
 	 * @param lastAlgNodeOnCore
 	 */
-	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore){
+	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore, int[] startTimeForNodes, int totalTime){
 		this(algNodes, numberOfCores);
 		_lastAlgNodeOnCore = lastAlgNodeOnCore;
+		_startTimeForNodes = startTimeForNodes;
+		_totalTime = totalTime;
 	}
 	
 	/**
-	 * This method clone the old Schedule, create a new Schedule object
+	 * private helper method for clone the old Schedule, create a new Schedule object
 	 * with the new node appended on the end. 
 	 * 
 	 * @param current
 	 * @param startTime
 	 * @return
 	 */
-	@Override
-	public Schedule appendNodeToSchedule(AlgorithmNode current, int startTime) {
+	private Schedule appendNodeToSchedule(AlgorithmNode current, int startTime, int totalTime) {
 		int size = this.getSizeOfSchedule();
 		
+		//Clone the nodes, append the current node.
 		List<AlgorithmNode> algNodes = _algNodes;
-		int[] startTimeForNode = _startTimeForNode;
 		algNodes.add(current);
-		startTimeForNode[size] = startTime;
 		
-		return new ScheduleImp (_algNodes, _numberOfCores, _lastAlgNodeOnCore);
+		//Clone the start time, append the start time
+		int[] startTimeForNodes = _startTimeForNodes;
+		startTimeForNodes[size] = startTime;
+
+		//Clone the last alg nodes on core, update with the current one. 
+		Map<Integer, AlgorithmNode> lastAlgNodeOnCore = _lastAlgNodeOnCore;
+		lastAlgNodeOnCore.put(current.getCore(), current);
+		
+		return new ScheduleImp (algNodes, _numberOfCores, lastAlgNodeOnCore, startTimeForNodes, totalTime);
 	}
+	
 	
 	/**
 	 * This method should take the current node that's being processed,
@@ -105,23 +118,71 @@ public class ScheduleImp implements Schedule {
 	 * the new current node. 
 	 * 
 	 */
-	public Schedule getNextSchedule(AlgorithmNode currentNode) {
+	public Schedule getNextSchedule(AlgorithmNode currentAlgNode) {
 		Schedule newSchedule;
+		Node currentNode =  _dag.getNodeByName(currentAlgNode.getNodeName());
+		
 		if (this.getSizeOfSchedule() == 0) { //Empty scheule, this is the first node.
-			newSchedule = this.appendNodeToSchedule(currentNode, 0); //start on time 0 
+			//will start on time 0, and total time for schedule is weight of this node. 
+			newSchedule = this.appendNodeToSchedule(currentAlgNode, 0, currentNode.getWeight()); 
 		} else {
-			AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(currentNode.getCore());
+			AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(currentAlgNode.getCore());
 			
+			//This section calculates the earliest possible start time for current node based on finish time of the core
 			int endTimeForCore;
 			if (lastNodeOnCore == null) { 
 				endTimeForCore = 0;
 			} else { //need the finish time for that core.
-				//TODO
+				int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); //Should never be -1, schedule should have that node.
+				int startTimeForLastNode = _startTimeForNodes[indexInSchedule];
+				int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
+				endTimeForCore = startTimeForLastNode + lastNodeWeight;
 			}
-			newSchedule = null;
+			
+			//This section calculates the earliest possible start time for current node based on predecessor
+			//Now check for predecessors of this currentNode and see when they've been scheduled
+			//Predecessors on a different core also has an arc weight to be added on top. 
+			List<Node> predecessors = currentNode.getPredecessors();
+			int startTimeBasedOnPredecessor = 0;
+			try {
+				predecessors.stream().map(node -> {
+					int startTime = getNodeStartTime(getIndexOfList(node, _algNodes));
+					int possibleStartTimeForCurrent = startTime + node.getWeight();
+					if (!(_algNodes.get(getIndexOfList(node, _algNodes)).getCore() == currentAlgNode.getCore())){
+						//Not on the same core, so need to add the arc weight
+						possibleStartTimeForCurrent += currentNode.getInArc(node).getWeight();
+					}
+					return possibleStartTimeForCurrent;
+				}).max(Comparator.naturalOrder()).get();
+			} catch (Exception e) {
+				//Means there are no predecessors, earliestPossibleStart time remains 0
+			}
+			
+			//The actual start time is dependent on both endTime for core and predecessor.
+			int startTime = (endTimeForCore > startTimeBasedOnPredecessor) ? endTimeForCore : startTimeBasedOnPredecessor;
+			
+			//Now need to compute the new total time, the larger of the old one, or if the new one on that core makes scheduler longer
+			int finishTime = startTime + currentNode.getWeight();
+			int newTotalTime = (_totalTime > finishTime) ? _totalTime : finishTime;
+			
+			newSchedule = this.appendNodeToSchedule(currentAlgNode, startTime, newTotalTime);
 		}
 		
 		return newSchedule;
+	}
+	
+	/**
+	 * Finds and returns the index position of the corresponding {@code AlgorithmNode} within the given {@code List<AlgorithmNode}
+	 * @param node - {@code Node} to find the corresponding index position for
+	 * @param algNodes - {@code List<AlgorithmNode>} to find the index for
+	 * @return the index position of the corresponding {@code AlgorithmNode} object
+	 */
+	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
+		AlgorithmNode correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
+				.findFirst()
+				.get();
+
+		return algNodes.indexOf(correspondingNode);
 	}
 	
 	/**
@@ -130,7 +191,7 @@ public class ScheduleImp implements Schedule {
 	 */
 	@Override
 	public void setStartTimeForNode (int startTime, int index) {
-		_startTimeForNode[index] = startTime;
+		_startTimeForNodes[index] = startTime;
 	}
 
 	/**
@@ -163,7 +224,7 @@ public class ScheduleImp implements Schedule {
 	 */
 	@Deprecated
 	public int[] getstartTimeForNodes() {
-		return _startTimeForNode;
+		return _startTimeForNodes;
 	}
 
 	@Override
@@ -173,7 +234,7 @@ public class ScheduleImp implements Schedule {
 
 	@Override
 	public int getNodeStartTime (int index) {
-		return _startTimeForNode[index];
+		return _startTimeForNodes[index];
 	}
 
 	@Override
