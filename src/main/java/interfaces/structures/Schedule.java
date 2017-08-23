@@ -27,5 +27,7 @@ public interface Schedule {
     
     AlgorithmNode getLastNodeOnCore(int core);
     
+    Schedule getNextSchedule(AlgorithmNode currentNode);
+    
     Schedule appendNodeToSchedule(AlgorithmNode current, int startTime);
 }

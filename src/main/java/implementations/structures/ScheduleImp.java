@@ -79,7 +79,7 @@ public class ScheduleImp implements Schedule {
 	}
 	
 	/**
-	 * This class should clone the old Schedule, create a new Schedule object
+	 * This method clone the old Schedule, create a new Schedule object
 	 * with the new node appended on the end. 
 	 * 
 	 * @param current
@@ -98,7 +98,14 @@ public class ScheduleImp implements Schedule {
 		return new ScheduleImp (_algNodes, _numberOfCores, _lastAlgNodeOnCore);
 	}
 	
-	public Schedule generateSchedule(AlgorithmNode currentNode) {
+	/**
+	 * This method should take the current node that's being processed,
+	 * and add it to the schedule. 
+	 * The method will return a new schedule with all the old info +
+	 * the new current node. 
+	 * 
+	 */
+	public Schedule getNextSchedule(AlgorithmNode currentNode) {
 		Schedule newSchedule;
 		if (this.getSizeOfSchedule() == 0) { //Empty scheule, this is the first node.
 			newSchedule = this.appendNodeToSchedule(currentNode, 0); //start on time 0 
@@ -108,7 +115,7 @@ public class ScheduleImp implements Schedule {
 			int endTimeForCore;
 			if (lastNodeOnCore == null) { 
 				endTimeForCore = 0;
-			} else {
+			} else { //need the finish time for that core.
 				//TODO
 			}
 			newSchedule = null;
