@@ -59,6 +59,7 @@ public class TableModel extends AbstractTableModel {
 	 * @param map
 	 */
 	public void changeData(HashMap<String, NodeSchedule> map, int betterTime){
+		_dag = DAGImp.getInstance();
 		_bestTime = betterTime;
 		_map = map;
 		initData();

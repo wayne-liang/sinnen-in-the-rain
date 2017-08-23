@@ -28,9 +28,9 @@ public class AlgorithmImp implements Algorithm {
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 	private TableModel _model;
-	private int _bestTime = Integer.MAX_VALUE;
-	private boolean _firstSchedule = true; // for printing the first available schedule. 
-	private static int lastUpdate = 0;
+	private int _bestTime = Integer.MAX_VALUE; 
+	private boolean firstSchedule = true;
+	
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
@@ -41,7 +41,10 @@ public class AlgorithmImp implements Algorithm {
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
 
 		ComboView schedule = new ComboView(_model,_dag, _numberOfCores);
-
+		
+		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
+		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+		
 		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
 		_model.changeData(_currentBestSchedule, _bestTime);
 		
@@ -75,17 +78,14 @@ public class AlgorithmImp implements Algorithm {
 				_bestTime = st.getTotalTime();
 				// update view, now that a new schedule is available. This is too fast for small schedules
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
-				/*try {
-					Thread.sleep(500);
-				} catch (InterruptedException e){
-					e.printStackTrace();
-				}*/
-				// trying to give 30 msec 
+
+				// GUI does not update faster than 50 ms.  
 				int timeNow = Clock.getInstance().getMilliseconds();
 				
-				if (timeNow > lastUpdate + 50){
-					lastUpdate = Clock.getInstance().getMilliseconds();
+				if (firstSchedule||timeNow > Clock.lastUpdate + 50){
+					Clock.lastUpdate = timeNow;
 					_model.changeData(_currentBestSchedule, _bestTime);
+					firstSchedule = false;
 				}
 			}
 		} else {
@@ -309,5 +309,16 @@ public class AlgorithmImp implements Algorithm {
 
 	public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
 		return checkValidSchedule(s1);
+	}
+	
+	/**
+	 * Gets the total number of arcs in the algorithm. Used only for testing at the moment.
+	 */
+	public int getAllArcSize(List<Node> nodeList){
+		int count = 0;
+		for (Node n: nodeList){
+			count += n.getPredecessors().size();
+		}
+		return count;
 	}
 }

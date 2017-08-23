@@ -25,6 +25,8 @@ public class Clock extends JPanel {
     private int _seconds;
     private int _milliseconds;
     private static Clock instance = null;
+    public static int lastUpdate = 0;
+    
     /**
      * Constructor initialises the JPanel and the associated JLabel.
      */
