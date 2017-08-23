@@ -23,7 +23,7 @@ public interface AlgorithmNode {
         return algorithmNodeList;
     }
 
-    AlgorithmNodeImp createClone();
+    AlgorithmNode createClone();
 
     String getNodeName();
 
