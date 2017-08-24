@@ -11,7 +11,7 @@ public interface Schedule {
     List<AlgorithmNode> getAlgorithmNodes();
 
     @Deprecated
-    int[] getstartTimeForNodes();
+    List<Integer> getstartTimeForNodes();
 
     int getSizeOfSchedule();
 

@@ -30,7 +30,7 @@ import interfaces.structures.Schedule;
 public class ScheduleImp implements Schedule {
 	private List<AlgorithmNode> _algNodes;
 	//The index for this field should match the index for the list of nodes.
-	private int[] _startTimeForNodes;// = new int[];
+	private List<Integer> _startTimeForNodes;
 	private int _totalTime;
 	private int _numberOfCores;
 	private DAG _dag = DAGImp.getInstance();
@@ -44,6 +44,7 @@ public class ScheduleImp implements Schedule {
 	public ScheduleImp(int numberOfCores) {
 		_algNodes = new ArrayList<AlgorithmNode>();
 		_numberOfCores = numberOfCores;
+		_startTimeForNodes = new ArrayList<Integer>();
 		
 		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNode>();
 		for (int i = 0; i < _numberOfCores; i++){
@@ -51,9 +52,16 @@ public class ScheduleImp implements Schedule {
 		}
 	}
 	
+	/**
+	 * This constructor complies with the old way of creating a scheudle
+	 * (that is pass in all the algNodes generated as a "valid schedule"
+	 * @param algNodes
+	 * @param numberOfCores
+	 */
+	@Deprecated
 	public ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores) {
 		_algNodes = algNodes;
-		_startTimeForNodes = new int[_algNodes.size()];
+		_startTimeForNodes = new ArrayList<Integer>();
 		_numberOfCores = numberOfCores;
 		
 		//Calculate last schedule on core.
@@ -77,7 +85,7 @@ public class ScheduleImp implements Schedule {
 	 * @param numberOfCores
 	 * @param lastAlgNodeOnCore
 	 */
-	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore, int[] startTimeForNodes, int totalTime){
+	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore, List<Integer> startTimeForNodes, int totalTime){
 		this(algNodes, numberOfCores);
 		_lastAlgNodeOnCore = lastAlgNodeOnCore;
 		_startTimeForNodes = startTimeForNodes;
@@ -93,15 +101,13 @@ public class ScheduleImp implements Schedule {
 	 * @return
 	 */
 	private Schedule appendNodeToSchedule(AlgorithmNode current, int startTime, int totalTime) {
-		int size = this.getSizeOfSchedule();
-		
 		//Clone the nodes, append the current node.
 		List<AlgorithmNode> algNodes = _algNodes;
 		algNodes.add(current);
 		
 		//Clone the start time, append the start time
-		int[] startTimeForNodes = _startTimeForNodes;
-		startTimeForNodes[size] = startTime;
+		List<Integer> startTimeForNodes = _startTimeForNodes;
+		startTimeForNodes.add(startTime);
 
 		//Clone the last alg nodes on core, update with the current one. 
 		Map<Integer, AlgorithmNode> lastAlgNodeOnCore = _lastAlgNodeOnCore;
@@ -134,7 +140,7 @@ public class ScheduleImp implements Schedule {
 				endTimeForCore = 0;
 			} else { //need the finish time for that core.
 				int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); //Should never be -1, schedule should have that node.
-				int startTimeForLastNode = _startTimeForNodes[indexInSchedule];
+				int startTimeForLastNode = _startTimeForNodes.get(indexInSchedule);
 				int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
 				endTimeForCore = startTimeForLastNode + lastNodeWeight;
 			}
@@ -191,7 +197,7 @@ public class ScheduleImp implements Schedule {
 	 */
 	@Override
 	public void setStartTimeForNode (int startTime, int index) {
-		_startTimeForNodes[index] = startTime;
+		_startTimeForNodes.set(index, startTime);
 	}
 
 	/**
@@ -223,7 +229,7 @@ public class ScheduleImp implements Schedule {
 	 * @return
 	 */
 	@Deprecated
-	public int[] getstartTimeForNodes() {
+	public List<Integer> getstartTimeForNodes() {
 		return _startTimeForNodes;
 	}
 
@@ -234,7 +240,7 @@ public class ScheduleImp implements Schedule {
 
 	@Override
 	public int getNodeStartTime (int index) {
-		return _startTimeForNodes[index];
+		return _startTimeForNodes.get(index);
 	}
 
 	@Override

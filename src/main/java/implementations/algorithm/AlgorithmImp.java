@@ -224,6 +224,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code ScheduleImp} object
 	 * @param st - {@code ScheduleImp} object to set the total time of
 	 */
+	@Deprecated
 	private void setTimeForSchedule(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, ScheduleImp st) {
 		int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
@@ -272,6 +273,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes
 	 * @return
 	 */
+	@Deprecated
 	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
 		return calculateTotalTime(algNodes);
 	}
