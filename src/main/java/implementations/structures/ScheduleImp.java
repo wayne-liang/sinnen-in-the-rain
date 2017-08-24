@@ -159,19 +159,9 @@ public class ScheduleImp implements Schedule {
 			//will start on time 0, and total time for schedule is weight of this node. 
 			newSchedule = this.appendNodeToSchedule(currentAlgNode, 0, currentNode.getWeight()); 
 		} else {
-			AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(currentAlgNode.getCore());
 
 			//This section calculates the earliest possible start time for current node based on finish time of the core
-			int endTimeForCore;
-			if (lastNodeOnCore == null) { 
-				endTimeForCore = 0;
-			} else { //need the finish time for that core.
-				//Note: index Should never be -1, schedule should have that node.
-				int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); 
-				int startTimeForLastNode = _startTimeForNodes.get(indexInSchedule);
-				int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
-				endTimeForCore = startTimeForLastNode + lastNodeWeight;
-			}
+			int endTimeForCore = finishTimeForCore(currentAlgNode.getCore());
 
 			//This section calculates the earliest possible start time for current node based on predecessor
 			//Now check for predecessors of this currentNode and see when they've been scheduled
@@ -220,6 +210,30 @@ public class ScheduleImp implements Schedule {
 				.get();
 
 		return algNodes.indexOf(correspondingNode);
+	}
+	
+	/**
+	 * This method returns the finish time for a particular core
+	 * based on "this" schedule. 
+	 * 
+	 * @param coreNo
+	 * @return
+	 */
+	private int finishTimeForCore (int coreNo) {
+		AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(coreNo);
+
+		//This section calculates the earliest possible start time for current node based on finish time of the core
+		int endTimeForCore;
+		if (lastNodeOnCore == null) { 
+			endTimeForCore = 0;
+		} else { //need the finish time for that core.
+			//Note: index Should never be -1, schedule should have that node.
+			int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); 
+			int startTimeForLastNode = _startTimeForNodes.get(indexInSchedule);
+			int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
+			endTimeForCore = startTimeForLastNode + lastNodeWeight;
+		}
+		return endTimeForCore;
 	}
 
 	/**
@@ -311,7 +325,7 @@ public class ScheduleImp implements Schedule {
 	public void printSchedule() {
 		System.out.print("size:" + this.getSizeOfSchedule() + "    ");
 		for (int i = 0; i<_algNodes.size(); i++) {
-			System.out.print(_algNodes.get(i).getNodeName() + "!" + _startTimeForNodes.get(i) + " ");
+			System.out.print(_algNodes.get(i).getNodeName() + "c" +_algNodes.get(i).getCore() + "s" + _startTimeForNodes.get(i) + " ");
 		}
 		System.out.println();
 	}
