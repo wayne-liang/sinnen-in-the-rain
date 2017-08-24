@@ -85,24 +85,26 @@ public class AlgorithmImp implements Algorithm {
 
 					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
 					/*
-					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
+					 * Heuristic #1 - Symmetry. (a1... would have a symmetry with 
 					 * a2 ...)
 					 * Also, (a1 b2 ...) would have a symmetry with (a1 b3...)
 					 * 
-					 * Implementation logic: we can break if schedules has no repetition of 
-					 * cores, because assigning it to a different core always causes symmetry.
+					 * Heuristic #2 - Partial symmetry. (a1 b1 c2) would be the same as
+					 * (a1 b1 c3), in which case this is a partial symmetry on subtree. 
+					 * 
+					 * Implementation logic: we can break if the current node's core has
+					 * never appeared before.
 					 */
 
-					List<Integer> coresAssigned = newProcessed.stream()
+					List<Integer> coresAssigned = processed.stream()
 							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
-					long noOfDistinctCores = coresAssigned.stream()
-							.distinct()
-							.count();
+					
 
-					if (coresAssigned.size() == noOfDistinctCores) {
-						break; //I.e. there is no duplicate.
+					if (!coresAssigned.contains(node.getCore())) {
+						break; 
 					}
+					
 				}
 			}
 		}
