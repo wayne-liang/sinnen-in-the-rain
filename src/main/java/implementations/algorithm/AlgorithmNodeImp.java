@@ -8,6 +8,8 @@ import java.util.Objects;
  * This class stores a representation of a node and core from the
  * algorithm class. This allows us to check for validity and calculate
  * time to run without extra baggage of the node class.
+ * 
+ * @author Daniel
  */
 public class AlgorithmNodeImp implements AlgorithmNode {
 	final private String _nodeName;

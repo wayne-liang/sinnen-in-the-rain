@@ -2,6 +2,16 @@ package interfaces.io;
 
 import java.util.List;
 
+/**
+ * The class that implements this interface shoudld be  responsible for reading from the 
+ * input file and do some basic pre-processing.
+ * 
+ * See the implementation class for more details
+ * @see implementations.io.InputImp
+ * 
+ * @author Victor
+ *
+ */
 public interface Input {
 
 	/**

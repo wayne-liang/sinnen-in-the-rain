@@ -6,6 +6,13 @@ import interfaces.structures.Node;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * See the implementation class for more details.
+ * @see implementations.algorithm.AlgorithmNodeImp
+ * 
+ * @author Daniel
+ *
+ */
 public interface AlgorithmNode {
     /**
      * This static method converts a list of nodes to a list of algorithmNode objects
