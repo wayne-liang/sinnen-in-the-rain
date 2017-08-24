@@ -37,7 +37,7 @@ public class ComboView extends JFrame {
 	 * @param _numberOfCores 
 	 * @param _dag 
 	 */
-	public ComboView(TableModel tableModel, DAG dag, int numberOfCores) {
+	public ComboView(TableModel tableModel, DAG dag, int numberOfCores, BarChartModel chart) {
 		_tableModel = TableModel.getInstance();
 		_dag = DAGImp.getInstance();
 		_cores = numberOfCores;
@@ -52,7 +52,8 @@ public class ComboView extends JFrame {
 		JScrollPane pane = table.getPane();
 		/*JScrollBar vertical = pane.getVerticalScrollBar();
 		vertical.setValue(vertical.getMaximum());*/
-		_panelMiddle.add(pane);
+		
+		_panelMiddle.add(chart);
 		
 		GraphStreamView gv = new GraphStreamView(_cores);
 		/*JFrame f = new JFrame();
@@ -108,9 +109,9 @@ public class ComboView extends JFrame {
         panel.add(progressBar, "wrap");
 
         //align label triggers platform-specific label alignment
-        panel.add(_panelLeft, "width 50%,height 70%");
-        panel.add(_panelMiddle, "width 38%, height 70%");
-        panel.add(_panelRight, "wrap, width 12%, height 70%");
+        panel.add(_panelLeft, "width 40%,height 70%");
+        panel.add(_panelMiddle, "width 50%, height 70%");
+        panel.add(_panelRight, "wrap, width 10%, height 70%");
 
         //tag identifies the type of button
         panel.add(stopBttn, "tag ok, span, split 3, sizegroup bttn, height 10%");

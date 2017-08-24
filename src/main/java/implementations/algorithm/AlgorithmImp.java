@@ -8,6 +8,7 @@ import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
+import visualisation.BarChartModel;
 import visualisation.Clock;
 import visualisation.ComboView;
 import visualisation.GraphView;
@@ -30,6 +31,7 @@ public class AlgorithmImp implements Algorithm {
 	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE; 
 	private boolean firstSchedule = true;
+	private BarChartModel _chartModel;
 	
 
 	public AlgorithmImp(int numberOfCores) {
@@ -39,8 +41,10 @@ public class AlgorithmImp implements Algorithm {
 		// Check if visualisation is true, only then do we create the gui. 
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-
-		ComboView schedule = new ComboView(_model,_dag, _numberOfCores);
+		// initialise BarChart Model:
+		_chartModel = new BarChartModel();
+		
+		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 		
 		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
 		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
@@ -80,9 +84,10 @@ public class AlgorithmImp implements Algorithm {
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 
 				// GUI does not update faster than 50 ms.  
+				_chartModel.addDataToSeries(_bestTime);
 				int timeNow = Clock.getInstance().getMilliseconds();
 				
-				if (firstSchedule||timeNow > Clock.lastUpdate + 50){
+				if (firstSchedule||(timeNow > Clock.lastUpdate + 50)&&(timeNow>30)){
 					Clock.lastUpdate = timeNow;
 					_model.changeData(_currentBestSchedule, _bestTime);
 					firstSchedule = false;
