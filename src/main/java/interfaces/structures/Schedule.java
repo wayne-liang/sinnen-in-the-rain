@@ -29,4 +29,6 @@ public interface Schedule {
     
     Schedule getNextSchedule(AlgorithmNode currentNode);
     
+    void printSchedule();
+    
 }

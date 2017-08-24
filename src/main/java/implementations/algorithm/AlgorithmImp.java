@@ -8,6 +8,7 @@ import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
+import interfaces.structures.Schedule;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,8 +29,8 @@ public class AlgorithmImp implements Algorithm {
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
 		
-
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
+		Schedule empty = new ScheduleImp(_numberOfCores);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
 	}
 
 	/**
@@ -46,30 +47,32 @@ public class AlgorithmImp implements Algorithm {
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
+	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes) {
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
 		_recursiveCalls++;
+
 
 		//Base Case
 		if (remainingNodes.size() == 0) {
-			ScheduleImp st = calculateTotalTime(processed);
-			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
-				setNewBestSchedule(st);
-				_bestTime = st.getTotalTime();
+			Schedule finalSchedule = prev;
+			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
+				setNewBestSchedule(finalSchedule);
+				_bestTime = finalSchedule.getTotalTime();
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
+				Schedule newSchedule;
 				for (int j = 1; j <= _numberOfCores; j++) {
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
-
 					if (checkValidSchedule(newProcessed)) {
-						ScheduleImp st = calculateTotalTime(newProcessed);
+						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.
-						if (st.getTotalTime() >= _bestTime) {
+						if (newSchedule.getTotalTime() >= _bestTime) {
 							continue;
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
@@ -78,8 +81,9 @@ public class AlgorithmImp implements Algorithm {
 
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
+					
 
-					recursiveScheduleGeneration(newProcessed, newRemaining);
+					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
 					/*
 					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
 					 * a2 ...)
@@ -104,10 +108,10 @@ public class AlgorithmImp implements Algorithm {
 		}
 	}
 
-	private void setNewBestSchedule(ScheduleImp st) {
-		for (int i = 0; i < st.getSizeOfSchedule(); i++) {
-			NodeSchedule nodeSchedule = new NodeScheduleImp(st.getNodeStartTime(i), st.getNodeCore(i));
-			_currentBestSchedule.put(st.getNodeName(i), nodeSchedule);
+	private void setNewBestSchedule(Schedule finalSchedule) {
+		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
+			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
+			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
 
 			//TODO fireUpdates to visualisation
 		}

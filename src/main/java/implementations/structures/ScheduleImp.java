@@ -86,7 +86,22 @@ public class ScheduleImp implements Schedule {
 	 * @param lastAlgNodeOnCore
 	 */
 	private ScheduleImp(List<AlgorithmNode> algNodes, int numberOfCores, Map<Integer, AlgorithmNode> lastAlgNodeOnCore, List<Integer> startTimeForNodes, int totalTime){
-		this(algNodes, numberOfCores);
+		_algNodes = algNodes;
+		_startTimeForNodes = new ArrayList<Integer>();
+		_numberOfCores = numberOfCores;
+		
+		//Calculate last schedule on core.
+		_lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNode>();
+		for (int i = 0; i < _numberOfCores; i++){
+			_lastAlgNodeOnCore.put(i+1, null); //Empty schedule.
+		}
+		List<Integer> list = algNodes.stream().map(AlgorithmNode::getCore).collect(Collectors.toList());
+		for (int i = 0; i < _numberOfCores; i++){
+			int lastNodeIndex = list.lastIndexOf(i+1);//i+1 to match the core as cores starts from 1.
+			if (lastNodeIndex != -1){
+				_lastAlgNodeOnCore.put(lastNodeIndex, algNodes.get(lastNodeIndex));
+			}
+		}
 		_lastAlgNodeOnCore = lastAlgNodeOnCore;
 		_startTimeForNodes = startTimeForNodes;
 		_totalTime = totalTime;
@@ -102,15 +117,18 @@ public class ScheduleImp implements Schedule {
 	 */
 	private Schedule appendNodeToSchedule(AlgorithmNode current, int startTime, int totalTime) {
 		//Clone the nodes, append the current node.
-		List<AlgorithmNode> algNodes = _algNodes;
+		List<AlgorithmNode> algNodes = new ArrayList<AlgorithmNode>();
+		algNodes.addAll(_algNodes);
 		algNodes.add(current);
 		
 		//Clone the start time, append the start time
-		List<Integer> startTimeForNodes = _startTimeForNodes;
+		List<Integer> startTimeForNodes = new ArrayList<Integer>();
+		startTimeForNodes.addAll(_startTimeForNodes);
 		startTimeForNodes.add(startTime);
 
 		//Clone the last alg nodes on core, update with the current one. 
-		Map<Integer, AlgorithmNode> lastAlgNodeOnCore = _lastAlgNodeOnCore;
+		Map<Integer, AlgorithmNode> lastAlgNodeOnCore = new HashMap<Integer, AlgorithmNode>();
+		lastAlgNodeOnCore.putAll(_lastAlgNodeOnCore);
 		lastAlgNodeOnCore.put(current.getCore(), current);
 		
 		return new ScheduleImp (algNodes, _numberOfCores, lastAlgNodeOnCore, startTimeForNodes, totalTime);
@@ -265,5 +283,17 @@ public class ScheduleImp implements Schedule {
 	@Override
 	public AlgorithmNode getLastNodeOnCore (int core){
 		return _lastAlgNodeOnCore.get(core);
+	}
+
+	/**
+	 * Debug method for printing schedule contents.
+	 */
+	@Override
+	public void printSchedule() {
+		System.out.print("size:" + this.getSizeOfSchedule() + "    ");
+		for (int i = 0; i<_algNodes.size(); i++) {
+			System.out.print(_algNodes.get(i).getNodeName() + "!" + _startTimeForNodes.get(i) + " ");
+		}
+		System.out.println();
 	}
 }
