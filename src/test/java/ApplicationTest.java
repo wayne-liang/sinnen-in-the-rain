@@ -16,18 +16,18 @@ public class ApplicationTest {
 		Nodes_8_Random();
 		Nodes_9_SeriesParallel();
 		Nodes_10_Random();
-		//Nodes_11_OutTree();
+//		Nodes_11_OutTree();
     }
 
     @Test
     public void testWithFourCores() {
         core = "4";
 
-//        Nodes_7_OutTree();
-//        Nodes_8_Random();
-//        Nodes_9_SeriesParallel();
-//        Nodes_10_Random();
-//        //Nodes_11_OutTree();
+        Nodes_7_OutTree();
+        Nodes_8_Random();
+        Nodes_9_SeriesParallel();
+        Nodes_10_Random();
+        //Nodes_11_OutTree();
     }
 
     public void Nodes_7_OutTree() {

@@ -13,8 +13,8 @@ public interface AlgorithmNode {
      * @param nodes
      * @return a list of algorithmNode objects.
      */
-    static List<AlgorithmNodeImp> convertNodetoAlgorithmNode(List<Node> nodes) {
-        List<AlgorithmNodeImp> algorithmNodeList = new ArrayList<>();
+    static List<AlgorithmNode> convertNodetoAlgorithmNode(List<Node> nodes) {
+        List<AlgorithmNode> algorithmNodeList = new ArrayList<>();
 
         for (Node node : nodes) {
             algorithmNodeList.add(new AlgorithmNodeImp(node.getName()));
@@ -23,7 +23,7 @@ public interface AlgorithmNode {
         return algorithmNodeList;
     }
 
-    AlgorithmNodeImp createClone();
+    AlgorithmNode createClone();
 
     String getNodeName();
 

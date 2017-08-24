@@ -1,17 +1,17 @@
 package interfaces.structures;
 
-import implementations.algorithm.AlgorithmNodeImp;
-
 import java.util.List;
+
+import interfaces.algorithm.AlgorithmNode;
 
 public interface Schedule {
     void setStartTimeForNode(int startTime, int index);
 
     @Deprecated
-    List<AlgorithmNodeImp> getAlgorithmNodes();
+    List<AlgorithmNode> getAlgorithmNodes();
 
     @Deprecated
-    int[] getstartTimeForNodes();
+    List<Integer> getstartTimeForNodes();
 
     int getSizeOfSchedule();
 
@@ -25,5 +25,10 @@ public interface Schedule {
 
     void setTotalTime(int totalTime);
     
-    AlgorithmNodeImp getLastNodeOnCore(int core);
+    AlgorithmNode getLastNodeOnCore(int core);
+    
+    Schedule getNextSchedule(AlgorithmNode currentNode);
+    
+    void printSchedule();
+    
 }
