@@ -163,6 +163,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - ScheduleImp object with cost and execution time information
 	 */
+	@Deprecated
 	private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
