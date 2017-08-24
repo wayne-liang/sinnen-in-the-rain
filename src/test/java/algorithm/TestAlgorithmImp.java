@@ -94,6 +94,7 @@ public class TestAlgorithmImp {
 		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
 		String[] namesOfNodes = new String[] {"a", "b", "c", "d"};
 		int [] coresOfNodes = new int[] {2, 2, 1, 1};
+		
 		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
 		assertTrue(alg.checkValidScheduleWrapper(nodesList));
 		setCoreForAlgorithmNodes(nodesList, coresOfNodes);
@@ -102,16 +103,14 @@ public class TestAlgorithmImp {
 		for (int i = 0; i<namesOfNodes.length; i++) {
 			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
 			nextNode.setCore(coresOfNodes[i]);
-			schedule.getNextSchedule(nextNode);
+			schedule = schedule.getNextSchedule(nextNode);
 		}
-		
-		Schedule st = alg.calculateTotalTimeWrapper(nodesList);
-		assertEquals(9, st.getTotalTime());
+
 		assertEquals(9, schedule.getTotalTime());
 
 		int [] expectedResults = new int[] {0, 2, 4, 7};
 		for (int i=0; i<nodesList.size(); i++){
-			assertEquals(expectedResults[i], st.getNodeStartTime(i));
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
 		}
 	}
 
@@ -144,8 +143,36 @@ public class TestAlgorithmImp {
 		setCoreForAlgorithmNodes(schedule, new int[] {2});
 
 		ScheduleImp st = alg.calculateTotalTimeWrapper(schedule);
-		assertEquals(st.getTotalTime(), 2);
-		assertEquals(st.getNodeStartTime(0), 0);
+		assertEquals(2, st.getTotalTime());
+		assertEquals(0, st.getNodeStartTime(0));
+	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule2New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		String[] namesOfNodes = new String[] {"a"};
+		int [] coresOfNodes = new int[] {2};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+		setCoreForAlgorithmNodes(nodesList, coresOfNodes);
+
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(2, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
+		}
 	}
 
 	@Test
@@ -161,6 +188,33 @@ public class TestAlgorithmImp {
 		int [] expectedResults = new int[] {0, 2, 5, 8};
 		for (int i=0; i<schedule.size(); i++){
 			assertEquals(expectedResults[i], st.getNodeStartTime(i));
+		}
+	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule3New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		String[] namesOfNodes = new String[] {"a", "c", "b", "d"};
+		int [] coresOfNodes = new int[] {1, 1, 1, 1};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(10, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0, 2, 5, 8};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
 		}
 	}
 
@@ -241,6 +295,86 @@ public class TestAlgorithmImp {
 			assertEquals(expectedResults4[i], st4.getNodeStartTime(i));
 		}
 	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule4New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		String[] namesOfNodes = new String[] {"e", "a", "b", "c", "d"};
+		int [] coresOfNodes = new int[] {1, 1, 1, 1, 1};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		//1
+		setCoreForAlgorithmNodes(nodesList, coresOfNodes);
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(14, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0, 4, 6, 9, 12};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
+		}
+		
+		//2
+		int [] coresOfNodes2 = new int[] {2, 1, 1, 1, 1};
+		
+		Schedule schedule2 = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes2[i]);
+			schedule2 = schedule2.getNextSchedule(nextNode);
+		}
+
+		assertEquals(10, schedule2.getTotalTime());
+
+		int [] expectedResults2 = new int[] {0, 0, 2, 5, 8};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults2[i], schedule2.getNodeStartTime(i));
+		}
+		
+		//3
+		int [] coresOfNodes3 = new int[] {2, 1, 1, 2, 2};
+		
+		Schedule schedule3 = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes3[i]);
+			schedule3 = schedule3.getNextSchedule(nextNode);
+		}
+
+		assertEquals(9, schedule3.getTotalTime());
+
+		int [] expectedResults3 = new int[] {0, 0, 2, 4, 7};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults3[i], schedule3.getNodeStartTime(i));
+		}
+		
+		//4
+		int [] coresOfNodes4 = new int[] {2, 1, 1, 2, 1};
+		
+		Schedule schedule4 = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes4[i]);
+			schedule4 = schedule4.getNextSchedule(nextNode);
+		}
+
+		assertEquals(10, schedule4.getTotalTime());
+
+		int [] expectedResults4 = new int[] {0, 0, 2, 4, 8};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults4[i], schedule4.getNodeStartTime(i));
+		}
+	}
 
 	@Test
 	public void testValidSchedule5() {
@@ -256,6 +390,33 @@ public class TestAlgorithmImp {
 		int [] expectedResults = new int[] {0, 2, 6, 9, 12};
 		for (int i=0; i<schedule.size(); i++){
 			assertEquals(expectedResults[i], st.getNodeStartTime(i));
+		}
+	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule5New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
+		String[] namesOfNodes = new String[] {"a", "e", "b", "c", "d"};
+		int [] coresOfNodes = new int[] {1, 1, 1, 1, 1};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(14, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0, 2, 6, 9, 12};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
 		}
 	}
 
@@ -286,6 +447,52 @@ public class TestAlgorithmImp {
 			assertEquals(expectedResults2[i], st2.getNodeStartTime(i));
 		}
 	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule6New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_FILE, "2");
+		String[] namesOfNodes = new String[] {"a", "b", "e"};
+		int [] coresOfNodes = new int[] {1, 2, 1};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		//1
+		setCoreForAlgorithmNodes(nodesList, coresOfNodes);
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(6, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0, 3, 2};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
+		}
+		
+		//2
+		int [] coresOfNodes2 = new int[] {1, 1, 2};
+		
+		Schedule schedule2 = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes2[i]);
+			schedule2 = schedule2.getNextSchedule(nextNode);
+		}
+
+		assertEquals(5, schedule2.getTotalTime());
+
+		int [] expectedResults2 = new int[] {0, 2, 0};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults2[i], schedule2.getNodeStartTime(i));
+		}
+	}
 
 	@Test
 	public void testValidSchedule7() {
@@ -314,6 +521,52 @@ public class TestAlgorithmImp {
 			assertEquals(expectedResults2[i], st2.getNodeStartTime(i));
 		}
 	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule7New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
+		String[] namesOfNodes = new String[] {"a", "b", "c", "d", "e"};
+		int [] coresOfNodes = new int[] {1, 1, 1, 1, 2};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		//1
+		setCoreForAlgorithmNodes(nodesList, coresOfNodes);
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(10, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0, 2, 5, 8, 0};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
+		}
+		
+		//2
+		int [] coresOfNodes2 = new int[] {1, 2, 1, 1, 2};
+		
+		Schedule schedule2 = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes2[i]);
+			schedule2 = schedule2.getNextSchedule(nextNode);
+		}
+
+		assertEquals(10, schedule2.getTotalTime());
+
+		int [] expectedResults2 = new int[] {0, 3, 2, 5, 6};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults2[i], schedule2.getNodeStartTime(i));
+		}
+	}
 
 	@Test
 	public void testValidSchedule8() {
@@ -329,6 +582,33 @@ public class TestAlgorithmImp {
 		int [] expectedResults = new int[] {0};
 		for (int i=0; i<schedule.size(); i++){
 			assertEquals(expectedResults[i], st.getNodeStartTime(i));
+		}
+	}
+	
+	/**
+	 * New: uses the latest Schedule implementation (has memorization)
+	 */
+	@Test
+	public void testValidSchedule8New() {
+		AlgorithmImp alg = computeAlgorithmFromInput(EXAMPLE_ISOLATED_NODE, "2");
+		String[] namesOfNodes = new String[] {"e"};
+		int [] coresOfNodes = new int[] {2};
+		
+		List<AlgorithmNode> nodesList = generateAlgorithmNodes(namesOfNodes);
+		assertTrue(alg.checkValidScheduleWrapper(nodesList));
+
+		Schedule schedule = new ScheduleImp (2);
+		for (int i = 0; i<namesOfNodes.length; i++) {
+			AlgorithmNode nextNode = new AlgorithmNodeImp(namesOfNodes[i]);
+			nextNode.setCore(coresOfNodes[i]);
+			schedule = schedule.getNextSchedule(nextNode);
+		}
+
+		assertEquals(4, schedule.getTotalTime());
+
+		int [] expectedResults = new int[] {0};
+		for (int i=0; i<nodesList.size(); i++){
+			assertEquals(expectedResults[i], schedule.getNodeStartTime(i));
 		}
 	}
 

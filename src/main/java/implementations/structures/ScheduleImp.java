@@ -151,10 +151,10 @@ public class ScheduleImp implements Schedule {
 			List<Node> predecessors = currentNode.getPredecessors();
 			int startTimeBasedOnPredecessor = 0;
 			try {
-				predecessors.stream().map(node -> {
+				startTimeBasedOnPredecessor = predecessors.stream().map(node -> {
 					int startTime = getNodeStartTime(getIndexOfList(node, _algNodes));
 					int possibleStartTimeForCurrent = startTime + node.getWeight();
-					if (!(_algNodes.get(getIndexOfList(node, _algNodes)).getCore() == currentAlgNode.getCore())){
+					if (_algNodes.get(getIndexOfList(node, _algNodes)).getCore() != currentAlgNode.getCore()){
 						//Not on the same core, so need to add the arc weight
 						possibleStartTimeForCurrent += currentNode.getInArc(node).getWeight();
 					}
@@ -197,7 +197,11 @@ public class ScheduleImp implements Schedule {
 	 */
 	@Override
 	public void setStartTimeForNode (int startTime, int index) {
-		_startTimeForNodes.set(index, startTime);
+		if (index == _startTimeForNodes.size()){
+			_startTimeForNodes.add(startTime);
+		} else {
+			_startTimeForNodes.set(index, startTime);
+		}
 	}
 
 	/**
