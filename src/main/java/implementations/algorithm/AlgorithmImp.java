@@ -81,10 +81,12 @@ public class AlgorithmImp implements Algorithm {
 
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
-					
 
 					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
+					
 					/*
+					 * Pruning:
+					 * 
 					 * Heuristic #1 - Symmetry. (a1... would have a symmetry with 
 					 * a2 ...)
 					 * Also, (a1 b2 ...) would have a symmetry with (a1 b3...)
@@ -93,18 +95,15 @@ public class AlgorithmImp implements Algorithm {
 					 * (a1 b1 c3), in which case this is a partial symmetry on subtree. 
 					 * 
 					 * Implementation logic: we can break if the current node's core has
-					 * never appeared before.
+					 * never appeared before. -> This will implement both heuristic #1 & #2
 					 */
-
 					List<Integer> coresAssigned = processed.stream()
 							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
 					
-
 					if (!coresAssigned.contains(node.getCore())) {
 						break; 
 					}
-					
 				}
 			}
 		}
