@@ -66,7 +66,24 @@ public class AlgorithmImp implements Algorithm {
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
-				for (int j = 1; j <= _numberOfCores; j++) {
+				
+				List<Integer> coresArray = new ArrayList<Integer>();
+				List<Integer> coresArrayDone = new ArrayList<Integer>();
+				
+				for (int j = 1; j <= _numberOfCores; j++){
+					coresArray.add(j);
+				}
+				
+				//Heuristics 3: try shuffle the ways we are assigning cores. 
+				if (true) { //more bench-mark needed for this
+					Collections.shuffle(coresArray);
+				}
+				
+				for (int j : coresArray) {
+					//Pruning part of heuristic 2.
+					if (coresArrayDone.contains(j)){
+						continue;
+					}
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
@@ -97,15 +114,20 @@ public class AlgorithmImp implements Algorithm {
 					 * Heuristic #2 - Partial symmetry. (a1 b1 c2) would be the same as
 					 * (a1 b1 c3), in which case this is a partial symmetry on subtree. 
 					 * 
-					 * Implementation logic: we can break if the current node's core has
-					 * never appeared before. -> This will implement both heuristic #1 & #2
+					 * Implementation logic: If the current node's core has
+					 * never appeared before, we can add all other cores that
+					 * never appeared before to the done list. (As processing them would
+					 * cause a subtree symmetry)
+					 * -> This will implement both heuristic #1 & #2
 					 */
 					List<Integer> coresAssigned = processed.stream()
 							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
 					
 					if (!coresAssigned.contains(node.getCore())) {
-						break; 
+						coresArrayDone = coresArray.stream()
+								.filter(core -> !coresAssigned.contains(core))
+								.collect(Collectors.toList());
 					}
 				}
 			}
