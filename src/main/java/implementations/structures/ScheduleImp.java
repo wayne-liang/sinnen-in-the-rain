@@ -23,6 +23,9 @@ import interfaces.structures.Schedule;
  * 
  * An object of this class should be returned when the time for
  * a schedule (or a partial schedule) is calculated.
+ * 
+ * The Schedule class is also responsible for computing the next schedule, 
+ * given a new incoming node. 
  *  
  * @author Victor
  *
