@@ -161,7 +161,7 @@ public class ScheduleImp implements Schedule {
 		} else {
 
 			//This section calculates the earliest possible start time for current node based on finish time of the core
-			int endTimeForCore = finishTimeForCore(currentAlgNode.getCore());
+			int endTimeForCore = getFinishTimeForCore(currentAlgNode.getCore());
 
 			//This section calculates the earliest possible start time for current node based on predecessor
 			//Now check for predecessors of this currentNode and see when they've been scheduled
@@ -219,7 +219,7 @@ public class ScheduleImp implements Schedule {
 	 * @param coreNo
 	 * @return
 	 */
-	private int finishTimeForCore (int coreNo) {
+	public int getFinishTimeForCore (int coreNo) {
 		AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(coreNo);
 
 		//This section calculates the earliest possible start time for current node based on finish time of the core
