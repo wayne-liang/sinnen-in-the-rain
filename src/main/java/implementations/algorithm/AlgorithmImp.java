@@ -14,7 +14,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This class implements the algorithm to solve the scheduling problem
+ * This class represents the algorithm to solve the scheduling problem.
+ * The class is responsible for all DFS searches and maintaining a current best result.
+ * 
+ * @author Daniel, Victor, Wayne
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;

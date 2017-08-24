@@ -33,16 +33,16 @@ public interface Node {
     void addInArc(Arc arc);
 
     /**
-     * getPredecessors( ) returns the list of predecessor nodes.
+     * getPredecessors() returns the list of predecessor nodes.
      * @return List<Node>
      */
-    List<Node> getPredecessors( );
+    List<Node> getPredecessors();
 
     /**
-     * getSuccessors( ) returns the list of successor nodes.
+     * getSuccessors() returns the list of successor nodes.
      * @return List<Node>
      */
-    List<Node> getSuccessors( );
+    List<Node> getSuccessors();
 
     /**
      * Finds and returns the incoming Arc with the corresponding source node.
