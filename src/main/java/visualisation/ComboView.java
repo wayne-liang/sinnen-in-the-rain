@@ -3,6 +3,8 @@ package visualisation;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -42,33 +44,48 @@ public class ComboView extends JFrame {
 		_dag = DAGImp.getInstance();
 		_cores = numberOfCores;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1200, 700);
+		setBounds(100, 100, 1300, 700);
 		_contentPane = buildPanel();
 		_contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(_contentPane);
 		
-		GraphViewImp table = new GraphViewImp(_tableModel);
-		// set scrolling to bottom of table
-		JScrollPane pane = table.getPane();
-		/*JScrollBar vertical = pane.getVerticalScrollBar();
-		vertical.setValue(vertical.getMaximum());*/
-		
-		_panelMiddle.add(chart);
-		
+		// Adding GraphStream
 		GraphStreamView gv = new GraphStreamView(_cores);
-		/*JFrame f = new JFrame();
-		f.add(gv);
-		f.setVisible(true);*/
-		
 		JPanel p = gv.getPanel();
 		p.setVisible(true);
 		_panelLeft.add(p);
 		
-		//pack();
+		// Adding JTable
+		GraphViewImp table = new GraphViewImp(_tableModel);
+		JScrollPane pane = table.getPane();
+		JFrame tableFrame = new JFrame();
+		tableFrame.setSize(500, 520);
+		tableFrame.add(pane);
+		tableFrame.setLocationRelativeTo(null);
+
+		// Adding Bar Chart
+		_panelMiddle.add(chart);
+		
+		// Setting up the "Console" Panel
+		// Button to open schedule:
+		JButton openSchedule = new JButton("See Schedule");
+		openSchedule.addActionListener(new ActionListener() 
+		{
+			@Override
+		    public void actionPerformed(ActionEvent e) {
+		        tableFrame.setVisible(true); 
+		    }
+		});
+		// Other info here:
+		JLabel randomText = new JLabel();
+		randomText.setText("Some random text here");
+		
+		// Add components to Panel
+		_panelRight.add(openSchedule,BorderLayout.NORTH);
+		_panelRight.add(randomText,BorderLayout.SOUTH);
+
         setLocationRelativeTo(null);
-
     	setVisible(true);
-
 	}
 	
 	
@@ -80,8 +97,9 @@ public class ComboView extends JFrame {
     }
 
     private void buildView(JPanel panel) {
-    	JLabel titleLabel = new JLabel("Sinnen-In-The-Rain GUI");
-    	titleLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+    	Clock c = Clock.getInstance();
+    	JLabel titleLabel = c.getTimeLabel();
+    	//titleLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
         JLabel progressLabel = new JLabel("Progress Label");
         JProgressBar progressBar = new JProgressBar(0,100);
@@ -91,12 +109,13 @@ public class ComboView extends JFrame {
         _panelLeft = new JPanel();
         _panelLeft.setLayout(new BorderLayout());
         
-        // JPanel for JTable:
+        // JPanel for Bar Chart:
         _panelMiddle = new JPanel();
         _panelMiddle.setLayout(new BorderLayout());
         
-        // JPanel for Statistics:
-        _panelRight = Clock.getInstance();
+        // JPanel for "console":
+        _panelRight = new JPanel();
+        _panelRight.setLayout(new BorderLayout());
 
         JButton stopBttn = new JButton("Stop Process");
         JButton helpBttn = new JButton("Help");
@@ -110,8 +129,8 @@ public class ComboView extends JFrame {
 
         //align label triggers platform-specific label alignment
         panel.add(_panelLeft, "width 40%,height 70%");
-        panel.add(_panelMiddle, "width 50%, height 70%");
-        panel.add(_panelRight, "wrap, width 10%, height 70%");
+        panel.add(_panelMiddle, "width 45%, height 70%");
+        panel.add(_panelRight, "wrap, width 15%, height 70%");
 
         //tag identifies the type of button
         panel.add(stopBttn, "tag ok, span, split 3, sizegroup bttn, height 10%");

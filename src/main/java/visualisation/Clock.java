@@ -2,6 +2,7 @@ package visualisation;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Timer;
@@ -45,6 +46,7 @@ public class Clock extends JPanel {
     
     private void initClock() {
         setLayout(new BorderLayout());
+        _timeLabel.setFont(new Font("Serif", Font.BOLD, 20)); 
         add(_timeLabel,BorderLayout.NORTH);
         /*
         // button to stop timer.
@@ -134,13 +136,8 @@ public class Clock extends JPanel {
     public Timer getTimer(){
     	return _timer;
     }
-    /*public static void main(String args[]) {
-        EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                final Clock clock = new Clock();
-            }
-        });
-    }*/
+    
+    public JLabel getTimeLabel(){
+    	return _timeLabel;
+    }
 }
