@@ -8,6 +8,7 @@ import interfaces.algorithm.AlgorithmNode;
 import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
+import interfaces.structures.Schedule;
 import visualisation.BarChartModel;
 import visualisation.Clock;
 import visualisation.ComboView;
@@ -32,7 +33,7 @@ public class AlgorithmImp implements Algorithm {
 	private int _bestTime = Integer.MAX_VALUE; 
 	private boolean firstSchedule = true;
 	private BarChartModel _chartModel;
-	
+
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
@@ -43,17 +44,18 @@ public class AlgorithmImp implements Algorithm {
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
 		// initialise BarChart Model:
 		_chartModel = new BarChartModel();
-		
+
 		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
-		
+
 		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
 		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
-		
-		recursiveScheduleGeneration(new ArrayList<>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()));
+
+		Schedule empty = new ScheduleImp(_numberOfCores);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
 		_model.changeData(_currentBestSchedule, _bestTime);
-		
+
 		_model = TableModel.setInstance();
-		
+
 	}
 
 	/**
@@ -70,23 +72,27 @@ public class AlgorithmImp implements Algorithm {
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
+	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNodeImp> processed, List<AlgorithmNodeImp> remainingNodes) {
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
 		_recursiveCalls++;
-		
+
+
 		//Base Case
 		if (remainingNodes.size() == 0) {
-			ScheduleImp st = calculateTotalTime(processed);
-			if (st.getTotalTime() < _bestTime) { //Found a new best schedule
-				setNewBestSchedule(st);
-				_bestTime = st.getTotalTime();
+			Schedule finalSchedule = prev;
+			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
+				setNewBestSchedule(finalSchedule);
+				_bestTime = finalSchedule.getTotalTime();
+
+
 				// update view, now that a new schedule is available. This is too fast for small schedules
 				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 
 				// GUI does not update faster than 50 ms.  
 				_chartModel.addDataToSeries(_bestTime);
 				int timeNow = Clock.getInstance().getMilliseconds();
-				
+
 				if (firstSchedule||(timeNow > Clock.lastUpdate + 50)&&(timeNow>30)){
 					Clock.lastUpdate = timeNow;
 					_model.changeData(_currentBestSchedule, _bestTime);
@@ -95,27 +101,28 @@ public class AlgorithmImp implements Algorithm {
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
+				Schedule newSchedule;
 				for (int j = 1; j <= _numberOfCores; j++) {
-					List<AlgorithmNodeImp> newProcessed = new ArrayList<>(processed);
-					AlgorithmNodeImp node = remainingNodes.get(i).createClone();
+					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
+					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
-
 					if (checkValidSchedule(newProcessed)) {
-						ScheduleImp st = calculateTotalTime(newProcessed);
+						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.
-						if (st.getTotalTime() >= _bestTime) {
+						if (newSchedule.getTotalTime() >= _bestTime) {
 							continue;
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
 
-					List<AlgorithmNodeImp> newRemaining = new ArrayList<>(remainingNodes);
+					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
-					recursiveScheduleGeneration(newProcessed, newRemaining);
+
+					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
 					/*
 					 * Heuristic #1 - Checking for symmetry. (a1... would have a symmetry with 
 					 * a2 ...)
@@ -126,7 +133,7 @@ public class AlgorithmImp implements Algorithm {
 					 */
 
 					List<Integer> coresAssigned = newProcessed.stream()
-							.map(AlgorithmNodeImp::getCore)
+							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
 					long noOfDistinctCores = coresAssigned.stream()
 							.distinct()
@@ -140,14 +147,13 @@ public class AlgorithmImp implements Algorithm {
 		}
 	}
 
-	private void setNewBestSchedule(ScheduleImp st) {
-		for (int i = 0; i < st.getSizeOfSchedule(); i++) {
-			NodeSchedule nodeSchedule = new NodeScheduleImp(st.getNodeStartTime(i), st.getNodeCore(i));
-			_currentBestSchedule.put(st.getNodeName(i), nodeSchedule);
+	private void setNewBestSchedule(Schedule finalSchedule) {
+		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
+			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
+			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
 
 			//TODO fireUpdates to visualisation
 		}
-
 	}
 
 	/**
@@ -157,7 +163,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param schedule
 	 * @return true if the schedule is valid, false if not
 	 */
-	private boolean checkValidSchedule(List<AlgorithmNodeImp> schedule) {
+	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
 		if (schedule == null) {
 			return false;
 		}
@@ -193,27 +199,28 @@ public class AlgorithmImp implements Algorithm {
 
 	/**
 	 * Calculates the time cost of executing the given schedule, returning a complete ScheduleImp object.
-	 * @param algNodes - A {@code List<AlgorithmNodeImp>} given in the order of execution
+	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - ScheduleImp object with cost and execution time information
 	 */
-	private ScheduleImp calculateTotalTime(List<AlgorithmNodeImp> algNodes) {
+	@Deprecated
+	private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//creating a corresponding array of Nodes
 		List<Node> nodes = new ArrayList<>();
 
 		//populating new nodes array with corresponding Node objects
-		for (AlgorithmNodeImp algNode : algNodes) {
+		for (AlgorithmNode algNode : algNodes) {
 			nodes.add(_dag.getNodeByName(algNode.getNodeName()));
 		}
 
 		//creating ArrayLists to represent the schedule for each core
 		//NOTE: could change the coreSchedule to just an ArrayList that holds the most recently scheduled node for each core
-		List<AlgorithmNodeImp> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNodeImp[_numberOfCores]);
+		List<AlgorithmNode> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNode[_numberOfCores]);
 
 		//creating a ScheduleImp object for holding the schedule start times for each node
 		ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);
 
 		//looping through all the AlgorithmNodes to set startTimes
-		for (AlgorithmNodeImp currentAlgNode : algNodes) {
+		for (AlgorithmNode currentAlgNode : algNodes) {
 			Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));
 			int highestCost = 0;
 
@@ -233,7 +240,7 @@ public class AlgorithmImp implements Algorithm {
 			}
 
 			//calculate the time delay caused by previous processes on the same core
-			AlgorithmNodeImp latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
+			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
 			if (latestNode != null) {
 				Node previousNode = _dag.getNodeByName(latestNode.getNodeName());
 				int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));
@@ -257,14 +264,15 @@ public class AlgorithmImp implements Algorithm {
 	/**
 	 * Calculates and sets the total time in the {@code ScheduleImp} object given.
 	 * Main purpose is to make the code more readable.
-	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNodeImp>} containing the last node in each processor
+	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNode>} containing the last node in each processor
 	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code ScheduleImp} object
 	 * @param st - {@code ScheduleImp} object to set the total time of
 	 */
-	private void setTimeForSchedule(List<AlgorithmNodeImp> latestAlgNodeInSchedules, List<AlgorithmNodeImp> algNodes, ScheduleImp st) {
+	@Deprecated
+	private void setTimeForSchedule(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, ScheduleImp st) {
 		int totalTime = 0;
 		for (int i = 1; i <= _numberOfCores; i++) {
-			AlgorithmNodeImp latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
+			AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i - 1);
 
 			int timeTaken = 0;
 			if (latestAlgNode != null) {
@@ -280,13 +288,14 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-	 * Finds and returns the index position of the corresponding {@code AlgorithmNodeImp} within the given {@code List<AlgorithmNodeImp}
+	 * Finds and returns the index position of the corresponding {@code AlgorithmNode} within the given {@code List<AlgorithmNode}
 	 * @param node - {@code Node} to find the corresponding index position for
-	 * @param algNodes - {@code List<AlgorithmNodeImp>} to find the index for
-	 * @return the index position of the corresponding {@code AlgorithmNodeImp} object
+	 * @param algNodes - {@code List<AlgorithmNode>} to find the index for
+	 * @return the index position of the corresponding {@code AlgorithmNode} object
 	 */
-	private int getIndexOfList(Node node, List<AlgorithmNodeImp> algNodes) {
-		AlgorithmNodeImp correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
+	@Deprecated
+	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
+		AlgorithmNode correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
 				.findFirst()
 				.get();
 
@@ -308,22 +317,12 @@ public class AlgorithmImp implements Algorithm {
 	 * @param algNodes
 	 * @return
 	 */
-	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNodeImp> algNodes) {
+	@Deprecated
+	public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {
 		return calculateTotalTime(algNodes);
 	}
 
-	public boolean checkValidScheduleWrapper(List<AlgorithmNodeImp> s1) {
+	public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {
 		return checkValidSchedule(s1);
-	}
-	
-	/**
-	 * Gets the total number of arcs in the algorithm. Used only for testing at the moment.
-	 */
-	public int getAllArcSize(List<Node> nodeList){
-		int count = 0;
-		for (Node n: nodeList){
-			count += n.getPredecessors().size();
-		}
-		return count;
 	}
 }

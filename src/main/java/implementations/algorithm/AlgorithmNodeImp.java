@@ -18,12 +18,12 @@ public class AlgorithmNodeImp implements AlgorithmNode {
 	}
 
 	/**
-	 * Create a copy of the AlgorithmNodeImp object
+	 * Create a copy of the AlgorithmNode object
 	 *
-	 * @return a copy of the AlgorithmNodeImp
+	 * @return a copy of the AlgorithmNode
 	 */
 	@Override
-	public AlgorithmNodeImp createClone() {
+	public AlgorithmNode createClone() {
 		return new AlgorithmNodeImp(_nodeName);
 	}
 
