@@ -134,7 +134,6 @@ public class TableModel extends AbstractTableModel {
 	@Override
 	public String getValueAt(int rowIndex, int columnIndex) {
 		return _data[rowIndex][columnIndex];
-
 	}
 
 

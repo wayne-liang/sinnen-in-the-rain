@@ -2,6 +2,7 @@ package visualisation;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Timer;
@@ -24,6 +25,7 @@ public class Clock extends JPanel {
     private int _minutes; 
     private int _seconds;
     private int _milliseconds;
+    private ProcessStatus _processStatus;
     private static Clock instance = null;
     public static int lastUpdate = 0;
     
@@ -45,7 +47,9 @@ public class Clock extends JPanel {
     
     private void initClock() {
         setLayout(new BorderLayout());
+        _timeLabel.setFont(new Font("Serif", Font.BOLD, 20)); 
         add(_timeLabel,BorderLayout.NORTH);
+        setProcessStatus(ProcessStatus.INPROGRESS);
         /*
         // button to stop timer.
         JButton btnStop = new JButton("Stop");
@@ -134,13 +138,23 @@ public class Clock extends JPanel {
     public Timer getTimer(){
     	return _timer;
     }
-    /*public static void main(String args[]) {
-        EventQueue.invokeLater(new Runnable() {
+    
+    public JLabel getTimeLabel(){
+    	return _timeLabel;
+    }
+    
+    public void stopClock(){
+    	setProcessStatus(ProcessStatus.COMPLETED);
+    	Clock.getInstance().getTimer().cancel();
+		Clock.getInstance().getTimer().purge();
+    }
 
-            @Override
-            public void run() {
-                final Clock clock = new Clock();
-            }
-        });
-    }*/
+
+	public ProcessStatus getProcessStatus() {
+		return _processStatus;
+	}
+
+	public void setProcessStatus(ProcessStatus processStatus) {
+		_processStatus = processStatus;
+	}
 }
