@@ -190,9 +190,4 @@ public class GraphStreamView implements GraphView {
 	public HashMap<String,Node> getStringNodeHashMap(){
 		return _graphStringNodeMap;
 	}
-	
-	
-	
-
-	
 }

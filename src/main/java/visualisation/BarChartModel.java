@@ -38,11 +38,6 @@ public class BarChartModel extends JPanel {
 	private String series1;
 	private String series2;
 	private int scheduleCounter;
-    /**
-     * Creates a new demo instance.
-     *
-     * @param title  the frame title.
-     */
 	
 	 /**
      * A custom renderer that returns a different color for each item in a single series.
