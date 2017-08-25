@@ -3,6 +3,7 @@ package visualisation;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 
 import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
+import interfaces.structures.NodeSchedule;
 import net.miginfocom.swing.MigLayout;
 /**
  * Common GUI Interface to be used to display all visualisation components.
@@ -119,5 +121,6 @@ public class ComboView extends JFrame {
         panel.add(helpBttn, "tag help2, sizegroup bttn");
         panel.add(quitBttn, "tag ok, sizegroup bttn");
     }
+
 
 }

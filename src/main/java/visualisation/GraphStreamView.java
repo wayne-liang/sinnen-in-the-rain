@@ -161,13 +161,18 @@ public class GraphStreamView implements GraphView {
 	private void setProcessorColours(){
 		Random randomNum = new Random();
 		for (int i=0; i<_processorCount; i++){
-			float r = (float) (randomNum.nextFloat()/2f + 0.2);
-			float g = (float) (randomNum.nextFloat()/2f + 0.2);
-			float b = (float) (randomNum.nextFloat()/2f + 0.2);
+			float r = (float) (randomNum.nextFloat()/2f + 0.5);
+			float g = (float) (randomNum.nextFloat()/2f + 0.5);
+			float b = (float) (randomNum.nextFloat()/2f + 0.5);
 			
 			Color newColour = new Color(r,g,b);
 			_processorColours.add(newColour);
 		}
+	}
+	
+	public static void updateNodeColor(String nodeName, int coreNumber){
+		Node graphNode = _graphStringNodeMap.get(nodeName);
+		graphNode.addAttribute("ui.color", _processorColours.get(coreNumber-1));
 	}
 
 
