@@ -3,6 +3,7 @@ package visualisation;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.HashMap;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,6 +19,7 @@ import javax.swing.border.EmptyBorder;
 
 import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
+import interfaces.structures.NodeSchedule;
 import net.miginfocom.swing.MigLayout;
 import scala.xml.include.sax.Main;
 /**
@@ -149,7 +151,7 @@ public class ComboView extends JFrame {
         panel.add(helpBttn, "tag help2, sizegroup bttn");
         panel.add(quitBttn, "tag ok, sizegroup bttn");
     }
-    
+
     public static void setFileName(String name){
     	_fileName = name;
     }

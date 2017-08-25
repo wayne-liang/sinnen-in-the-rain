@@ -114,6 +114,8 @@ public class TableModel extends AbstractTableModel {
 				}
 				
 			}
+			
+			GraphStreamView.updateNodeColor(key,core);
 		}
 	}
 
