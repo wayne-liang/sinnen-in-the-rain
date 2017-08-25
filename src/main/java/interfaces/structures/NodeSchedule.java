@@ -1,8 +1,8 @@
 package interfaces.structures;
 
 /**
- * This interface represents the concept of a scheduler.
- * (See scheduler implementation for more details)
+ * This interface represents the concept of a Node schedule.
+ * (See node schedule implementation for more details)
  * 
  * @see implementations.structures.NodeScheduleImp
  * 

@@ -25,17 +25,20 @@ public class AlgorithmImp implements Algorithm {
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 
-	private int _bestTime = Integer.MAX_VALUE;
+	private int _bestTime;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
 		
+		_bestTime = _dag.computeSequentialCost(); //The trivial best solution to be used as bound.
+		
+		
 		Schedule empty = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
 	}
-
+	
 	/**
 	 * Purely for benchmarking purposes
 	 *
@@ -59,7 +62,10 @@ public class AlgorithmImp implements Algorithm {
 		//Base Case
 		if (remainingNodes.size() == 0) {
 			Schedule finalSchedule = prev;
-			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
+			//Found a new best schedule, 
+			//or the same time but no current best schedule (the first time reaching a trivial schedule)
+			if ((finalSchedule.getTotalTime() < _bestTime) 
+					|| ((finalSchedule.getTotalTime() == _bestTime) && _currentBestSchedule.isEmpty())) { 
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 			}

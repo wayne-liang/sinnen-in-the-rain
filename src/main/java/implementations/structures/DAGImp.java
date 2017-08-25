@@ -98,4 +98,14 @@ public class DAGImp implements DAG {
     public List<Node> getStartNodes() {
         return _startNodes;
     }
+    
+    /**
+     * @see interfaces.structures.DAG
+     */
+    @Override
+    public int computeSequentialCost() {
+    	return _nodes.values().stream()
+    			.map(node -> node.getWeight())
+    			.reduce (0, (x,y) -> x+y);
+    }
 }
