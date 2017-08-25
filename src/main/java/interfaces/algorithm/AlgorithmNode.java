@@ -6,6 +6,13 @@ import interfaces.structures.Node;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * See the implementation class for more details.
+ * @see implementations.algorithm.AlgorithmNodeImp
+ * 
+ * @author Daniel
+ *
+ */
 public interface AlgorithmNode {
     /**
      * This static method converts a list of nodes to a list of algorithmNode objects
@@ -13,8 +20,8 @@ public interface AlgorithmNode {
      * @param nodes
      * @return a list of algorithmNode objects.
      */
-    static List<AlgorithmNodeImp> convertNodetoAlgorithmNode(List<Node> nodes) {
-        List<AlgorithmNodeImp> algorithmNodeList = new ArrayList<>();
+    static List<AlgorithmNode> convertNodetoAlgorithmNode(List<Node> nodes) {
+        List<AlgorithmNode> algorithmNodeList = new ArrayList<>();
 
         for (Node node : nodes) {
             algorithmNodeList.add(new AlgorithmNodeImp(node.getName()));
@@ -23,7 +30,7 @@ public interface AlgorithmNode {
         return algorithmNodeList;
     }
 
-    AlgorithmNodeImp createClone();
+    AlgorithmNode createClone();
 
     String getNodeName();
 

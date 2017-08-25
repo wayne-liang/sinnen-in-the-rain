@@ -5,6 +5,7 @@ import implementations.io.OutputImp;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
 import visualisation.Clock;
+import visualisation.ComboView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,9 +27,10 @@ public class Main {
 
 		//convert to ArrayList
 		List<String> argsList = new ArrayList<>(Arrays.asList(args));
-
+		
 		// check filepath of .dot file
 		final String filePath = argsList.get(0);
+		
 		if (!filePath.contains(".dot")) {
 			throw new IllegalArgumentException("filePath doesn't contain .dot file.");
 		}
@@ -83,9 +85,10 @@ public class Main {
 		} else {
 			outputImp = new OutputImp(alg.getCurrentBestSchedule(), filePath);
 		}
+		//Clock.getInstance();
+		
 		// STOP THE CLOCK!!
-		Clock.getInstance().getTimer().cancel();
-		Clock.getInstance().getTimer().purge();
+		Clock.getInstance().stopClock();
 		
 		outputImp.outputToFile();
 	}
