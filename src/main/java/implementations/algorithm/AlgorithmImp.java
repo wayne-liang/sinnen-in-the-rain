@@ -9,31 +9,53 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import interfaces.structures.Schedule;
+import visualisation.BarChartModel;
+import visualisation.Clock;
+import visualisation.ComboView;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
+import visualisation.TableModel;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.swing.SwingUtilities;
+
 /**
- * This class represents the algorithm to solve the scheduling problem.
- * The class is responsible for all DFS searches and maintaining a current best result.
- * 
- * @author Daniel, Victor, Wayne
+ * This class implements the algorithm to solve the scheduling problem
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
+	private TableModel _model;
+	private int _bestTime = Integer.MAX_VALUE; 
+	private boolean firstSchedule = true;
+	private BarChartModel _chartModel;
 
-	private int _bestTime = Integer.MAX_VALUE;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-		
+		// Check if visualisation is true, only then do we create the gui. 
+		_model = TableModel.getInstance();
+		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+		// initialise BarChart Model:
+		_chartModel = new BarChartModel();
+
+		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+
+		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
+		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+
 		Schedule empty = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
+		_model.changeData(_currentBestSchedule, _bestTime);
+
+		_model = TableModel.setInstance();
+
 	}
 
 	/**
@@ -52,7 +74,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
 		_recursiveCalls++;
 
 
@@ -62,6 +84,20 @@ public class AlgorithmImp implements Algorithm {
 			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
+
+
+				// update view, now that a new schedule is available. This is too fast for small schedules
+				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+
+				// GUI does not update faster than 50 ms.  
+				_chartModel.addDataToSeries(_bestTime);
+				int timeNow = Clock.getInstance().getMilliseconds();
+
+				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
+					Clock.lastUpdate = timeNow;
+					_model.changeData(_currentBestSchedule, _bestTime);
+					//firstSchedule = false;
+				//}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
