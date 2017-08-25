@@ -46,31 +46,39 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-	 * This method recursively generates all possible schedules given a list of nodes.
+	 * This method recursively does the branch and bound traversal.
+	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
+	 * or checking if it's better than the current time.
+	 *
+	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
+	 * to decide whether to bound.
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_recursiveCalls++;
+		_recursiveCalls++; //Debug purposes only
 
-
-		//Base Case
+		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
-			Schedule finalSchedule = prev;
-			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
-				setNewBestSchedule(finalSchedule);
-				_bestTime = finalSchedule.getTotalTime();
+			if (prev.getTotalTime() < _bestTime) { //Found a new best schedule
+				setNewBestSchedule(prev);
+				_bestTime = prev.getTotalTime();
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
+
+				//Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
+					//Create a clone of the next node and assign it to a core. Place that new core
+					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
+
 					if (checkValidSchedule(newProcessed)) {
 						newSchedule = prev.getNextSchedule(node);
 
@@ -82,6 +90,7 @@ public class AlgorithmImp implements Algorithm {
 						break;
 					}
 
+					//Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
@@ -125,7 +134,7 @@ public class AlgorithmImp implements Algorithm {
 	 * This method determines whether a schedule is valid. It does this by ensuring a nodes predecessors are scheduled
 	 * before the current node
 	 *
-	 * @param schedule
+	 * @param schedule - The schedule representation we want to check is valid
 	 * @return true if the schedule is valid, false if not
 	 */
 	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
@@ -156,10 +165,7 @@ public class AlgorithmImp implements Algorithm {
 		}
 
 		//Check if all the predecessors were found
-		if (counter != predecessors.size()) {
-			return false;
-		}
-		return true;
+		return counter == predecessors.size();
 	}
 
 	/**
