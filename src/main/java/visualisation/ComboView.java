@@ -15,6 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.EmptyBorder;
 
 import implementations.structures.DAGImp;
@@ -46,6 +48,19 @@ public class ComboView extends JFrame {
 	 * @param _dag 
 	 */
 	public ComboView(TableModel tableModel, DAG dag, int numberOfCores, BarChartModel chart) {
+		
+		try {
+		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		        if ("Nimbus".equals(info.getName())) {
+		            UIManager.setLookAndFeel(info.getClassName());
+		            break;
+		        }
+		    }
+		} catch (Exception e) {
+		    // If Nimbus is not available, you can set the GUI to another look and feel.
+			e.printStackTrace();
+		}
+		
 		_tableModel = TableModel.getInstance();
 		_cores = numberOfCores;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
