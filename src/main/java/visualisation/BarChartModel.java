@@ -186,41 +186,5 @@ public class BarChartModel extends JPanel {
         return chart;
         
     }
-    // ****************************************************************************
-    
-    /**
-     * Starting point for the demonstration application.
-     *
-     * @param args  ignored.
-     */
-    /*public static void main(final String[] args) {
 
-        final BarChartDemo8 demo = new BarChartDemo8();
-        JFrame f = new JFrame();
-        f.setLayout(new BorderLayout());
-        f.add(demo, BorderLayout.NORTH);
-        JButton addColumn = new JButton("addColumn");
-        addColumn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				demo.addDataToSeries(1.0);
-			}
-
-        });
-        f.add(addColumn);
-        f.setVisible(true);
-        f.pack();
-        //demo.pack();
-       // RefineryUtilities.centerFrameOnScreen(demo);
-        //demo.setVisible(true);
-
-    }*/
-
-}
-
-
-
-
-
-       
+}      
