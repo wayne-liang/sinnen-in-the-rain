@@ -3,6 +3,7 @@ package visualisation;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -18,6 +19,7 @@ import javax.swing.border.EmptyBorder;
 import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
 import net.miginfocom.swing.MigLayout;
+import scala.xml.include.sax.Main;
 /**
  * Common GUI Interface to be used to display all visualisation components.
  * @author Pulkit
@@ -27,12 +29,14 @@ import net.miginfocom.swing.MigLayout;
 public class ComboView extends JFrame {
 	
 	private JPanel _contentPane;
+	private JPanel _panelTop;
 	private JPanel _panelLeft;
 	private JPanel _panelMiddle;
 	private JPanel _panelRight;
 	private TableModel _tableModel;
-	private DAG _dag;
 	private int _cores;
+	private JLabel statusLabel;
+	private static String _fileName;
 
 	/**
 	 * Create the frame.
@@ -41,7 +45,6 @@ public class ComboView extends JFrame {
 	 */
 	public ComboView(TableModel tableModel, DAG dag, int numberOfCores, BarChartModel chart) {
 		_tableModel = TableModel.getInstance();
-		_dag = DAGImp.getInstance();
 		_cores = numberOfCores;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1300, 700);
@@ -49,6 +52,7 @@ public class ComboView extends JFrame {
 		_contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(_contentPane);
 		
+		//Clock.getInstance().setProcessStatus(ProcessStatus.INPROGRESS);
 		// Adding GraphStream
 		GraphStreamView gv = new GraphStreamView(_cores);
 		JPanel p = gv.getPanel();
@@ -97,8 +101,14 @@ public class ComboView extends JFrame {
     }
 
     private void buildView(JPanel panel) {
+    	_panelTop = new JPanel();
+    	_panelTop.setLayout(new GridLayout(1,4));
     	Clock c = Clock.getInstance();
     	JLabel titleLabel = c.getTimeLabel();
+    	statusLabel = new JLabel(Clock.getInstance().getProcessStatus().toString());
+    	_panelTop.add(new JLabel(""+ _fileName));
+    	_panelTop.add(titleLabel);
+    	_panelTop.add(statusLabel);
     	//titleLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
         JLabel progressLabel = new JLabel("Progress Label");
@@ -121,7 +131,7 @@ public class ComboView extends JFrame {
         JButton helpBttn = new JButton("Help");
         JButton quitBttn = new JButton("Quit");
     	
-        panel.add(titleLabel, "span, center, height 10%");
+        panel.add(_panelTop, "span, center, height 10%");
 
         //wrap keyword starts a new row
         panel.add(progressLabel, "align label, height 10%");
@@ -139,5 +149,8 @@ public class ComboView extends JFrame {
         panel.add(helpBttn, "tag help2, sizegroup bttn");
         panel.add(quitBttn, "tag ok, sizegroup bttn");
     }
-
+    
+    public static void setFileName(String name){
+    	_fileName = name;
+    }
 }

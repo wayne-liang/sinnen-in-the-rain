@@ -93,7 +93,7 @@ public class AlgorithmImp implements Algorithm {
 				_chartModel.addDataToSeries(_bestTime);
 				int timeNow = Clock.getInstance().getMilliseconds();
 
-				if (firstSchedule||(timeNow > Clock.lastUpdate + 50)&&(timeNow>30)){
+				if (firstSchedule||(timeNow > Clock.lastUpdate + 50)){
 					Clock.lastUpdate = timeNow;
 					_model.changeData(_currentBestSchedule, _bestTime);
 					firstSchedule = false;

@@ -1,6 +1,7 @@
 package implementations.io;
 
 import interfaces.io.Input;
+import visualisation.ComboView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -58,6 +59,10 @@ public class InputImp implements Input {
 		File file = new File (filePath);
 		try {
 			Scanner inputScanner = new Scanner (file);
+			
+			// Provide filePath to GUI, 
+			// doing this to avoid passing in the filename as an argument to the Algorithm class.
+			ComboView.setFileName(file.getName());
 			
 			inputScanner.nextLine(); //ignore line1.
 			

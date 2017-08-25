@@ -25,6 +25,7 @@ public class Clock extends JPanel {
     private int _minutes; 
     private int _seconds;
     private int _milliseconds;
+    private ProcessStatus _processStatus;
     private static Clock instance = null;
     public static int lastUpdate = 0;
     
@@ -48,6 +49,7 @@ public class Clock extends JPanel {
         setLayout(new BorderLayout());
         _timeLabel.setFont(new Font("Serif", Font.BOLD, 20)); 
         add(_timeLabel,BorderLayout.NORTH);
+        setProcessStatus(ProcessStatus.INPROGRESS);
         /*
         // button to stop timer.
         JButton btnStop = new JButton("Stop");
@@ -140,4 +142,19 @@ public class Clock extends JPanel {
     public JLabel getTimeLabel(){
     	return _timeLabel;
     }
+    
+    public void stopClock(){
+    	setProcessStatus(ProcessStatus.COMPLETED);
+    	Clock.getInstance().getTimer().cancel();
+		Clock.getInstance().getTimer().purge();
+    }
+
+
+	public ProcessStatus getProcessStatus() {
+		return _processStatus;
+	}
+
+	public void setProcessStatus(ProcessStatus processStatus) {
+		_processStatus = processStatus;
+	}
 }
