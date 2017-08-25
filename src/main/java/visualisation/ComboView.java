@@ -37,7 +37,6 @@ public class ComboView extends JFrame {
 	private JPanel _contentPane;
 	private JPanel _panelTop;
 	private JPanel _panelLeft;
-	private JPanel _panelMiddle;
 	private JPanel _panelRight;
 	private JPanel _panelBottom;
 	
@@ -76,13 +75,54 @@ public class ComboView extends JFrame {
 		setContentPane(_contentPane);
 		
 		//Clock.getInstance().setProcessStatus(ProcessStatus.INPROGRESS);
-		// Adding GraphStream
+		
+    	//Sinnen-in-the-rain group logo
+    	ImageIcon image = new ImageIcon("sinnen-logo.png");
+    	Image largeLogo = image.getImage();
+    	Image smallLogo = largeLogo.getScaledInstance(200, 50, java.awt.Image.SCALE_SMOOTH);
+    	ImageIcon newLogo = new ImageIcon(smallLogo);
+    	JLabel logo = new JLabel("", newLogo, JLabel.LEFT);
+    	
+    	//Timer for program runtime count
+    	Clock c = Clock.getInstance();
+    	JLabel titleLabel = c.getTimeLabel();   
+    	
+    	//Label for displaying the program's current status
+    	statusLabel = new JLabel(Clock.getInstance().getProcessStatus().toString(),JLabel.RIGHT);
+    	
+        //Button to open schedule
+        JButton openScheduleBtn = new JButton("See Schedule");
+        openScheduleBtn.addActionListener(new ActionListener() 
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		_tableFrame.setVisible(true); 
+        	}
+        });
+        
+        //Button to stop algorithm
+        JButton stopBtn = new JButton("Stop Process");
+        
+        //Label to represent the .dot file that is being processed
+        JLabel fileNameLabel = new JLabel(""+ _fileName, JLabel.CENTER);
+        
+        // First row of top panel
+        _panelTop.add(logo);
+    	_panelTop.add(fileNameLabel);
+    	_panelTop.add(statusLabel);
+    	
+    	// Second row of top panel
+    	_panelTop.add(openScheduleBtn);
+    	_panelTop.add(titleLabel);
+    	_panelTop.add(stopBtn);
+    	
+		// Adding GraphStream to left side
 		GraphStreamView gv = new GraphStreamView(_cores);
 		JPanel p = gv.getPanel();
 		p.setVisible(true);
 		_panelLeft.add(p);
 		
-		// Adding JTable
+		// Making JFrame to display the schedule
 		GraphViewImp table = new GraphViewImp(_tableModel);
 		JScrollPane pane = table.getPane();
 		_tableFrame = new JFrame();
@@ -91,12 +131,13 @@ public class ComboView extends JFrame {
 		_tableFrame.setLocationRelativeTo(null);
 
 		// Adding Bar Chart
-		_panelMiddle.add(chart);
+		_panelRight.add(chart);
 
 		
 		// Other info here:
-		JLabel randomText = new JLabel();
-		randomText.setText("Some random text here");
+
+		//JLabel randomText = new JLabel();
+		//randomText.setText("Some random text here");
 		
 		// Add components to Panel
 		//_panelRight.add(openSchedule,BorderLayout.NORTH);
@@ -120,58 +161,7 @@ public class ComboView extends JFrame {
     	_panelTop = new JPanel();
     	_panelTop.setLayout(new GridLayout(2,3, 20,20));
     	
-    	//Sinnen-in-the-rain group logo
-    	ImageIcon image = new ImageIcon("sinnen-logo.png");
-    	Image largeLogo = image.getImage();
-    	Image smallLogo = largeLogo.getScaledInstance(200, 50, java.awt.Image.SCALE_SMOOTH);
-    	ImageIcon newLogo = new ImageIcon(smallLogo);
-    	JLabel logo = new JLabel("", newLogo, JLabel.LEFT);
-    	
-    	//Timer for program runtime
-    	Clock c = Clock.getInstance();
-    	JLabel titleLabel = c.getTimeLabel();   
-    	
-    	//Status
-    	JPanel statusPanel = new JPanel(new FlowLayout());
-    	statusLabel = new JLabel(Clock.getInstance().getProcessStatus().toString(),JLabel.RIGHT);
-    	
-    	
-    	//Loading GIF icon
-    	ImageIcon GIF = new ImageIcon("loading-gif.gif");
-    	//Image largeGIF = GIF.getImage();
-    	//Image smallGIF = largeGIF.getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH);
-    	//ImageIcon newGIF = new ImageIcon(smallGIF);
-    	JLabel loadingGIF = new JLabel(GIF, JLabel.LEFT);
-    	
-    	statusPanel.add(loadingGIF);
-    	//statusPanel.add(statusLabel);
-    	
-    	
-        //Button to open schedule
-        JButton openScheduleBtn = new JButton("See Schedule");
-        openScheduleBtn.addActionListener(new ActionListener() 
-        {
-        	@Override
-        	public void actionPerformed(ActionEvent e) {
-        		_tableFrame.setVisible(true); 
-        	}
-        });
-        
-        //Button to stop algorithm
-        JButton stopBtn = new JButton("Stop Process");
-        
-        //Label to represent the .dot file that is being processed
-        JLabel fileNameLabel = new JLabel(""+ _fileName, JLabel.CENTER);
-        
-        //First row of top panel
-        _panelTop.add(logo);
-    	_panelTop.add(fileNameLabel);
-    	_panelTop.add(statusPanel);
-    	
-    	//Second row of top panel
-    	_panelTop.add(openScheduleBtn);
-    	_panelTop.add(titleLabel);
-    	_panelTop.add(stopBtn);
+
     	
     	//titleLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
@@ -186,8 +176,12 @@ public class ComboView extends JFrame {
         _panelLeft.setLayout(new BorderLayout());
         
         // JPanel for Bar Chart:
-        _panelMiddle = new JPanel();
-        _panelMiddle.setLayout(new BorderLayout());
+        _panelRight = new JPanel();
+        _panelRight.setLayout(new BorderLayout());
+        
+        // JPanel for additional information at the bottom
+        _panelBottom = new JPanel();
+        _panelBottom.setLayout(new GridLayout());
         
         // JPanel for "console":
         //_panelRight = new JPanel();
@@ -207,7 +201,7 @@ public class ComboView extends JFrame {
 
         //align label triggers platform-specific label alignment
         panel.add(_panelLeft, "width 50%,height 70%");
-        panel.add(_panelMiddle, "width 50%, height 70%");
+        panel.add(_panelRight, "width 50%, height 70%, wrap");
         
         //panel.add(_panelRight, "wrap, width 15%, height 70%");
 
@@ -217,6 +211,8 @@ public class ComboView extends JFrame {
         //sizegroups set all members to the size of the biggest member
         //panel.add(helpBttn, "tag help2, sizegroup bttn");
         //panel.add(quitBttn, "tag ok, sizegroup bttn");
+        
+        panel.add(_panelBottom, "span, center, width 100%, height 10%");
     }
 
     public static void setFileName(String name){

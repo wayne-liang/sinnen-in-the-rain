@@ -34,33 +34,31 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 
 /**
- * A class to test the JGraphT library for the MVC view 
+ * A class to build and manipulate a DAG visual using the GraphStream library.
  * @author dariusau
  *
  */
-//public class GraphStreamView extends JFrame implements GraphView {
 public class GraphStreamView implements GraphView {
 	
 	private static HashMap<interfaces.structures.Node,Node> _graphNodeNodeMap;
 	private static HashMap<String,Node> _graphStringNodeMap;
-	public static List<Color> _processorColours;
+	public static List<Color> _coreColours;
 	private static DAG _dag;
-	private static int _processorCount;
+	private static int _coreCount;
 	private static Graph _GRAPH;
 	
 	
 	/**
-	 * GraphStreamView constructor
-	 * @param dag
-	 * @param processorCount
+	 * GraphStreamView constructor - Builds a GraphStream visual representing the DAG of nodes to be processed
+	 * @param coreCount - The number of cores 
 	 */
-	public GraphStreamView(int processorCount){
+	public GraphStreamView(int coreCount){
 		
 		//Initialising fields
 		_graphNodeNodeMap = new HashMap<interfaces.structures.Node,Node>();
 		_graphStringNodeMap = new HashMap<String,Node>();
-		_processorColours = new ArrayList<Color>();
-		_processorCount = processorCount;
+		_coreColours = new ArrayList<Color>();
+		_coreCount = coreCount;
 		
 		//Gets random colours for different processors
 		setProcessorColours();
@@ -72,7 +70,7 @@ public class GraphStreamView implements GraphView {
 		//Create a graph visual
 		_GRAPH = new SingleGraph("Tutorial 1");
 		
-		//Stylesheet settings - needs to be modified
+		//Stylesheet settings for the nodes and edges
 		_GRAPH.setAttribute("stylesheet", 
 				"node { "
 		        + "     shape: circle; "
@@ -119,22 +117,15 @@ public class GraphStreamView implements GraphView {
 		
 		
 	}
+	
+	/**
+	 * Method no longer needed
+	 */
 	@Override
 	public void addButtonListener(ActionListener listener) {
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
-	/**
-	 * Interesting method??? Review this method if needed
-	 * @param node
-	 */
-	/*
-	public void changeNodeColour(interfaces.structures.Node node){
-		Node graphNode = _graphNodeNodeMap.get(node);
-		graphNode.setAttribute("ui.class","marked");
-	}*/
 	
 	/**
 	 * method to return GraphStream graph in a JPanel. Must call the constructor before calling this.
@@ -155,39 +146,43 @@ public class GraphStreamView implements GraphView {
         return jp;
 	}
 	/**
-	 * Method to assign different random colours to every processor
-	 * https://stackoverflow.com/questions/4246351/creating-random-colour-in-java
+	 * Method to assign different random colours to every task depending on which core they are working on.
+	 * Referenced from https://stackoverflow.com/questions/4246351/creating-random-colour-in-java
+	 * @author Darius
 	 */
 	private void setProcessorColours(){
 		Random randomNum = new Random();
-		for (int i=0; i<_processorCount; i++){
+		for (int i=0; i<_coreCount; i++){
 			float r = (float) (randomNum.nextFloat()/2f + 0.5);
 			float g = (float) (randomNum.nextFloat()/2f + 0.5);
 			float b = (float) (randomNum.nextFloat()/2f + 0.5);
 			
 			Color newColour = new Color(r,g,b);
-			_processorColours.add(newColour);
+			_coreColours.add(newColour);
 		}
 	}
 	
+	/**
+	 * A method to update the selected node core colour based on what core they were assigned to
+	 * in the current best schedule found.
+	 * @param nodeName - The name of the node
+	 * @param coreNumber - The core they were assigned to
+	 * @author: Darius
+	 */
 	public static void updateNodeColor(String nodeName, int coreNumber){
 		Node graphNode = _graphStringNodeMap.get(nodeName);
-		graphNode.addAttribute("ui.color", _processorColours.get(coreNumber-1));
+		graphNode.addAttribute("ui.color", _coreColours.get(coreNumber-1));
 	}
 
 
 
+	/**
+	 * Not necessary anymore
+	 */
 	@Override
 	public JTable getTable() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	/**
-	 * Getter for name-to-gsnode hashmap
-	 * @return
-	 */
-	public HashMap<String,Node> getStringNodeHashMap(){
-		return _graphStringNodeMap;
-	}
+
 }
