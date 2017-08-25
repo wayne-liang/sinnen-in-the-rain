@@ -9,13 +9,22 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import interfaces.structures.Schedule;
+import visualisation.BarChartModel;
+import visualisation.Clock;
+import visualisation.ComboView;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
+import visualisation.TableModel;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.swing.SwingUtilities;
+
 /**
  * This class represents the algorithm to solve the scheduling problem.
  * The class is responsible for all DFS searches and maintaining a current best result.
+ * The class also acts as a controller for the View to update the visualisation.
  * 
  * @author Daniel, Victor, Wayne
  */
@@ -24,25 +33,33 @@ public class AlgorithmImp implements Algorithm {
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
+	private TableModel _model;
+	private int _bestTime = Integer.MAX_VALUE; 
+	private boolean firstSchedule = true;
+	private BarChartModel _chartModel;
 
-	private int _bestTime = Integer.MAX_VALUE;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-		
+		// Check if visualisation is true, only then do we create the gui. 
+		_model = TableModel.getInstance();
+		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+		// initialise BarChart Model:
+		_chartModel = new BarChartModel();
+
+		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+
+		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
+		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+
 		Schedule empty = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
-	}
+		_model.changeData(_currentBestSchedule, _bestTime);
 
-	/**
-	 * Purely for benchmarking purposes
-	 *
-	 * @return number of times the recursive method was called
-	 */
-	public int getRecursiveCalls() {
-		return _recursiveCalls;
+		_model = TableModel.setInstance();
+
 	}
 
 	/**
@@ -57,28 +74,53 @@ public class AlgorithmImp implements Algorithm {
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_recursiveCalls++; //Debug purposes only
+	public int getRecursiveCalls() {
+		return _recursiveCalls;
+	}
+
+	/**
+	 * This method recursively generates all possible schedules given a list of nodes.
+	 *
+	 * @param processed      - A list of processed nodes
+	 * @param remainingNodes - A list of nodes remaining to be processed
+	 * @param prev			 - The previous schedule. 
+	 */
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
+		_recursiveCalls++; //For debugging and for updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
-			if (prev.getTotalTime() < _bestTime) { //Found a new best schedule
-				setNewBestSchedule(prev);
-				_bestTime = prev.getTotalTime();
+			Schedule finalSchedule = prev;
+			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
+				setNewBestSchedule(finalSchedule);
+				_bestTime = finalSchedule.getTotalTime();
+
+
+				// update view, now that a new schedule is available. This is too fast for small schedules
+				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+
+				// GUI does not update faster than 50 ms.  
+				_chartModel.addDataToSeries(_bestTime);
+				int timeNow = Clock.getInstance().getMilliseconds();
+
+				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
+					Clock.lastUpdate = timeNow;
+					_model.changeData(_currentBestSchedule, _bestTime);
+					//firstSchedule = false;
+				//}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
-
-				//Assign the node to each core and continue recursive call down the branch
+        
+        //Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
-					//Create a clone of the next node and assign it to a core. Place that new core
+          //Create a clone of the next node and assign it to a core. Place that new core
 					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
-
 					if (checkValidSchedule(newProcessed)) {
 						newSchedule = prev.getNextSchedule(node);
 
@@ -89,8 +131,8 @@ public class AlgorithmImp implements Algorithm {
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
-
-					//Create a new remaining list and remove the node that has been added to the processed list
+          
+          //Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
@@ -125,8 +167,6 @@ public class AlgorithmImp implements Algorithm {
 		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
 			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
-
-			//TODO fireUpdates to visualisation
 		}
 	}
 
@@ -134,7 +174,7 @@ public class AlgorithmImp implements Algorithm {
 	 * This method determines whether a schedule is valid. It does this by ensuring a nodes predecessors are scheduled
 	 * before the current node
 	 *
-	 * @param schedule - The schedule representation we want to check is valid
+	 * @param schedule
 	 * @return true if the schedule is valid, false if not
 	 */
 	private boolean checkValidSchedule(List<AlgorithmNode> schedule) {
@@ -165,7 +205,10 @@ public class AlgorithmImp implements Algorithm {
 		}
 
 		//Check if all the predecessors were found
-		return counter == predecessors.size();
+		if (counter != predecessors.size()) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
