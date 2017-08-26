@@ -242,9 +242,9 @@ public class AlgorithmImp implements Algorithm {
 
 				//Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
-					//Create a clone of the next node and assign it to a core. Place that new core
+					
+					//Create a clone of the next node and assign it to a core. Place that new node
 					//on a copy of the processed list
-
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
@@ -299,9 +299,10 @@ public class AlgorithmImp implements Algorithm {
 					 * Implementation logic: we can break if the current node's core has
 					 * never appeared before. -> This will implement both heuristic #1 & #2
 					 */
-					List<Integer> coresAssigned = processed.stream()
-							.map(AlgorithmNode::getCore)
-							.collect(Collectors.toList());
+					List<Integer> coresAssigned = new ArrayList<Integer>();
+					for (AlgorithmNode algNode : processed) {
+						coresAssigned.add(algNode.getCore());
+					}
 
 					if (!coresAssigned.contains(node.getCore())) {
 						break; 
