@@ -22,7 +22,11 @@ import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 
 /**
- * This class implements the algorithm to solve the scheduling problem
+ * This class represents the algorithm to solve the scheduling problem.
+ * The class is responsible for all DFS searches and maintaining a current best result.
+ * The class also acts as a controller for the View to update the visualisation.
+ * 
+ * @author Daniel, Victor, Wayne
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
@@ -59,9 +63,16 @@ public class AlgorithmImp implements Algorithm {
 	}
 
 	/**
-	 * Purely for benchmarking purposes
+	 * This method recursively does the branch and bound traversal.
+	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
+	 * or checking if it's better than the current time.
 	 *
-	 * @return number of times the recursive method was called
+	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
+	 * to decide whether to bound.
+	 *
+	 * @param processed      - A list of processed nodes
+	 * @param remainingNodes - A list of nodes remaining to be processed
+	 * @param prev			 - The previous schedule. 
 	 */
 	public int getRecursiveCalls() {
 		return _recursiveCalls;
@@ -75,10 +86,9 @@ public class AlgorithmImp implements Algorithm {
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
-		_recursiveCalls++;
+		_recursiveCalls++; //For debugging and for updating visualisation.
 
-
-		//Base Case
+		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
 			Schedule finalSchedule = prev;
 			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
@@ -102,7 +112,11 @@ public class AlgorithmImp implements Algorithm {
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
+        
+        //Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
+          //Create a clone of the next node and assign it to a core. Place that new core
+					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
@@ -117,7 +131,8 @@ public class AlgorithmImp implements Algorithm {
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
-
+          
+          //Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
@@ -152,8 +167,6 @@ public class AlgorithmImp implements Algorithm {
 		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
 			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
-
-			//TODO fireUpdates to visualisation
 		}
 	}
 
