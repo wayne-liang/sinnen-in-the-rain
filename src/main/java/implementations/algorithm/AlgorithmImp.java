@@ -44,7 +44,6 @@ public class AlgorithmImp implements Algorithm {
 	private BarChartModel _chartModel;
 
 	private int _bestTime = Integer.MAX_VALUE;
-	private boolean _empty = true;
 
 	private Set<Set<AlgorithmNode>> _uniqueProcessed;
 
@@ -229,9 +228,7 @@ public class AlgorithmImp implements Algorithm {
 			Schedule finalSchedule = prev;
 			//Found a new best schedule, 
 			//or the same time but no current best schedule (the first time reaching a trivial schedule)
-			if ((finalSchedule.getTotalTime() < _bestTime) 
-					|| ((finalSchedule.getTotalTime() == _bestTime) && _empty)) { 
-				_empty = false;
+			if (finalSchedule.getTotalTime() < _bestTime) {
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 
