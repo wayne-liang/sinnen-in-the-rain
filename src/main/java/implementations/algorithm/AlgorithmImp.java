@@ -51,8 +51,6 @@ public class AlgorithmImp implements Algorithm {
 		
 		_bestTime = _dag.computeSequentialCost(); //The trivial best solution to be used as bound.
 		
-		
-		
 		if (visualisation){
 			// Check if visualisation is true, only then do we create the gui. 
 			_model = TableModel.getInstance();
@@ -64,6 +62,7 @@ public class AlgorithmImp implements Algorithm {
 
 		}
 		
+//		produceGreedySchedule();
 		
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
@@ -73,6 +72,80 @@ public class AlgorithmImp implements Algorithm {
 
 			_model = TableModel.setInstance();
 		}
+		
+
+	}
+	
+	/**
+	 * This method will produce a greedy schedule to set the lower bound.
+	 * 
+	 * This will be used together will the sequential schedule to bound
+	 * the DFS.
+	 */
+	private void produceGreedySchedule(){
+		List<Node> reachableNodes = new ArrayList<Node>();
+		List<Node> completedNodes = new ArrayList<Node>();
+		List<Node> remainingNodes = new ArrayList<Node>();
+		
+		reachableNodes.addAll(_dag.getStartNodes());
+		remainingNodes.addAll(_dag.getAllNodes());
+		
+		Schedule schedule = new ScheduleImp(_numberOfCores);
+		
+		while (!reachableNodes.isEmpty()) {
+			//Prioritize the core with the maximum outwards arcs
+			List<Integer> reachableAmount = new ArrayList<Integer>();
+			for (Node n: reachableNodes){
+				reachableAmount.add(n.getSuccessors().size());
+			}
+			int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));
+			Node toBeScheduled = reachableNodes.get(maxIndex);
+			
+			//Select a core such that the finish time will be the earliest.
+			List<Integer> earliestStartTimes = new ArrayList<Integer>(); //Note that index 0 = core 1!!!
+			for (int i = 1; i<= _numberOfCores; i++) {
+				int coreStart = schedule.getFinishTimeForCore(i);
+				AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());
+				algNode.setCore(i);
+				int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);
+				earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);
+			}
+			int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;
+			
+			AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());
+			algNode.setCore(earliestCoreNo);
+			schedule = schedule.getNextSchedule(algNode);
+			
+			//Configure the list of reachable, completed and remaining nodes again.
+			completedNodes.add(toBeScheduled);
+			reachableNodes.remove(toBeScheduled);
+			remainingNodes.remove(toBeScheduled);
+			for (Node rn : remainingNodes) {
+				if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)){
+					reachableNodes.add(rn);
+				}
+			}
+		}
+
+		System.out.println(schedule.getTotalTime() +" " + _bestTime);
+		
+		if (schedule.getTotalTime() < _bestTime){
+			setNewBestSchedule(schedule);
+			_bestTime = schedule.getTotalTime();
+			
+			if (visualisation){
+				// update view, now that a new schedule is available. This is too fast for small schedules
+				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+
+				// GUI does not update faster than 50 ms.  
+				_chartModel.addDataToSeries(_bestTime);
+				int timeNow = Clock.getInstance().getMilliseconds();
+
+				Clock.lastUpdate = timeNow;
+				_model.changeData(_currentBestSchedule, _bestTime);
+			}
+		}
+		
 	}
 	
 	/**
@@ -135,7 +208,7 @@ public class AlgorithmImp implements Algorithm {
 				
 				//Heuristics 3: try shuffle the ways we are assigning cores. 
 				if (true) { //more bench-mark needed for this
-					Collections.shuffle(coresArray);
+					//Collections.shuffle(coresArray);
 				}
 				
 				//Assign the node to each core and continue recursive call down the branch
@@ -154,7 +227,7 @@ public class AlgorithmImp implements Algorithm {
 
 						//If current >= best time, bound by moving to the next processor.
 						if ((newSchedule.getTotalTime() >= _bestTime) ) {
-							if ((remainingNodes.size() == 1) && (!_empty) && newSchedule.getTotalTime() == _bestTime){
+							if ((remainingNodes.size() == 1) && (!_empty) && (newSchedule.getTotalTime() == _bestTime)){
 								//Unless, the schedule found is equivalent to the sequential schedule, and no
 								//other schedule has been found. 
 							} else {
