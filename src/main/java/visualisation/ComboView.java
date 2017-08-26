@@ -32,7 +32,7 @@ import net.miginfocom.swing.MigLayout;
 import scala.xml.include.sax.Main;
 /**
  * Common GUI Interface to be used to display all visualisation components.
- * @author Pulkit
+ * @author Pulkit AND Darius.
  *
  */
 @SuppressWarnings("serial")
