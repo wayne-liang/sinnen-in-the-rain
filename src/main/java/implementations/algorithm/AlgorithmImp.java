@@ -74,7 +74,7 @@ public class AlgorithmImp implements Algorithm {
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 
-		if (visualisation){
+		if (visualisation) {
 			_model.changeData(_currentBestSchedule, _bestTime);
 
 			_model = TableModel.setInstance();
@@ -102,7 +102,7 @@ public class AlgorithmImp implements Algorithm {
 	 * This will be used together will the greedy schedule to bound
 	 * the DFS.
 	 */
-	private void produceSequentialSchedule(){
+	private void produceSequentialSchedule() {
 		List<Node> reachableNodes = new ArrayList<Node>();
 		List<Node> completedNodes = new ArrayList<Node>();
 		List<Node> remainingNodes = new ArrayList<Node>();
@@ -134,7 +134,7 @@ public class AlgorithmImp implements Algorithm {
 		setNewBestSchedule(schedule);
 		_bestTime = schedule.getTotalTime();
 
-		if (visualisation){
+		if (visualisation) {
 			fireUpdateToGUI();
 		}
 	}
@@ -145,7 +145,7 @@ public class AlgorithmImp implements Algorithm {
 	 * This will be used together will the sequential schedule to bound
 	 * the DFS.
 	 */
-	private void produceGreedySchedule(){
+	private void produceGreedySchedule() {
 		List<Node> reachableNodes = new ArrayList<Node>();
 		List<Node> completedNodes = new ArrayList<Node>();
 		List<Node> remainingNodes = new ArrayList<Node>();
@@ -158,7 +158,7 @@ public class AlgorithmImp implements Algorithm {
 		while (!reachableNodes.isEmpty()) {
 			//Prioritize the core with the maximum outwards arcs
 			List<Integer> reachableAmount = new ArrayList<Integer>();
-			for (Node n: reachableNodes){
+			for (Node n: reachableNodes) {
 				reachableAmount.add(n.getSuccessors().size());
 			}
 			int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));
@@ -190,7 +190,7 @@ public class AlgorithmImp implements Algorithm {
 			}
 		}
 
-		if (schedule.getTotalTime() < _bestTime){
+		if (schedule.getTotalTime() < _bestTime) {
 			setNewBestSchedule(schedule);
 			_bestTime = schedule.getTotalTime();
 
@@ -221,7 +221,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
 		_recursiveCalls++; //For debugging and for updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
@@ -275,7 +275,7 @@ public class AlgorithmImp implements Algorithm {
 					 * Maintain a set of visited "set of algorithm nodes".
 					 * If a particular algorithm nodes set is already processed, continue
 					*/
-					if (_uniqueProcessed.contains(algNodesSet)){
+					if (_uniqueProcessed.contains(algNodesSet)) {
 						continue;
 					}
 					else {
