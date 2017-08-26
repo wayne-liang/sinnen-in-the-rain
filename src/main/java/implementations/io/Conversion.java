@@ -13,12 +13,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * This class converts the raw input data into a DAG object
+ * This class converts the raw input data into a DAG object.
+ * @see Input for specifications on how data is passed in.
  *
  * @author Daniel
  */
 public class Conversion {
-    private List<String[]> _graphData;
+	/**
+	 * The DAG data read from the file and then processed by Input class
+	 */
+	private List<String[]> _graphData;
 
     /**
      * Constructor for Conversion module.
@@ -31,7 +35,12 @@ public class Conversion {
 
     /**
      * Generate a DAG from raw data
-     */
+	 * This is done by splitting the values in the string array on the spaces.
+	 * If the length of the value is greater than 2, it indicates it is an arc, otherwise it is a node.
+	 * Save the data accordingly as an arc or node and then add it to the DAG.
+	 *
+	 * Also identify and add the root nodes to the DAG.
+	 */
     private void generateDAG() {
         HashMap<String, Node> nodes = new HashMap<>();
 
@@ -39,7 +48,8 @@ public class Conversion {
             String name = values[0];
             int weight = Integer.valueOf(values[1]);
 
-            String[] namesArray = name.split("\\s+");
+			//Split string on spaces
+			String[] namesArray = name.split("\\s+");
             if (namesArray.length == 2) { //If it's an arc
                 Node srcNode = nodes.get(namesArray[0]);
                 Node destNode = nodes.get(namesArray[1]);
@@ -54,10 +64,13 @@ public class Conversion {
             }
         }
 
-        //Add to the DAG object all the nodes
         DAG dag = DAGImp.getInstance();
-        dag.addStartNodes(getRootNodes(nodes)); //Add the root nodes to the DAG
-        nodes.values().forEach(dag::add);
+
+		//Add the root nodes to the DAG
+		dag.addStartNodes(getRootNodes(nodes));
+
+		//Add to the DAG object all the nodes
+		nodes.values().forEach(dag::add);
     }
 
 	/**

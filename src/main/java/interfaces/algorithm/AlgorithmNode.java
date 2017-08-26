@@ -30,11 +30,32 @@ public interface AlgorithmNode {
         return algorithmNodeList;
     }
 
-    AlgorithmNode createClone();
+	/**
+	 * This method creates a clone/copy of the algorithm node. This allows us to assign cores
+	 * to the node representation without affecting the original object.
+	 *
+	 * @return AlgorithmNode with all the same field values as the original
+	 */
+	AlgorithmNode createClone();
 
-    String getNodeName();
+	/**
+	 * Get the name of the node so we can lookup the node in DAG.
+	 *
+	 * @return string name of the node
+	 */
+	String getNodeName();
 
-    int getCore();
+	/**
+	 * Return the core number the node has been assigned
+	 *
+	 * @return core number
+	 */
+	int getCore();
 
-    void setCore(int core);
+	/**
+	 * Set the core of the node
+	 *
+	 * @param core - represents which core assigned
+	 */
+	void setCore(int core);
 }
