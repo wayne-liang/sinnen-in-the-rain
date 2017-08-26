@@ -41,6 +41,8 @@ public class AlgorithmImp implements Algorithm {
 
 	private int _bestTime;
 	private boolean _empty = true;
+	
+	boolean visualisation = false;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
@@ -49,22 +51,28 @@ public class AlgorithmImp implements Algorithm {
 		
 		_bestTime = _dag.computeSequentialCost(); //The trivial best solution to be used as bound.
 		
-		// Check if visualisation is true, only then do we create the gui. 
-		_model = TableModel.getInstance();
-		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		// initialise BarChart Model:
-		_chartModel = new BarChartModel();
+		
+		
+		if (visualisation){
+			// Check if visualisation is true, only then do we create the gui. 
+			_model = TableModel.getInstance();
+			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+			// initialise BarChart Model:
+			_chartModel = new BarChartModel();
 
-		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+			ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 
+		}
+		
 		
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 		
-		_model.changeData(_currentBestSchedule, _bestTime);
+		if (visualisation){
+			_model.changeData(_currentBestSchedule, _bestTime);
 
-		_model = TableModel.setInstance();
-
+			_model = TableModel.setInstance();
+		}
 	}
 	
 	/**
@@ -102,19 +110,17 @@ public class AlgorithmImp implements Algorithm {
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 
+				if (visualisation){
+					// update view, now that a new schedule is available. This is too fast for small schedules
+					// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
 
-				// update view, now that a new schedule is available. This is too fast for small schedules
-				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+					// GUI does not update faster than 50 ms.  
+					_chartModel.addDataToSeries(_bestTime);
+					int timeNow = Clock.getInstance().getMilliseconds();
 
-				// GUI does not update faster than 50 ms.  
-				_chartModel.addDataToSeries(_bestTime);
-				int timeNow = Clock.getInstance().getMilliseconds();
-
-				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
 					Clock.lastUpdate = timeNow;
 					_model.changeData(_currentBestSchedule, _bestTime);
-					//firstSchedule = false;
-				//}
+				}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
