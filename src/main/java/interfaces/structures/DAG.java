@@ -37,13 +37,4 @@ public interface DAG {
 	 * Returns a {@code List<Node>} of all the starting nodes.
 	 */
 	public List<Node> getStartNodes();
-	
-	/**
-	 * This method computes the sequential cost.
-	 * The sequential cost is simply the sum of all the node weights.
-	 * This will be used as the starting bound condition for DFS.
-	 * @return
-	 */
-	public int computeSequentialCost();
-	
 }
