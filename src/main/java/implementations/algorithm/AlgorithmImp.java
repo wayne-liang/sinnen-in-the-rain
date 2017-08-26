@@ -26,6 +26,7 @@ public class AlgorithmImp implements Algorithm {
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 
 	private int _bestTime;
+	private boolean _empty = true;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
@@ -65,7 +66,8 @@ public class AlgorithmImp implements Algorithm {
 			//Found a new best schedule, 
 			//or the same time but no current best schedule (the first time reaching a trivial schedule)
 			if ((finalSchedule.getTotalTime() < _bestTime) 
-					|| ((finalSchedule.getTotalTime() == _bestTime) && _currentBestSchedule.isEmpty())) { 
+					|| ((finalSchedule.getTotalTime() == _bestTime) && _empty)) { 
+				_empty = false;
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 			}
@@ -98,7 +100,7 @@ public class AlgorithmImp implements Algorithm {
 						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.
-						if (newSchedule.getTotalTime() >= _bestTime) {
+						if ((newSchedule.getTotalTime() >= _bestTime) && !_empty) {
 							continue;
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
