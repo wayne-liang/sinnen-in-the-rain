@@ -28,7 +28,7 @@ import javax.swing.SwingUtilities;
  * 
  * Algorithm @author: Daniel, Victor, Wayne
  * 
- * Visualisation @autor: Pulkit
+ * Visualisation @author: Pulkit
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
@@ -41,6 +41,8 @@ public class AlgorithmImp implements Algorithm {
 
 	private int _bestTime = Integer.MAX_VALUE;
 	private boolean _empty = true;
+	
+	private Set<Set<AlgorithmNode>> _uniqueProcessed;
 
 	boolean visualisation = false;
 
@@ -57,8 +59,9 @@ public class AlgorithmImp implements Algorithm {
 			_chartModel = new BarChartModel();
 
 			ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
-
 		}
+		
+		_uniqueProcessed = new HashSet<Set<AlgorithmNode>>();
 
 		produceSequentialSchedule();
 		produceGreedySchedule();
@@ -250,14 +253,18 @@ public class AlgorithmImp implements Algorithm {
 
 				//Assign the node to each core and continue recursive call down the branch
 				for (int j : coresArray) {
-					//Pruning part of heuristic 2.
+									
+					//Pruning part of Heuristic2
 					if (coresArrayDone.contains(j)){
 						continue;
 					}
+					
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
+					
+					Set<AlgorithmNode> algNodesSet = new HashSet<AlgorithmNode>(newProcessed);
 
 					if (checkValidSchedule(newProcessed)) {
 						newSchedule = prev.getNextSchedule(node);
@@ -268,6 +275,14 @@ public class AlgorithmImp implements Algorithm {
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
+					}
+					
+					//Pruning for duplication.
+					if (_uniqueProcessed.contains(algNodesSet)){
+						continue;
+					}
+					else {
+						_uniqueProcessed.add(algNodesSet);
 					}
 
 
