@@ -266,7 +266,15 @@ public class AlgorithmImp implements Algorithm {
 						break;
 					}
 
-					//Pruning for duplication.
+					/*Pruning:
+					 * 
+					 * Heuristic #3 - Duplication detection.
+					 * (a1 c1 b1) is equivalent to (a1 b1 c1)
+					 * 
+					 * Implementation logic:
+					 * Maintain a set of visited "set of algorithm nodes".
+					 * If a particular algorithm nodes set is already processed, continue
+					*/
 					if (_uniqueProcessed.contains(algNodesSet)){
 						continue;
 					}
