@@ -1,6 +1,7 @@
 package visualisation;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.util.Timer;
@@ -24,7 +25,6 @@ public class Clock extends JPanel {
     private int _milliseconds;
     private ProcessStatus _processStatus;
     private static Clock instance = null;
-    public static int lastUpdate = 0;
     
     /**
      * Constructor initialises the JPanel and the associated JLabel.
@@ -44,7 +44,7 @@ public class Clock extends JPanel {
     
     private void initClock() {
         setLayout(new BorderLayout());
-        _timeLabel.setFont(new Font("Serif", Font.BOLD, 20)); 
+        _timeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 26));
         add(_timeLabel,BorderLayout.NORTH);
         setProcessStatus(ProcessStatus.INPROGRESS);
 
@@ -125,8 +125,8 @@ public class Clock extends JPanel {
     	setProcessStatus(ProcessStatus.COMPLETED);
     	Clock.getInstance().getTimer().cancel();
 		Clock.getInstance().getTimer().purge();
+		_timeLabel.setForeground(new Color(37, 200, 19));
     }
-
 
 	public ProcessStatus getProcessStatus() {
 		return _processStatus;

@@ -83,7 +83,7 @@ public class BarChartModel extends JPanel {
 		final JFreeChart chart = createChart(_dataset);
 		final ChartPanel chartPanel = new ChartPanel(chart);
 
-		chartPanel.setPreferredSize(new Dimension(600, 450));
+		chartPanel.setPreferredSize(new Dimension(630, 435));
 		this.add(chartPanel);
 
 	}

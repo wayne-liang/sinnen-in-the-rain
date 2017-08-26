@@ -57,7 +57,9 @@ public class AlgorithmImp implements Algorithm {
 		_model.changeData(_currentBestSchedule, _bestTime);
 		// reset model once we're done with it.
 		_model = TableModel.resetInstance();
-
+		// STOP THE CLOCK, now that we're done with it and set Label to done.
+		Clock.getInstance().stopClock();
+		_schedule.setStatusLabel(Clock.getInstance().getProcessStatus());
 	}
 
 	/**
