@@ -1,5 +1,16 @@
 package implementations.algorithm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
@@ -12,14 +23,7 @@ import interfaces.structures.Schedule;
 import visualisation.BarChartModel;
 import visualisation.Clock;
 import visualisation.ComboView;
-import visualisation.GraphView;
-import visualisation.GraphViewImp;
 import visualisation.TableModel;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.swing.SwingUtilities;
 
 /**
  * This class represents the algorithm to solve the scheduling problem.
