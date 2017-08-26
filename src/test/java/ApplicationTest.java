@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.Conversion;
 import implementations.io.InputImp;

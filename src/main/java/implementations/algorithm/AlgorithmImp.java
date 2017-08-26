@@ -9,21 +9,35 @@ import interfaces.structures.DAG;
 import interfaces.structures.Node;
 import interfaces.structures.NodeSchedule;
 import interfaces.structures.Schedule;
+import visualisation.BarChartModel;
+import visualisation.Clock;
+import visualisation.ComboView;
+import visualisation.GraphView;
+import visualisation.GraphViewImp;
+import visualisation.TableModel;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.swing.SwingUtilities;
+
 /**
  * This class represents the algorithm to solve the scheduling problem.
  * The class is responsible for all DFS searches and maintaining a current best result.
+ * The class also acts as a controller for the View to update the visualisation.
  * 
- * @author Daniel, Victor, Wayne
+ * Algorithm @author: Daniel, Victor, Wayne
+ * 
+ * Visualisation @autor: Pulkit
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
+	
+	private TableModel _model;
+	private BarChartModel _chartModel;
 
 	private int _bestTime;
 	private boolean _empty = true;
@@ -35,9 +49,22 @@ public class AlgorithmImp implements Algorithm {
 		
 		_bestTime = _dag.computeSequentialCost(); //The trivial best solution to be used as bound.
 		
+		// Check if visualisation is true, only then do we create the gui. 
+		_model = TableModel.getInstance();
+		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+		// initialise BarChart Model:
+		_chartModel = new BarChartModel();
+
+		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+
 		
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+		
+		_model.changeData(_currentBestSchedule, _bestTime);
+
+		_model = TableModel.setInstance();
+
 	}
 	
 	/**
@@ -49,18 +76,22 @@ public class AlgorithmImp implements Algorithm {
 		return _recursiveCalls;
 	}
 
-	/**
-	 * This method recursively generates all possible schedules given a list of nodes.
+/**
+	 * This method recursively does the branch and bound traversal.
+	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
+	 * or checking if it's better than the current time.
+	 *
+	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
+	 * to decide whether to bound.
 	 *
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_recursiveCalls++;
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
+		_recursiveCalls++; //For debugging and for updating visualisation.
 
-
-		//Base Case
+		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
 			Schedule finalSchedule = prev;
 			//Found a new best schedule, 
@@ -70,6 +101,20 @@ public class AlgorithmImp implements Algorithm {
 				_empty = false;
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
+
+
+				// update view, now that a new schedule is available. This is too fast for small schedules
+				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+
+				// GUI does not update faster than 50 ms.  
+				_chartModel.addDataToSeries(_bestTime);
+				int timeNow = Clock.getInstance().getMilliseconds();
+
+				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
+					Clock.lastUpdate = timeNow;
+					_model.changeData(_currentBestSchedule, _bestTime);
+					//firstSchedule = false;
+				//}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -87,6 +132,7 @@ public class AlgorithmImp implements Algorithm {
 					Collections.shuffle(coresArray);
 				}
 				
+				//Assign the node to each core and continue recursive call down the branch
 				for (int j : coresArray) {
 					//Pruning part of heuristic 2.
 					if (coresArrayDone.contains(j)){
@@ -114,6 +160,8 @@ public class AlgorithmImp implements Algorithm {
 						break;
 					}
 					
+          
+          //Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
