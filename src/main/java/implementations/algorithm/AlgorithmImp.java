@@ -156,7 +156,7 @@ public class AlgorithmImp implements Algorithm {
 		Schedule schedule = new ScheduleImp(_numberOfCores);
 
 		while (!reachableNodes.isEmpty()) {
-			//Prioritize the core with the maximum outwards arcs
+			//Prioritize the node with the maximum outwards arcs
 			List<Integer> reachableAmount = new ArrayList<Integer>();
 			for (Node n: reachableNodes) {
 				reachableAmount.add(n.getSuccessors().size());
