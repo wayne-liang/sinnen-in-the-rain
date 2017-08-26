@@ -113,9 +113,9 @@ public class AlgorithmImp implements Algorithm {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
         
-        //Assign the node to each core and continue recursive call down the branch
+				//Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
-          //Create a clone of the next node and assign it to a core. Place that new core
+					//Create a clone of the next node and assign it to a core. Place that new core
 					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
