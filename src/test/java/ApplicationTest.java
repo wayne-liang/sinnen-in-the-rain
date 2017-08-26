@@ -1,7 +1,10 @@
 import implementations.algorithm.AlgorithmImp;
 import implementations.io.Conversion;
 import implementations.io.InputImp;
+import implementations.io.OutputImp;
 import implementations.structures.DAGImp;
+import interfaces.io.Output;
+
 import org.junit.Test;
 
 public class ApplicationTest {
@@ -12,6 +15,7 @@ public class ApplicationTest {
     public void testWithTwoCores() {
         core = "2";
 
+        Nodes_4_Sequential();
 		Nodes_7_OutTree();
 		Nodes_8_Random();
 		Nodes_9_SeriesParallel();
@@ -27,7 +31,15 @@ public class ApplicationTest {
         Nodes_8_Random();
         Nodes_9_SeriesParallel();
         Nodes_10_Random();
-        //Nodes_11_OutTree();
+        Nodes_11_OutTree();
+    }
+    
+    public void Nodes_4_Sequential() {
+        System.out.println("Nodes_4_Sequential.dot");
+
+        startTimer();
+        runAlgorithm("testFiles/Nodes_4_Sequential.dot");
+        endTimer();
     }
 
     public void Nodes_7_OutTree() {
@@ -76,8 +88,8 @@ public class ApplicationTest {
         Conversion conversion = new Conversion(input);
 
         AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
-        //Output output = new Output (alg.getCurrentBestSchedule(), fileName);
-        //output.printOutput();
+//        Output output = new OutputImp (alg.getCurrentBestSchedule(), fileName);
+//        output.printOutput();
         System.out.println("BestTime: " + alg.getBestTotalTime());
 		System.out.println("Recursive Calls: " + alg.getRecursiveCalls());
 	}

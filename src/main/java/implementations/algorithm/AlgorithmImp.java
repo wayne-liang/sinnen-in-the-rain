@@ -36,8 +36,8 @@ public class AlgorithmImp implements Algorithm {
 		_bestTime = _dag.computeSequentialCost(); //The trivial best solution to be used as bound.
 		
 		
-		Schedule empty = new ScheduleImp(_numberOfCores);
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
+		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 	}
 	
 	/**
