@@ -15,7 +15,7 @@ public class ApplicationTest {
     public void testWithTwoCores() {
         core = "2";
 
-        Nodes_4_Sequential();
+//        Nodes_4_Sequential();
 		Nodes_7_OutTree();
 		Nodes_8_Random();
 		Nodes_9_SeriesParallel();

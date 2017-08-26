@@ -96,17 +96,24 @@ public class AlgorithmImp implements Algorithm {
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
+					
 					if (checkValidSchedule(newProcessed)) {
 						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.
-						if ((newSchedule.getTotalTime() >= _bestTime) && !_empty) {
-							continue;
+						if ((newSchedule.getTotalTime() >= _bestTime) ) {
+							if ((remainingNodes.size() == 1) && (!_empty) && newSchedule.getTotalTime() == _bestTime){
+								//Unless, the schedule found is equivalent to the sequential schedule, and no
+								//other schedule has been found. 
+							} else {
+								continue;
+							}
+							
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
-
+					
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
