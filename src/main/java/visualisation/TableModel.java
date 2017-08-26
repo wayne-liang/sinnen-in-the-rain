@@ -26,7 +26,7 @@ public class TableModel extends AbstractTableModel {
 		return instance;
 	}
 	
-	public static TableModel setInstance(){
+	public static TableModel resetInstance(){
 		instance = null;
 		return instance;
 	}

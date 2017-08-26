@@ -1,5 +1,13 @@
 package implementations.algorithm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+
 import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
@@ -12,14 +20,7 @@ import interfaces.structures.Schedule;
 import visualisation.BarChartModel;
 import visualisation.Clock;
 import visualisation.ComboView;
-import visualisation.GraphView;
-import visualisation.GraphViewImp;
 import visualisation.TableModel;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.swing.SwingUtilities;
 
 /**
  * This class represents the algorithm to solve the scheduling problem.
@@ -35,30 +36,27 @@ public class AlgorithmImp implements Algorithm {
 	private int _recursiveCalls = 0; //For benchmarking purposes only
 	private TableModel _model;
 	private int _bestTime = Integer.MAX_VALUE; 
-	private boolean firstSchedule = true;
 	private BarChartModel _chartModel;
-
+	private ComboView _schedule;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-		// Check if visualisation is true, only then do we create the gui. 
+
+		// TODO: Check if visualization is true, only then do we create the gui. 
 		_model = TableModel.getInstance();
 		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		// initialise BarChart Model:
+		// Initialize BarChart Model:
 		_chartModel = new BarChartModel();
-
-		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
-
-		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
-		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+		// set-up the GUI
+		_schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 
 		Schedule empty = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
 		_model.changeData(_currentBestSchedule, _bestTime);
-
-		_model = TableModel.setInstance();
+		// reset model once we're done with it.
+		_model = TableModel.resetInstance();
 
 	}
 
@@ -86,7 +84,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
-		_recursiveCalls++; //For debugging and for updating visualisation.
+		_schedule.setCallsButtonText(_recursiveCalls++); //For debugging and for updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
@@ -95,24 +93,16 @@ public class AlgorithmImp implements Algorithm {
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 
-
-				// update view, now that a new schedule is available. This is too fast for small schedules
-				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
-
-				// GUI does not update faster than 50 ms.  
+				// update view, now that a new schedule is available
 				_chartModel.addDataToSeries(_bestTime);
-				int timeNow = Clock.getInstance().getMilliseconds();
+				_model.changeData(_currentBestSchedule, _bestTime);
+				_schedule.setBestTimeText(_bestTime);
 
-				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
-					Clock.lastUpdate = timeNow;
-					_model.changeData(_currentBestSchedule, _bestTime);
-					//firstSchedule = false;
-				//}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
-        
+
 				//Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
 					//Create a clone of the next node and assign it to a core. Place that new core
@@ -131,13 +121,13 @@ public class AlgorithmImp implements Algorithm {
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
-          
-          //Create a new remaining list and remove the node that has been added to the processed list
+
+					//Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
-					
+
 					/*
 					 * Pruning:
 					 * 
@@ -154,7 +144,7 @@ public class AlgorithmImp implements Algorithm {
 					List<Integer> coresAssigned = processed.stream()
 							.map(AlgorithmNode::getCore)
 							.collect(Collectors.toList());
-					
+
 					if (!coresAssigned.contains(node.getCore())) {
 						break; 
 					}
@@ -181,7 +171,7 @@ public class AlgorithmImp implements Algorithm {
 		if (schedule == null) {
 			return false;
 		}
-		
+
 		//Get the last node's predecessors
 		Node currentNode = _dag.getNodeByName(schedule.get(schedule.size()-1).getNodeName());
 		List<Node> predecessors = currentNode.getPredecessors();
