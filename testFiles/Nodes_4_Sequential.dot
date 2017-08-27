@@ -1,0 +1,9 @@
+digraph "testSeq" {
+	A	 [Weight=5];
+	B	 [Weight=6];
+	A -> B	 [Weight=999];
+	C2	 [Weight=5];
+	B -> C2	 [Weight=999];
+	D3	 [Weight=6];
+	C2 -> D3	 [Weight=999];
+}

@@ -1,5 +1,16 @@
 package implementations.algorithm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
@@ -12,54 +23,189 @@ import interfaces.structures.Schedule;
 import visualisation.BarChartModel;
 import visualisation.Clock;
 import visualisation.ComboView;
-import visualisation.GraphView;
-import visualisation.GraphViewImp;
 import visualisation.TableModel;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.swing.SwingUtilities;
 
 /**
  * This class represents the algorithm to solve the scheduling problem.
  * The class is responsible for all DFS searches and maintaining a current best result.
  * The class also acts as a controller for the View to update the visualisation.
  * 
- * @author Daniel, Victor, Wayne
+ * Algorithm @author: Daniel, Victor, Wayne
+ * 
+ * Visualisation @author: Pulkit
  */
 public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
+
 	private TableModel _model;
-	private int _bestTime = Integer.MAX_VALUE; 
-	private boolean firstSchedule = true;
 	private BarChartModel _chartModel;
 
+	private int _bestTime = Integer.MAX_VALUE;
+
+	private Set<Set<AlgorithmNode>> _uniqueProcessed;
+
+	boolean visualisation = true;
 
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-		// Check if visualisation is true, only then do we create the gui. 
-		_model = TableModel.getInstance();
-		_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-		// initialise BarChart Model:
-		_chartModel = new BarChartModel();
 
-		ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+		if (visualisation){
+			// Check if visualisation is true, only then do we create the gui. 
+			_model = TableModel.getInstance();
+			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
+			// initialise BarChart Model:
+			_chartModel = new BarChartModel();
 
-		/*System.out.println("Total Nodes: " + _dag.getAllNodes().size());
-		System.out.println("Total Arcs: " + getAllArcSize(_dag.getAllNodes()));*/
+			ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+		}
 
-		Schedule empty = new ScheduleImp(_numberOfCores);
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), empty);
+		_uniqueProcessed = new HashSet<Set<AlgorithmNode>>();
+
+		produceSequentialSchedule();
+		produceGreedySchedule();
+
+
+		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+
+		if (visualisation) {
+			_model.changeData(_currentBestSchedule, _bestTime);
+
+			_model = TableModel.setInstance();
+		}
+	}
+
+	/**
+	 * helper method for firing update.
+	 */
+	private void fireUpdateToGUI() {
+		// update view, now that a new schedule is available. This is too fast for small schedules
+		// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
+
+		// GUI does not update faster than 50 ms.  
+		_chartModel.addDataToSeries(_bestTime);
+		int timeNow = Clock.getInstance().getMilliseconds();
+
+		Clock.lastUpdate = timeNow;
 		_model.changeData(_currentBestSchedule, _bestTime);
+	}
 
-		_model = TableModel.setInstance();
+	/**
+	 * This method will produce a sequential schedule to set the lower bound.
+	 * 
+	 * This will be used together will the greedy schedule to bound
+	 * the DFS.
+	 */
+	private void produceSequentialSchedule() {
+		List<Node> reachableNodes = new ArrayList<Node>();
+		List<Node> completedNodes = new ArrayList<Node>();
+		List<Node> remainingNodes = new ArrayList<Node>();
 
+		reachableNodes.addAll(_dag.getStartNodes());
+		remainingNodes.addAll(_dag.getAllNodes());
+
+		Schedule schedule = new ScheduleImp(_numberOfCores);
+
+		while (!reachableNodes.isEmpty()) {
+			Node toBeScheduled = reachableNodes.get(0);
+
+			AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());
+			algNode.setCore(1);
+			schedule = schedule.getNextSchedule(algNode);
+
+			//Configure the list of reachable, completed and remaining nodes again.
+			completedNodes.add(toBeScheduled);
+			reachableNodes.remove(toBeScheduled);
+			remainingNodes.remove(toBeScheduled);
+			for (Node rn : remainingNodes) {
+				if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)){
+					reachableNodes.add(rn);
+				}
+			}
+		}
+
+		//Set the best time to be sequential.
+		setNewBestSchedule(schedule);
+		_bestTime = schedule.getTotalTime();
+
+		if (visualisation) {
+			fireUpdateToGUI();
+		}
+	}
+
+	/**
+	 * This method will produce a greedy schedule to set the lower bound.
+	 * 
+	 * This will be used together will the sequential schedule to bound
+	 * the DFS.
+	 */
+	private void produceGreedySchedule() {
+		List<Node> reachableNodes = new ArrayList<Node>();
+		List<Node> completedNodes = new ArrayList<Node>();
+		List<Node> remainingNodes = new ArrayList<Node>();
+
+		reachableNodes.addAll(_dag.getStartNodes());
+		remainingNodes.addAll(_dag.getAllNodes());
+
+		Schedule schedule = new ScheduleImp(_numberOfCores);
+
+		while (!reachableNodes.isEmpty()) {
+			//Prioritize the node with the maximum outwards arcs
+			List<Integer> reachableAmount = new ArrayList<Integer>();
+			for (Node n: reachableNodes) {
+				reachableAmount.add(n.getSuccessors().size());
+			}
+			int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));
+			Node toBeScheduled = reachableNodes.get(maxIndex);
+
+			//Select a core such that the finish time will be the earliest.
+			List<Integer> earliestStartTimes = new ArrayList<Integer>(); //Note that index 0 = core 1!!!
+			for (int i = 1; i<= _numberOfCores; i++) {
+				int coreStart = schedule.getFinishTimeForCore(i);
+				AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());
+				algNode.setCore(i);
+				int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);
+				earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);
+			}
+			int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;
+
+			AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());
+			algNode.setCore(earliestCoreNo);
+			schedule = schedule.getNextSchedule(algNode);
+
+			//Configure the list of reachable, completed and remaining nodes again.
+			completedNodes.add(toBeScheduled);
+			reachableNodes.remove(toBeScheduled);
+			remainingNodes.remove(toBeScheduled);
+			for (Node rn : remainingNodes) {
+				if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)){
+					reachableNodes.add(rn);
+				}
+			}
+		}
+
+		if (schedule.getTotalTime() < _bestTime) {
+			setNewBestSchedule(schedule);
+			_bestTime = schedule.getTotalTime();
+
+			if (visualisation){
+				fireUpdateToGUI();
+			}
+		}
+	}
+
+	/**
+	 * Purely for benchmarking purposes
+	 *
+	 * @return number of times the recursive method was called
+	 */
+	public int getRecursiveCalls() {
+		return _recursiveCalls;
 	}
 
 	/**
@@ -74,70 +220,72 @@ public class AlgorithmImp implements Algorithm {
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
 	 */
-	public int getRecursiveCalls() {
-		return _recursiveCalls;
-	}
-
-	/**
-	 * This method recursively generates all possible schedules given a list of nodes.
-	 *
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
-	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev){
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
 		_recursiveCalls++; //For debugging and for updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
 			Schedule finalSchedule = prev;
-			if (finalSchedule.getTotalTime() < _bestTime) { //Found a new best schedule
+			//Found a new best schedule, 
+			//or the same time but no current best schedule (the first time reaching a trivial schedule)
+			if (finalSchedule.getTotalTime() < _bestTime) {
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
 
-
-				// update view, now that a new schedule is available. This is too fast for small schedules
-				// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
-
-				// GUI does not update faster than 50 ms.  
-				_chartModel.addDataToSeries(_bestTime);
-				int timeNow = Clock.getInstance().getMilliseconds();
-
-				/*if (firstSchedule||(timeNow > Clock.lastUpdate + 10)){*/
-					Clock.lastUpdate = timeNow;
-					_model.changeData(_currentBestSchedule, _bestTime);
-					//firstSchedule = false;
-				//}
+				if (visualisation){
+					fireUpdateToGUI();
+				}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
-        
-        //Assign the node to each core and continue recursive call down the branch
+
+				//Assign the node to each core and continue recursive call down the branch
 				for (int j = 1; j <= _numberOfCores; j++) {
-          //Create a clone of the next node and assign it to a core. Place that new core
+					
+					//Create a clone of the next node and assign it to a core. Place that new node
 					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
+
+					Set<AlgorithmNode> algNodesSet = new HashSet<AlgorithmNode>(newProcessed);
+
 					if (checkValidSchedule(newProcessed)) {
 						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.
-						if (newSchedule.getTotalTime() >= _bestTime) {
+						if ((newSchedule.getTotalTime() >= _bestTime) ) {
 							continue;
 						}
 					} else { //Schedule is invalid, then pruning the subtree by moving to next node.
 						break;
 					}
-          
-          //Create a new remaining list and remove the node that has been added to the processed list
+
+					/*Pruning:
+					 * 
+					 * Heuristic #3 - Duplication detection.
+					 * (a1 c1 b1) is equivalent to (a1 b1 c1)
+					 * 
+					 * Implementation logic:
+					 * Maintain a set of visited "set of algorithm nodes".
+					 * If a particular algorithm nodes set is already processed, continue
+					*/
+					if (_uniqueProcessed.contains(algNodesSet)) {
+						continue;
+					}
+					else {
+						_uniqueProcessed.add(algNodesSet);
+					}
+
+
+					//Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
 					newRemaining.remove(i);
 
 					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
-					
+
 					/*
 					 * Pruning:
 					 * 
@@ -151,10 +299,11 @@ public class AlgorithmImp implements Algorithm {
 					 * Implementation logic: we can break if the current node's core has
 					 * never appeared before. -> This will implement both heuristic #1 & #2
 					 */
-					List<Integer> coresAssigned = processed.stream()
-							.map(AlgorithmNode::getCore)
-							.collect(Collectors.toList());
-					
+					List<Integer> coresAssigned = new ArrayList<Integer>();
+					for (AlgorithmNode algNode : processed) {
+						coresAssigned.add(algNode.getCore());
+					}
+
 					if (!coresAssigned.contains(node.getCore())) {
 						break; 
 					}
@@ -167,6 +316,8 @@ public class AlgorithmImp implements Algorithm {
 		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
 			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
+
+			//TODO fireUpdates to visualisation
 		}
 	}
 
@@ -181,7 +332,7 @@ public class AlgorithmImp implements Algorithm {
 		if (schedule == null) {
 			return false;
 		}
-		
+
 		//Get the last node's predecessors
 		Node currentNode = _dag.getNodeByName(schedule.get(schedule.size()-1).getNodeName());
 		List<Node> predecessors = currentNode.getPredecessors();

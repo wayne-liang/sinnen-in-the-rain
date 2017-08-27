@@ -37,5 +37,4 @@ public interface DAG {
 	 * Returns a {@code List<Node>} of all the starting nodes.
 	 */
 	public List<Node> getStartNodes();
-	
 }
