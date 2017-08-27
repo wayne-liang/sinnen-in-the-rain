@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.Thread;
 
 import java.util.concurrent.Semaphore;
 import java.lang.InterruptedException;
@@ -41,7 +43,7 @@ public class AlgorithmImp implements Algorithm {
 	private DAG _dag;
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
-	private int _recursiveCalls = 0; //For benchmarking purposes only
+	private AtomicInteger _recursiveCalls; //For benchmarking purposes only
 	private final Semaphore _threads;
 	private final int _numberOfThreads = 16;
 
@@ -53,8 +55,12 @@ public class AlgorithmImp implements Algorithm {
 	private Set<Set<AlgorithmNode>> _uniqueProcessed;
 
 	boolean visualisation = true;
+	
+	private ArrayList<Integer> _threadCount;
 
 	public AlgorithmImp(int numberOfCores) {
+		_threadCount = new ArrayList<Integer>();
+		_recursiveCalls = new AtomicInteger();
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<String, NodeSchedule>();
@@ -76,12 +82,24 @@ public class AlgorithmImp implements Algorithm {
 
 		_threads = new Semaphore(_numberOfThreads);
 			
+		try {
+			_threads.acquire();
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+		}
 		
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+		recursiveScheduleGenerationTask(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 
 		try {
-			_threads.acquire(_numberOfThreads);
+			while (true) {
+				if(_threads.tryAcquire(_numberOfThreads)) {
+					break;
+				}
+				Thread.sleep(1000L);
+				addToThreadCount();
+			}
+			
 		} catch (InterruptedException ex) {
 			ex.printStackTrace();
 		}
@@ -90,6 +108,27 @@ public class AlgorithmImp implements Algorithm {
 			_model.changeData(_currentBestSchedule, _bestTime);
 
 			_model = TableModel.setInstance();
+		}
+		
+		printThreadCount();
+	}
+	
+	private synchronized void addToThreadCount() {
+		_threadCount.add(_numberOfThreads - _threads.availablePermits());
+	}
+	
+	private void printThreadCount() {
+		ArrayList<Integer> total = new ArrayList<Integer>();
+		for (int i = 0; i < _numberOfThreads + 1; i++) {
+			total.add(0);
+		}
+		
+		for (Integer i : _threadCount) {
+			total.set(i, total.get(i) + 1);
+		}
+		
+		for (int i = 0; i < _numberOfThreads + 1; i++) {
+			System.out.println("Thread count: " + i + "Percentage: " + total.get(i).doubleValue() / _threadCount.size());
 		}
 	}
 
@@ -218,7 +257,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @return number of times the recursive method was called
 	 */
 	public int getRecursiveCalls() {
-		return _recursiveCalls;
+		return _recursiveCalls.get();
 	}
 	
 	private synchronized void compareSchedules(Schedule s) {
@@ -250,7 +289,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_recursiveCalls++; //For debugging and for updating visualisation.
+		_recursiveCalls.incrementAndGet(); //For debugging and for updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
@@ -300,13 +339,12 @@ public class AlgorithmImp implements Algorithm {
 					else {
 						_uniqueProcessed.add(algNodesSet);
 					}
-
-
+					
 					//Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<AlgorithmNode>(remainingNodes);
 					newRemaining.remove(i);
-
-                    if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) {
+					
+					if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) {
 						recursiveScheduleGenerationTask(newProcessed, newRemaining, newSchedule);
 					} else {
 						recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
