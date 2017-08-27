@@ -2,6 +2,7 @@ package visualisation;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.HashMap;
@@ -134,6 +135,7 @@ public class ComboView extends JFrame {
         openScheduleBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
         openScheduleBtn.setIcon(iconSchedule);
         openScheduleBtn.setIconTextGap(10);
+        openScheduleBtn.setPreferredSize(new Dimension(200,15));
         openScheduleBtn.addActionListener(new ActionListener() 
         {
         	@Override
@@ -148,6 +150,7 @@ public class ComboView extends JFrame {
         _stopBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
         _stopBtn.setIcon(iconStop);
         _stopBtn.setIconTextGap(10);
+        _stopBtn.setPreferredSize(new Dimension(200,15));
         _stopBtn.addActionListener(new ActionListener() 
         {
         	@Override
@@ -161,6 +164,7 @@ public class ComboView extends JFrame {
         	}
         });
         panelStopBtn.add(_stopBtn, BorderLayout.EAST);
+        
         
         //Label to represent the .dot file that is being processed
         JLabel fileNameLabel = new JLabel(""+ _fileName, JLabel.CENTER);
