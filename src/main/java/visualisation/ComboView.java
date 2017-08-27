@@ -101,14 +101,19 @@ public class ComboView extends JFrame {
     	Clock c = Clock.getInstance();
     	JLabel titleLabel = c.getTimeLabel();   
     	
-    	// Add Label for displaying the program's current status insida a JPanel.
+    	// Add Label for displaying the program's current status inside a JPanel.
     	
     	JPanel statusPanel = new JPanel(new BorderLayout());
     	statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     	
     	// setting up image icons
     	ImageIcon iconLoader = new ImageIcon("images/ajax-loader.gif");
+    	// Icon made by Maxim Basinski from www.flaticon.com
     	_iconDone = new ImageIcon("images/checked.png");
+    	// Icon made by Freepik from www.flaticon.com
+    	ImageIcon iconSchedule = new ImageIcon("images/tableIcon.png");
+    	// Icon made by Madebyoliver from www.flaticon.com
+    	ImageIcon iconStop = new ImageIcon("images/stopIcon.png"); 
     	
     	_statusLabel = new JLabel("In Progress");
     	_statusLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
@@ -118,8 +123,17 @@ public class ComboView extends JFrame {
     	
     	statusPanel.add(_statusLabel, BorderLayout.EAST);
     	
+    	// Panels to put buttons in:
+    	JPanel panelScheduleBtn = new JPanel(new BorderLayout());
+    	panelScheduleBtn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    	JPanel panelStopBtn = new JPanel(new BorderLayout());
+    	panelStopBtn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    	
         //Button to open schedule
         JButton openScheduleBtn = new JButton("See Schedule");
+        openScheduleBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
+        openScheduleBtn.setIcon(iconSchedule);
+        openScheduleBtn.setIconTextGap(10);
         openScheduleBtn.addActionListener(new ActionListener() 
         {
         	@Override
@@ -127,9 +141,13 @@ public class ComboView extends JFrame {
         		_tableFrame.setVisible(true); 
         	}
         });
+        panelScheduleBtn.add(openScheduleBtn, BorderLayout.WEST);
         
         //Button to stop algorithm
         _stopBtn = new JButton("Stop Process");
+        _stopBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
+        _stopBtn.setIcon(iconStop);
+        _stopBtn.setIconTextGap(10);
         _stopBtn.addActionListener(new ActionListener() 
         {
         	@Override
@@ -142,6 +160,7 @@ public class ComboView extends JFrame {
         		}
         	}
         });
+        panelStopBtn.add(_stopBtn, BorderLayout.EAST);
         
         //Label to represent the .dot file that is being processed
         JLabel fileNameLabel = new JLabel(""+ _fileName, JLabel.CENTER);
@@ -153,9 +172,9 @@ public class ComboView extends JFrame {
     	_panelTop.add(statusPanel);
     	
     	// Second row of top panel
-    	_panelTop.add(openScheduleBtn);
+    	_panelTop.add(panelScheduleBtn);
     	_panelTop.add(titleLabel);
-    	_panelTop.add(_stopBtn);
+    	_panelTop.add(panelStopBtn);
     	
 		// Adding GraphStream to left side
 		GraphStreamView gv = new GraphStreamView(_cores);
@@ -176,15 +195,15 @@ public class ComboView extends JFrame {
 		_panelRight.add(chart);
 		
 		// Populating Bottom Panel:
-		JButton button1 = new JButton();
-		button1.setText("Scheduling Cores: "+ (_tableModel.getColumnCount()-1));
-		button1.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
-		button1.setBackground(new Color(255, 193, 193));
+		JButton coresLabel = new JButton();
+		coresLabel.setText("Scheduling Cores: "+ (_tableModel.getColumnCount()-1));
+		coresLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+		coresLabel.setBackground(new Color(255, 193, 193));
 
-		// TODO: This will be organe when parellel = off, and green when parellel = on.
-		JButton button2 = new JButton("Parallelisation: \nFALSE");
-		button2.setBackground(new Color(255, 190, 79));
-		button2.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+		// TODO: This will be orange when parallel = off, and green when parallel = on.
+		JButton parallelLabel = new JButton("Parallelisation: \nFALSE");
+		parallelLabel.setBackground(new Color(255, 190, 79));
+		parallelLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 
 		
 		_callsLabel = new JButton("Recursive Calls");
@@ -197,8 +216,8 @@ public class ComboView extends JFrame {
 		_bestTimeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 		
 		
-		_panelBottom.add(button1);
-		_panelBottom.add(button2);
+		_panelBottom.add(coresLabel);
+		_panelBottom.add(parallelLabel);
 		_panelBottom.add(_callsLabel);
 		_panelBottom.add(_bestTimeLabel);
 		
