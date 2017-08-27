@@ -16,21 +16,21 @@ public class ApplicationTest {
         core = "2";
 
 //        Nodes_4_Sequential();
-		Nodes_7_OutTree();
-		Nodes_8_Random();
-		Nodes_9_SeriesParallel();
-		Nodes_10_Random();
-//		Nodes_11_OutTree();
+//		Nodes_7_OutTree();
+//		Nodes_8_Random();
+//		Nodes_9_SeriesParallel();
+//		Nodes_10_Random();
+		Nodes_11_OutTree();
     }
 
     @Test
     public void testWithFourCores() {
         core = "4";
 
-        Nodes_7_OutTree();
-        Nodes_8_Random();
-        Nodes_9_SeriesParallel();
-        Nodes_10_Random();
+//        Nodes_7_OutTree();
+//        Nodes_8_Random();
+//        Nodes_9_SeriesParallel();
+//        Nodes_10_Random();
         Nodes_11_OutTree();
     }
     

@@ -75,10 +75,10 @@ public class AlgorithmImp implements Algorithm {
 		produceGreedySchedule();
 
 		_threads = new Semaphore(_numberOfThreads);
-
+			
+		
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
-		_threads.acquire();
-		recursiveScheduleGenerationTask(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 
 		try {
 			_threads.acquire(_numberOfThreads);
@@ -416,19 +416,18 @@ public class AlgorithmImp implements Algorithm {
 			int highestCost = 0;
 
 			//calculate the highest time delay caused by dependencies
-			try {
-				highestCost = currentNode.getPredecessors().stream().map(node -> {
-					int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
-					if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
-						//add on arc weight, since they're on different cores
-						cost += currentNode.getInArc(node).getWeight();
-					}
+			for (Node node : currentNode.getPredecessors()) {
+                //calculating the maximum delay caused by this particular dependent node
+                int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();
+                if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) {
+                    //add on arc weight, since they're on different cores
+                    cost += currentNode.getInArc(node).getWeight();
+                }
 
-					return cost;
-				}).max(Comparator.naturalOrder()).get();
-			} catch (NoSuchElementException e) {
-				//Means there are no predecessors, highestCost stays 0
-			}
+                if (cost > highestCost) {
+                    highestCost = cost;
+                }
+            }
 
 			//calculate the time delay caused by previous processes on the same core
 			AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);
@@ -486,7 +485,7 @@ public class AlgorithmImp implements Algorithm {
 	 */
 	@Deprecated
 	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
-		for (AlgorithmNodeImp algNode : algNodes) {
+		for (AlgorithmNode algNode : algNodes) {
         	if (node.getName().equals(algNode.getNodeName())) {
         		return algNodes.indexOf(algNode);
         	}
