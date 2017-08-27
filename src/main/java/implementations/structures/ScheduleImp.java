@@ -159,39 +159,13 @@ public class ScheduleImp implements Schedule {
 			//will start on time 0, and total time for schedule is weight of this node. 
 			newSchedule = this.appendNodeToSchedule(currentAlgNode, 0, currentNode.getWeight()); 
 		} else {
-			AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(currentAlgNode.getCore());
 
-			//This section calculates the earliest possible start time for current node based on finish time of the core
-			int endTimeForCore;
-			if (lastNodeOnCore == null) { 
-				endTimeForCore = 0;
-			} else { //need the finish time for that core.
-				//Note: index Should never be -1, schedule should have that node.
-				int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); 
-				int startTimeForLastNode = _startTimeForNodes.get(indexInSchedule);
-				int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
-				endTimeForCore = startTimeForLastNode + lastNodeWeight;
-			}
+			//The method calculates the earliest possible start time for current node based on finish time of the core
+			int endTimeForCore = getFinishTimeForCore(currentAlgNode.getCore());
 
-			//This section calculates the earliest possible start time for current node based on predecessor
-			//Now check for predecessors of this currentNode and see when they've been scheduled
-			//Predecessors on a different core also has an arc weight to be added on top. 
-			List<Node> predecessors = currentNode.getPredecessors();
-			int startTimeBasedOnPredecessor = 0;
-			try {
-				startTimeBasedOnPredecessor = predecessors.stream().map(node -> {
-					int startTime = getNodeStartTime(getIndexOfList(node, _algNodes));
-					int possibleStartTimeForCurrent = startTime + node.getWeight();
-					if (_algNodes.get(getIndexOfList(node, _algNodes)).getCore() != currentAlgNode.getCore()){
-						//Not on the same core, so need to add the arc weight
-						possibleStartTimeForCurrent += currentNode.getInArc(node).getWeight();
-					}
-					return possibleStartTimeForCurrent;
-				}).max(Comparator.naturalOrder()).get();
-			} catch (Exception e) {
-				//Means there are no predecessors, earliestPossibleStart time remains 0
-			}
-
+			//The method calculates the earliest possible start time for current node based on predecessor
+			int startTimeBasedOnPredecessor = getDependencyBasedStartTime(currentNode, currentAlgNode);
+			
 			//The actual start time is dependent on both endTime for core and predecessor.
 			int startTime = (endTimeForCore > startTimeBasedOnPredecessor) ? endTimeForCore : startTimeBasedOnPredecessor;
 
@@ -220,6 +194,60 @@ public class ScheduleImp implements Schedule {
 				.get();
 
 		return algNodes.indexOf(correspondingNode);
+	}
+	
+	/**
+	 * This method returns the finish time for a particular core
+	 * based on "this" schedule. 
+	 * 
+	 * @param coreNo
+	 * @return
+	 */
+	public int getFinishTimeForCore (int coreNo) {
+		AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(coreNo);
+
+		//This section calculates the earliest possible start time for current node based on finish time of the core
+		int endTimeForCore;
+		if (lastNodeOnCore == null) { 
+			endTimeForCore = 0;
+		} else { //need the finish time for that core.
+			//Note: index Should never be -1, schedule should have that node.
+			int indexInSchedule = _algNodes.indexOf(lastNodeOnCore); 
+			int startTimeForLastNode = _startTimeForNodes.get(indexInSchedule);
+			int lastNodeWeight = _dag.getNodeByName(lastNodeOnCore.getNodeName()).getWeight();
+			endTimeForCore = startTimeForLastNode + lastNodeWeight;
+		}
+		return endTimeForCore;
+	}
+	
+	/**
+	 * This method calculates the earliest start time for the current node, 
+	 * based on the dependencies (predecessors) it has and where they have
+	 * been scheduled.
+	 * 
+	 * @param currentNode
+	 * @param currentAlgNode
+	 * @return
+	 */
+	public int getDependencyBasedStartTime (Node currentNode, AlgorithmNode currentAlgNode) {
+		//Check for predecessors of this currentNode and see when they've been scheduled
+		//Predecessors on a different core also has an arc weight to be added on top. 
+		List<Node> predecessors = currentNode.getPredecessors();
+		int startTimeBasedOnPredecessor = 0;
+		try {
+			startTimeBasedOnPredecessor = predecessors.stream().map(pNode -> {
+				int startTime = getNodeStartTime(getIndexOfList(pNode, _algNodes));
+				int possibleStartTimeForCurrent = startTime + pNode.getWeight();
+				if (_algNodes.get(getIndexOfList(pNode, _algNodes)).getCore() != currentAlgNode.getCore()){
+					//Not on the same core, so need to add the arc weight
+					possibleStartTimeForCurrent += currentNode.getInArc(pNode).getWeight();
+				}
+				return possibleStartTimeForCurrent;
+			}).max(Comparator.naturalOrder()).get();
+		} catch (Exception e) {
+			//Means there are no predecessors, earliestPossibleStart time remains 0
+		}
+		return startTimeBasedOnPredecessor;
 	}
 
 	/**
@@ -311,7 +339,7 @@ public class ScheduleImp implements Schedule {
 	public void printSchedule() {
 		System.out.print("size:" + this.getSizeOfSchedule() + "    ");
 		for (int i = 0; i<_algNodes.size(); i++) {
-			System.out.print(_algNodes.get(i).getNodeName() + "!" + _startTimeForNodes.get(i) + " ");
+			System.out.print(_algNodes.get(i).getNodeName() + "c" +_algNodes.get(i).getCore() + "s" + _startTimeForNodes.get(i) + " ");
 		}
 		System.out.println();
 	}

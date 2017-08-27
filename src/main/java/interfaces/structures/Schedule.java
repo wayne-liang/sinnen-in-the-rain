@@ -42,4 +42,8 @@ public interface Schedule {
     
     void printSchedule();
     
+    int getFinishTimeForCore (int coreNo);
+    
+    int getDependencyBasedStartTime (Node currentNode, AlgorithmNode currentAlgNode);
+    
 }
