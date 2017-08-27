@@ -28,9 +28,10 @@ import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
 /**
- * A simple demonstration application showing how to create a bar chart with a custom item
- * label generator.
- *
+ * Model for the Bar Chart that shows the improvements in the schedules as better schedules 
+ * become available. 
+ * Adapted from : http://www.java2s.com/Code/Java/Chart/JFreeChartBarChartDemo.htm
+ * @author Pulkit
  */
 @SuppressWarnings("serial")
 public class BarChartModel extends JPanel {
