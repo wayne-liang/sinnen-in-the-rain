@@ -11,6 +11,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import java.util.concurrent.Semaphore;
+import java.lang.InterruptedException;
+
 import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
 import implementations.structures.ScheduleImp;
@@ -39,6 +42,8 @@ public class AlgorithmImp implements Algorithm {
 	private int _numberOfCores;
 	private HashMap<String, NodeSchedule> _currentBestSchedule;
 	private int _recursiveCalls = 0; //For benchmarking purposes only
+	private final Semaphore _threads;
+	private final int _numberOfThreads = 16;
 
 	private TableModel _model;
 	private BarChartModel _chartModel;
@@ -52,7 +57,7 @@ public class AlgorithmImp implements Algorithm {
 	public AlgorithmImp(int numberOfCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
-		_currentBestSchedule = new HashMap<>();
+		_currentBestSchedule = new HashMap<String, NodeSchedule>();
 
 		if (visualisation){
 			// Check if visualisation is true, only then do we create the gui. 
@@ -64,15 +69,23 @@ public class AlgorithmImp implements Algorithm {
 			ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 		}
 
-		_uniqueProcessed = new HashSet<Set<AlgorithmNode>>();
+		_uniqueProcessed = Collections.synchronizedSet(new HashSet<Set<AlgorithmNode>>());
 
 		produceSequentialSchedule();
 		produceGreedySchedule();
 
+		_threads = new Semaphore(_numberOfThreads);
 
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+		_threads.acquire();
+		recursiveScheduleGenerationTask(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 
+		try {
+			_threads.acquire(_numberOfThreads);
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+		}
+		
 		if (visualisation) {
 			_model.changeData(_currentBestSchedule, _bestTime);
 
@@ -207,6 +220,22 @@ public class AlgorithmImp implements Algorithm {
 	public int getRecursiveCalls() {
 		return _recursiveCalls;
 	}
+	
+	private synchronized void compareSchedules(Schedule s) {
+		if (s.getTotalTime() < _bestTime) {
+			setNewBestSchedule(s);
+			_bestTime = s.getTotalTime();
+
+			if (visualisation){
+				fireUpdateToGUI();
+			}
+		}
+	}
+	
+	TASK private void recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
+		recursiveScheduleGeneration(processed, remainingNodes, prev);
+		_threads.release();
+	}
 
 	/**
 	 * This method recursively does the branch and bound traversal.
@@ -228,14 +257,7 @@ public class AlgorithmImp implements Algorithm {
 			Schedule finalSchedule = prev;
 			//Found a new best schedule, 
 			//or the same time but no current best schedule (the first time reaching a trivial schedule)
-			if (finalSchedule.getTotalTime() < _bestTime) {
-				setNewBestSchedule(finalSchedule);
-				_bestTime = finalSchedule.getTotalTime();
-
-				if (visualisation){
-					fireUpdateToGUI();
-				}
-			}
+			compareSchedules(finalSchedule);
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
 				Schedule newSchedule;
@@ -245,7 +267,7 @@ public class AlgorithmImp implements Algorithm {
 					
 					//Create a clone of the next node and assign it to a core. Place that new node
 					//on a copy of the processed list
-					List<AlgorithmNode> newProcessed = new ArrayList<>(processed);
+					List<AlgorithmNode> newProcessed = new ArrayList<AlgorithmNode>(processed);
 					AlgorithmNode node = remainingNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
@@ -281,11 +303,15 @@ public class AlgorithmImp implements Algorithm {
 
 
 					//Create a new remaining list and remove the node that has been added to the processed list
-					List<AlgorithmNode> newRemaining = new ArrayList<>(remainingNodes);
+					List<AlgorithmNode> newRemaining = new ArrayList<AlgorithmNode>(remainingNodes);
 					newRemaining.remove(i);
 
-					recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
-
+                    if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) {
+						recursiveScheduleGenerationTask(newProcessed, newRemaining, newSchedule);
+					} else {
+						recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
+					}
+					
 					/*
 					 * Pruning:
 					 * 
@@ -370,7 +396,7 @@ public class AlgorithmImp implements Algorithm {
 	@Deprecated
 	private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {
 		//creating a corresponding array of Nodes
-		List<Node> nodes = new ArrayList<>();
+		List<Node> nodes = new ArrayList<Node>();
 
 		//populating new nodes array with corresponding Node objects
 		for (AlgorithmNode algNode : algNodes) {
@@ -460,11 +486,12 @@ public class AlgorithmImp implements Algorithm {
 	 */
 	@Deprecated
 	private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {
-		AlgorithmNode correspondingNode = algNodes.stream().filter(n -> node.getName().equals(n.getNodeName()))
-				.findFirst()
-				.get();
-
-		return algNodes.indexOf(correspondingNode);
+		for (AlgorithmNodeImp algNode : algNodes) {
+        	if (node.getName().equals(algNode.getNodeName())) {
+        		return algNodes.indexOf(algNode);
+        	}
+   		}
+        return -1;
 	}
 
 	@Override
