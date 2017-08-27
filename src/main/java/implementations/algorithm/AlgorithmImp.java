@@ -69,7 +69,7 @@ public class AlgorithmImp implements Algorithm {//####[42]####
 //####[47]####
     private final Semaphore _threads;//####[47]####
 //####[48]####
-    private final int _numberOfThreads = 16;//####[48]####
+    private final int _numberOfThreads = 3;//####[48]####
 //####[50]####
     private TableModel _model;//####[50]####
 //####[51]####
@@ -81,10 +81,10 @@ public class AlgorithmImp implements Algorithm {//####[42]####
 //####[57]####
     boolean visualisation = true;//####[57]####
 //####[59]####
-    private ArrayList<Integer> _threadCount;//####[59]####
+    private AtomicInteger _switchingCount;//####[59]####
 //####[61]####
     public AlgorithmImp(int numberOfCores) {//####[61]####
-        _threadCount = new ArrayList<Integer>();//####[62]####
+        _switchingCount = new AtomicInteger();//####[62]####
         _recursiveCalls = new AtomicInteger();//####[63]####
         _dag = DAGImp.getInstance();//####[64]####
         _numberOfCores = numberOfCores;//####[65]####
@@ -100,660 +100,628 @@ public class AlgorithmImp implements Algorithm {//####[42]####
         produceSequentialSchedule();//####[80]####
         produceGreedySchedule();//####[81]####
         _threads = new Semaphore(_numberOfThreads);//####[83]####
-        try {//####[85]####
-            _threads.acquire();//####[86]####
-        } catch (InterruptedException ex) {//####[87]####
-            ex.printStackTrace();//####[88]####
-        }//####[89]####
-        Schedule emptySchedule = new ScheduleImp(_numberOfCores);//####[91]####
-        recursiveScheduleGenerationTask(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);//####[92]####
-        try {//####[94]####
-            while (true) //####[95]####
-            {//####[95]####
-                if (_threads.tryAcquire(_numberOfThreads)) //####[96]####
-                {//####[96]####
-                    break;//####[97]####
-                }//####[98]####
-                Thread.sleep(1000L);//####[99]####
-                addToThreadCount();//####[100]####
-            }//####[101]####
-        } catch (InterruptedException ex) {//####[103]####
-            ex.printStackTrace();//####[104]####
-        }//####[105]####
-        if (visualisation) //####[107]####
-        {//####[107]####
-            _model.changeData(_currentBestSchedule, _bestTime);//####[108]####
-            _model = TableModel.setInstance();//####[110]####
-        }//####[111]####
-        printThreadCount();//####[113]####
-    }//####[114]####
-//####[116]####
-    private synchronized void addToThreadCount() {//####[116]####
-        _threadCount.add(_numberOfThreads - _threads.availablePermits());//####[117]####
-    }//####[118]####
-//####[120]####
-    private void printThreadCount() {//####[120]####
-        ArrayList<Integer> total = new ArrayList<Integer>();//####[121]####
-        for (int i = 0; i < _numberOfThreads + 1; i++) //####[122]####
-        {//####[122]####
-            total.add(0);//####[123]####
-        }//####[124]####
-        for (Integer i : _threadCount) //####[126]####
-        {//####[126]####
-            total.set(i, total.get(i) + 1);//####[127]####
-        }//####[128]####
-        for (int i = 0; i < _numberOfThreads + 1; i++) //####[130]####
-        {//####[130]####
-            System.out.println("Thread count: " + i + "Percentage: " + total.get(i).doubleValue() / _threadCount.size());//####[131]####
-        }//####[132]####
-    }//####[133]####
-//####[138]####
+        Schedule emptySchedule = new ScheduleImp(_numberOfCores);//####[85]####
+        recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);//####[86]####
+        try {//####[88]####
+            _threads.acquire(_numberOfThreads);//####[89]####
+        } catch (InterruptedException ex) {//####[90]####
+            ex.printStackTrace();//####[91]####
+        }//####[92]####
+        if (visualisation) //####[94]####
+        {//####[94]####
+            _model.changeData(_currentBestSchedule, _bestTime);//####[95]####
+            _model = TableModel.setInstance();//####[97]####
+        }//####[98]####
+        System.out.println("Switched " + _switchingCount.get() + " times");//####[100]####
+    }//####[101]####
+//####[106]####
     /**
 	 * helper method for firing update.
-	 *///####[138]####
-    private void fireUpdateToGUI() {//####[138]####
-        _chartModel.addDataToSeries(_bestTime);//####[143]####
-        int timeNow = Clock.getInstance().getMilliseconds();//####[144]####
-        Clock.lastUpdate = timeNow;//####[146]####
-        _model.changeData(_currentBestSchedule, _bestTime);//####[147]####
-    }//####[148]####
-//####[156]####
+	 *///####[106]####
+    private void fireUpdateToGUI() {//####[106]####
+        _chartModel.addDataToSeries(_bestTime);//####[111]####
+        int timeNow = Clock.getInstance().getMilliseconds();//####[112]####
+        Clock.lastUpdate = timeNow;//####[114]####
+        _model.changeData(_currentBestSchedule, _bestTime);//####[115]####
+    }//####[116]####
+//####[124]####
     /**
 	 * This method will produce a sequential schedule to set the lower bound.
 	 * 
 	 * This will be used together will the greedy schedule to bound
 	 * the DFS.
-	 *///####[156]####
-    private void produceSequentialSchedule() {//####[156]####
-        List<Node> reachableNodes = new ArrayList<Node>();//####[157]####
-        List<Node> completedNodes = new ArrayList<Node>();//####[158]####
-        List<Node> remainingNodes = new ArrayList<Node>();//####[159]####
-        reachableNodes.addAll(_dag.getStartNodes());//####[161]####
-        remainingNodes.addAll(_dag.getAllNodes());//####[162]####
-        Schedule schedule = new ScheduleImp(_numberOfCores);//####[164]####
-        while (!reachableNodes.isEmpty()) //####[166]####
-        {//####[166]####
-            Node toBeScheduled = reachableNodes.get(0);//####[167]####
-            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[169]####
-            algNode.setCore(1);//####[170]####
-            schedule = schedule.getNextSchedule(algNode);//####[171]####
-            completedNodes.add(toBeScheduled);//####[174]####
-            reachableNodes.remove(toBeScheduled);//####[175]####
-            remainingNodes.remove(toBeScheduled);//####[176]####
-            for (Node rn : remainingNodes) //####[177]####
-            {//####[177]####
-                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[178]####
-                {//####[178]####
-                    reachableNodes.add(rn);//####[179]####
-                }//####[180]####
-            }//####[181]####
-        }//####[182]####
-        setNewBestSchedule(schedule);//####[185]####
-        _bestTime = schedule.getTotalTime();//####[186]####
-        if (visualisation) //####[188]####
-        {//####[188]####
-            fireUpdateToGUI();//####[189]####
-        }//####[190]####
-    }//####[191]####
-//####[199]####
+	 *///####[124]####
+    private void produceSequentialSchedule() {//####[124]####
+        List<Node> reachableNodes = new ArrayList<Node>();//####[125]####
+        List<Node> completedNodes = new ArrayList<Node>();//####[126]####
+        List<Node> remainingNodes = new ArrayList<Node>();//####[127]####
+        reachableNodes.addAll(_dag.getStartNodes());//####[129]####
+        remainingNodes.addAll(_dag.getAllNodes());//####[130]####
+        Schedule schedule = new ScheduleImp(_numberOfCores);//####[132]####
+        while (!reachableNodes.isEmpty()) //####[134]####
+        {//####[134]####
+            Node toBeScheduled = reachableNodes.get(0);//####[135]####
+            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[137]####
+            algNode.setCore(1);//####[138]####
+            schedule = schedule.getNextSchedule(algNode);//####[139]####
+            completedNodes.add(toBeScheduled);//####[142]####
+            reachableNodes.remove(toBeScheduled);//####[143]####
+            remainingNodes.remove(toBeScheduled);//####[144]####
+            for (Node rn : remainingNodes) //####[145]####
+            {//####[145]####
+                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[146]####
+                {//####[146]####
+                    reachableNodes.add(rn);//####[147]####
+                }//####[148]####
+            }//####[149]####
+        }//####[150]####
+        setNewBestSchedule(schedule);//####[153]####
+        _bestTime = schedule.getTotalTime();//####[154]####
+        if (visualisation) //####[156]####
+        {//####[156]####
+            fireUpdateToGUI();//####[157]####
+        }//####[158]####
+    }//####[159]####
+//####[167]####
     /**
 	 * This method will produce a greedy schedule to set the lower bound.
 	 * 
 	 * This will be used together will the sequential schedule to bound
 	 * the DFS.
-	 *///####[199]####
-    private void produceGreedySchedule() {//####[199]####
-        List<Node> reachableNodes = new ArrayList<Node>();//####[200]####
-        List<Node> completedNodes = new ArrayList<Node>();//####[201]####
-        List<Node> remainingNodes = new ArrayList<Node>();//####[202]####
-        reachableNodes.addAll(_dag.getStartNodes());//####[204]####
-        remainingNodes.addAll(_dag.getAllNodes());//####[205]####
-        Schedule schedule = new ScheduleImp(_numberOfCores);//####[207]####
-        while (!reachableNodes.isEmpty()) //####[209]####
-        {//####[209]####
-            List<Integer> reachableAmount = new ArrayList<Integer>();//####[211]####
-            for (Node n : reachableNodes) //####[212]####
-            {//####[212]####
-                reachableAmount.add(n.getSuccessors().size());//####[213]####
-            }//####[214]####
-            int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));//####[215]####
-            Node toBeScheduled = reachableNodes.get(maxIndex);//####[216]####
-            List<Integer> earliestStartTimes = new ArrayList<Integer>();//####[219]####
-            for (int i = 1; i <= _numberOfCores; i++) //####[220]####
-            {//####[220]####
-                int coreStart = schedule.getFinishTimeForCore(i);//####[221]####
-                AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[222]####
-                algNode.setCore(i);//####[223]####
-                int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);//####[224]####
-                earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);//####[225]####
-            }//####[226]####
-            int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;//####[227]####
-            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[229]####
-            algNode.setCore(earliestCoreNo);//####[230]####
-            schedule = schedule.getNextSchedule(algNode);//####[231]####
-            completedNodes.add(toBeScheduled);//####[234]####
-            reachableNodes.remove(toBeScheduled);//####[235]####
-            remainingNodes.remove(toBeScheduled);//####[236]####
-            for (Node rn : remainingNodes) //####[237]####
-            {//####[237]####
-                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[238]####
-                {//####[238]####
-                    reachableNodes.add(rn);//####[239]####
-                }//####[240]####
-            }//####[241]####
-        }//####[242]####
-        if (schedule.getTotalTime() < _bestTime) //####[244]####
-        {//####[244]####
-            setNewBestSchedule(schedule);//####[245]####
-            _bestTime = schedule.getTotalTime();//####[246]####
-            if (visualisation) //####[248]####
-            {//####[248]####
-                fireUpdateToGUI();//####[249]####
-            }//####[250]####
-        }//####[251]####
-    }//####[252]####
-//####[259]####
+	 *///####[167]####
+    private void produceGreedySchedule() {//####[167]####
+        List<Node> reachableNodes = new ArrayList<Node>();//####[168]####
+        List<Node> completedNodes = new ArrayList<Node>();//####[169]####
+        List<Node> remainingNodes = new ArrayList<Node>();//####[170]####
+        reachableNodes.addAll(_dag.getStartNodes());//####[172]####
+        remainingNodes.addAll(_dag.getAllNodes());//####[173]####
+        Schedule schedule = new ScheduleImp(_numberOfCores);//####[175]####
+        while (!reachableNodes.isEmpty()) //####[177]####
+        {//####[177]####
+            List<Integer> reachableAmount = new ArrayList<Integer>();//####[179]####
+            for (Node n : reachableNodes) //####[180]####
+            {//####[180]####
+                reachableAmount.add(n.getSuccessors().size());//####[181]####
+            }//####[182]####
+            int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));//####[183]####
+            Node toBeScheduled = reachableNodes.get(maxIndex);//####[184]####
+            List<Integer> earliestStartTimes = new ArrayList<Integer>();//####[187]####
+            for (int i = 1; i <= _numberOfCores; i++) //####[188]####
+            {//####[188]####
+                int coreStart = schedule.getFinishTimeForCore(i);//####[189]####
+                AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[190]####
+                algNode.setCore(i);//####[191]####
+                int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);//####[192]####
+                earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);//####[193]####
+            }//####[194]####
+            int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;//####[195]####
+            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[197]####
+            algNode.setCore(earliestCoreNo);//####[198]####
+            schedule = schedule.getNextSchedule(algNode);//####[199]####
+            completedNodes.add(toBeScheduled);//####[202]####
+            reachableNodes.remove(toBeScheduled);//####[203]####
+            remainingNodes.remove(toBeScheduled);//####[204]####
+            for (Node rn : remainingNodes) //####[205]####
+            {//####[205]####
+                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[206]####
+                {//####[206]####
+                    reachableNodes.add(rn);//####[207]####
+                }//####[208]####
+            }//####[209]####
+        }//####[210]####
+        if (schedule.getTotalTime() < _bestTime) //####[212]####
+        {//####[212]####
+            setNewBestSchedule(schedule);//####[213]####
+            _bestTime = schedule.getTotalTime();//####[214]####
+            if (visualisation) //####[216]####
+            {//####[216]####
+                fireUpdateToGUI();//####[217]####
+            }//####[218]####
+        }//####[219]####
+    }//####[220]####
+//####[227]####
     /**
 	 * Purely for benchmarking purposes
 	 *
 	 * @return number of times the recursive method was called
-	 *///####[259]####
-    public int getRecursiveCalls() {//####[259]####
-        return _recursiveCalls.get();//####[260]####
-    }//####[261]####
-//####[263]####
-    private synchronized void compareSchedules(Schedule s) {//####[263]####
-        if (s.getTotalTime() < _bestTime) //####[264]####
-        {//####[264]####
-            setNewBestSchedule(s);//####[265]####
-            _bestTime = s.getTotalTime();//####[266]####
-            if (visualisation) //####[268]####
-            {//####[268]####
-                fireUpdateToGUI();//####[269]####
-            }//####[270]####
-        }//####[271]####
-    }//####[272]####
-//####[274]####
-    private static volatile Method __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method = null;//####[274]####
-    private synchronized static void __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet() {//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            try {//####[274]####
-                __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__recursiveScheduleGenerationTask", new Class[] {//####[274]####
-                    List.class, List.class, Schedule.class//####[274]####
-                });//####[274]####
-            } catch (Exception e) {//####[274]####
-                e.printStackTrace();//####[274]####
-            }//####[274]####
-        }//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(0);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(1);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(0, 1);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(1);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(0);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0, 1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(2);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(0, 2);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(2);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(1, 2);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setTaskIdArgIndexes(0, 1, 2);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(1, 2);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(2);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(0, 2);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0, 1);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(2);//####[274]####
-        taskinfo.addDependsOn(prev);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(0);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0, 2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(1);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(0, 1);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0, 2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(1);//####[274]####
-        taskinfo.addDependsOn(remainingNodes);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1, 2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(1, 2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setTaskIdArgIndexes(0);//####[274]####
-        taskinfo.addDependsOn(processed);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[274]####
-        //-- execute asynchronously by enqueuing onto the taskpool//####[274]####
-        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[274]####
-    }//####[274]####
-    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[274]####
-        // ensure Method variable is set//####[274]####
-        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[274]####
-            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[274]####
-        }//####[274]####
-        taskinfo.setQueueArgIndexes(0, 1, 2);//####[274]####
-        taskinfo.setIsPipeline(true);//####[274]####
-        taskinfo.setParameters(processed, remainingNodes, prev);//####[274]####
-        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[274]####
-        taskinfo.setInstance(this);//####[274]####
-        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[274]####
-    }//####[274]####
-    public void __pt__recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[274]####
-        recursiveScheduleGeneration(processed, remainingNodes, prev);//####[275]####
-        _threads.release();//####[276]####
-    }//####[277]####
-//####[277]####
-//####[291]####
+	 *///####[227]####
+    public int getRecursiveCalls() {//####[227]####
+        return _recursiveCalls.get();//####[228]####
+    }//####[229]####
+//####[231]####
+    private synchronized void compareSchedules(Schedule s) {//####[231]####
+        if (s.getTotalTime() < _bestTime) //####[232]####
+        {//####[232]####
+            setNewBestSchedule(s);//####[233]####
+            _bestTime = s.getTotalTime();//####[234]####
+            if (visualisation) //####[236]####
+            {//####[236]####
+                fireUpdateToGUI();//####[237]####
+            }//####[238]####
+        }//####[239]####
+    }//####[240]####
+//####[242]####
+    private static volatile Method __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method = null;//####[242]####
+    private synchronized static void __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet() {//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            try {//####[242]####
+                __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method = ParaTaskHelper.getDeclaredMethod(new ParaTaskHelper.ClassGetter().getCurrentClass(), "__pt__recursiveScheduleGenerationTask", new Class[] {//####[242]####
+                    List.class, List.class, Schedule.class//####[242]####
+                });//####[242]####
+            } catch (Exception e) {//####[242]####
+                e.printStackTrace();//####[242]####
+            }//####[242]####
+        }//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(0);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(1);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(0, 1);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(1);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(0);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, Schedule prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0, 1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(2);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(0, 2);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(2);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(1, 2);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setTaskIdArgIndexes(0, 1, 2);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(1, 2);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(2);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(0, 2);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, TaskID<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0, 1);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(2);//####[242]####
+        taskinfo.addDependsOn(prev);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(0);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, List<AlgorithmNode> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0, 2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(1);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(0, 1);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, TaskID<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0, 2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(1);//####[242]####
+        taskinfo.addDependsOn(remainingNodes);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(List<AlgorithmNode> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1, 2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(TaskID<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(1, 2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setTaskIdArgIndexes(0);//####[242]####
+        taskinfo.addDependsOn(processed);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev) {//####[242]####
+        //-- execute asynchronously by enqueuing onto the taskpool//####[242]####
+        return recursiveScheduleGenerationTask(processed, remainingNodes, prev, new TaskInfo());//####[242]####
+    }//####[242]####
+    private TaskID<Void> recursiveScheduleGenerationTask(BlockingQueue<List<AlgorithmNode>> processed, BlockingQueue<List<AlgorithmNode>> remainingNodes, BlockingQueue<Schedule> prev, TaskInfo taskinfo) {//####[242]####
+        // ensure Method variable is set//####[242]####
+        if (__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method == null) {//####[242]####
+            __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet();//####[242]####
+        }//####[242]####
+        taskinfo.setQueueArgIndexes(0, 1, 2);//####[242]####
+        taskinfo.setIsPipeline(true);//####[242]####
+        taskinfo.setParameters(processed, remainingNodes, prev);//####[242]####
+        taskinfo.setMethod(__pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_Schedule_method);//####[242]####
+        taskinfo.setInstance(this);//####[242]####
+        return TaskpoolFactory.getTaskpool().enqueue(taskinfo);//####[242]####
+    }//####[242]####
+    public void __pt__recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[242]####
+        _switchingCount.incrementAndGet();//####[243]####
+        recursiveScheduleGeneration(processed, remainingNodes, prev);//####[244]####
+        _threads.release();//####[245]####
+    }//####[246]####
+//####[246]####
+//####[260]####
     /**
 	 * This method recursively does the branch and bound traversal.
 	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
@@ -765,222 +733,224 @@ public class AlgorithmImp implements Algorithm {//####[42]####
 	 * @param processed      - A list of processed nodes
 	 * @param remainingNodes - A list of nodes remaining to be processed
 	 * @param prev			 - The previous schedule. 
-	 *///####[291]####
-    private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[291]####
-        _recursiveCalls.incrementAndGet();//####[292]####
-        if (remainingNodes.size() == 0) //####[295]####
-        {//####[295]####
-            Schedule finalSchedule = prev;//####[296]####
-            compareSchedules(finalSchedule);//####[299]####
-        } else {//####[300]####
-            for (int i = 0; i < remainingNodes.size(); i++) //####[301]####
-            {//####[301]####
-                Schedule newSchedule;//####[302]####
-                for (int j = 1; j <= _numberOfCores; j++) //####[305]####
-                {//####[305]####
-                    List<AlgorithmNode> newProcessed = new ArrayList<AlgorithmNode>(processed);//####[309]####
-                    AlgorithmNode node = remainingNodes.get(i).createClone();//####[310]####
-                    node.setCore(j);//####[311]####
-                    newProcessed.add(node);//####[312]####
-                    Set<AlgorithmNode> algNodesSet = new HashSet<AlgorithmNode>(newProcessed);//####[314]####
-                    if (checkValidSchedule(newProcessed)) //####[316]####
-                    {//####[316]####
-                        newSchedule = prev.getNextSchedule(node);//####[317]####
-                        if ((newSchedule.getTotalTime() >= _bestTime)) //####[320]####
-                        {//####[320]####
-                            continue;//####[321]####
-                        }//####[322]####
-                    } else {//####[323]####
-                        break;//####[324]####
-                    }//####[325]####
-                    if (_uniqueProcessed.contains(algNodesSet)) //####[336]####
-                    {//####[336]####
-                        continue;//####[337]####
-                    } else {//####[339]####
-                        _uniqueProcessed.add(algNodesSet);//####[340]####
-                    }//####[341]####
-                    List<AlgorithmNode> newRemaining = new ArrayList<AlgorithmNode>(remainingNodes);//####[344]####
-                    newRemaining.remove(i);//####[345]####
-                    if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) //####[347]####
-                    {//####[347]####
-                        recursiveScheduleGenerationTask(newProcessed, newRemaining, newSchedule);//####[348]####
-                    } else {//####[349]####
-                        recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);//####[350]####
-                    }//####[351]####
-                    List<Integer> coresAssigned = new ArrayList<Integer>();//####[366]####
-                    for (AlgorithmNode algNode : processed) //####[367]####
-                    {//####[367]####
-                        coresAssigned.add(algNode.getCore());//####[368]####
-                    }//####[369]####
-                    if (!coresAssigned.contains(node.getCore())) //####[371]####
-                    {//####[371]####
-                        break;//####[372]####
-                    }//####[373]####
-                }//####[374]####
-            }//####[375]####
-        }//####[376]####
-    }//####[377]####
-//####[379]####
-    private void setNewBestSchedule(Schedule finalSchedule) {//####[379]####
-        for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) //####[380]####
-        {//####[380]####
-            NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));//####[381]####
-            _currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);//####[382]####
-        }//####[385]####
-    }//####[386]####
-//####[395]####
+	 *///####[260]####
+    private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {//####[260]####
+        _recursiveCalls.incrementAndGet();//####[261]####
+        if (remainingNodes.size() == 0) //####[264]####
+        {//####[264]####
+            Schedule finalSchedule = prev;//####[265]####
+            compareSchedules(finalSchedule);//####[268]####
+        } else {//####[269]####
+            for (int i = 0; i < remainingNodes.size(); i++) //####[270]####
+            {//####[270]####
+                Schedule newSchedule;//####[271]####
+                for (int j = 1; j <= _numberOfCores; j++) //####[274]####
+                {//####[274]####
+                    List<AlgorithmNode> newProcessed = new ArrayList<AlgorithmNode>(processed);//####[278]####
+                    AlgorithmNode node = remainingNodes.get(i).createClone();//####[279]####
+                    node.setCore(j);//####[280]####
+                    newProcessed.add(node);//####[281]####
+                    Set<AlgorithmNode> algNodesSet = new HashSet<AlgorithmNode>(newProcessed);//####[283]####
+                    if (checkValidSchedule(newProcessed)) //####[285]####
+                    {//####[285]####
+                        newSchedule = prev.getNextSchedule(node);//####[286]####
+                        if ((newSchedule.getTotalTime() >= _bestTime)) //####[289]####
+                        {//####[289]####
+                            continue;//####[290]####
+                        }//####[291]####
+                    } else {//####[292]####
+                        break;//####[293]####
+                    }//####[294]####
+                    if (_uniqueProcessed.contains(algNodesSet)) //####[305]####
+                    {//####[305]####
+                        continue;//####[306]####
+                    } else {//####[308]####
+                        _uniqueProcessed.add(algNodesSet);//####[309]####
+                    }//####[310]####
+                    List<AlgorithmNode> newRemaining = new ArrayList<AlgorithmNode>(remainingNodes);//####[313]####
+                    newRemaining.remove(i);//####[314]####
+                    List<Integer> coresAssigned = new ArrayList<Integer>();//####[329]####
+                    for (AlgorithmNode algNode : processed) //####[330]####
+                    {//####[330]####
+                        coresAssigned.add(algNode.getCore());//####[331]####
+                    }//####[332]####
+                    if (!coresAssigned.contains(node.getCore())) //####[334]####
+                    {//####[334]####
+                        recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);//####[335]####
+                        break;//####[336]####
+                    } else {//####[337]####
+                        if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) //####[338]####
+                        {//####[338]####
+                            recursiveScheduleGenerationTask(newProcessed, newRemaining, newSchedule);//####[339]####
+                        } else {//####[340]####
+                            recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);//####[341]####
+                        }//####[342]####
+                    }//####[343]####
+                }//####[344]####
+            }//####[345]####
+        }//####[346]####
+    }//####[347]####
+//####[349]####
+    private void setNewBestSchedule(Schedule finalSchedule) {//####[349]####
+        for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) //####[350]####
+        {//####[350]####
+            NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));//####[351]####
+            _currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);//####[352]####
+        }//####[355]####
+    }//####[356]####
+//####[365]####
     /**
 	 * This method determines whether a schedule is valid. It does this by ensuring a nodes predecessors are scheduled
 	 * before the current node
 	 *
 	 * @param schedule
 	 * @return true if the schedule is valid, false if not
-	 *///####[395]####
-    private boolean checkValidSchedule(List<AlgorithmNode> schedule) {//####[395]####
-        if (schedule == null) //####[396]####
-        {//####[396]####
-            return false;//####[397]####
-        }//####[398]####
-        Node currentNode = _dag.getNodeByName(schedule.get(schedule.size() - 1).getNodeName());//####[401]####
-        List<Node> predecessors = currentNode.getPredecessors();//####[402]####
-        if (predecessors.size() == 0) //####[405]####
-        {//####[405]####
-            return true;//####[406]####
-        } else if (schedule.size() == 1) //####[407]####
-        {//####[407]####
-            return false;//####[408]####
-        }//####[409]####
-        int counter = 0;//####[412]####
-        for (int i = schedule.size() - 2; i >= 0; i--) //####[413]####
-        {//####[413]####
-            for (Node preNode : predecessors) //####[414]####
-            {//####[414]####
-                if (schedule.get(i).getNodeName().equals(preNode.getName())) //####[415]####
-                {//####[415]####
-                    counter++;//####[416]####
-                    break;//####[417]####
-                }//####[418]####
-            }//####[419]####
-        }//####[420]####
-        if (counter != predecessors.size()) //####[423]####
-        {//####[423]####
-            return false;//####[424]####
-        }//####[425]####
-        return true;//####[426]####
-    }//####[427]####
-//####[435]####
+	 *///####[365]####
+    private boolean checkValidSchedule(List<AlgorithmNode> schedule) {//####[365]####
+        if (schedule == null) //####[366]####
+        {//####[366]####
+            return false;//####[367]####
+        }//####[368]####
+        Node currentNode = _dag.getNodeByName(schedule.get(schedule.size() - 1).getNodeName());//####[371]####
+        List<Node> predecessors = currentNode.getPredecessors();//####[372]####
+        if (predecessors.size() == 0) //####[375]####
+        {//####[375]####
+            return true;//####[376]####
+        } else if (schedule.size() == 1) //####[377]####
+        {//####[377]####
+            return false;//####[378]####
+        }//####[379]####
+        int counter = 0;//####[382]####
+        for (int i = schedule.size() - 2; i >= 0; i--) //####[383]####
+        {//####[383]####
+            for (Node preNode : predecessors) //####[384]####
+            {//####[384]####
+                if (schedule.get(i).getNodeName().equals(preNode.getName())) //####[385]####
+                {//####[385]####
+                    counter++;//####[386]####
+                    break;//####[387]####
+                }//####[388]####
+            }//####[389]####
+        }//####[390]####
+        if (counter != predecessors.size()) //####[393]####
+        {//####[393]####
+            return false;//####[394]####
+        }//####[395]####
+        return true;//####[396]####
+    }//####[397]####
+//####[405]####
     /**
 	 * Calculates the time cost of executing the given schedule, returning a complete ScheduleImp object.
 	 * @param algNodes - A {@code List<AlgorithmNode>} given in the order of execution
 	 * @return - ScheduleImp object with cost and execution time information
-	 *///####[435]####
-    @Deprecated//####[435]####
-    private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {//####[435]####
-        List<Node> nodes = new ArrayList<Node>();//####[437]####
-        for (AlgorithmNode algNode : algNodes) //####[440]####
-        {//####[440]####
-            nodes.add(_dag.getNodeByName(algNode.getNodeName()));//####[441]####
-        }//####[442]####
-        List<AlgorithmNode> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNode[_numberOfCores]);//####[446]####
-        ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);//####[449]####
-        for (AlgorithmNode currentAlgNode : algNodes) //####[452]####
-        {//####[452]####
-            Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));//####[453]####
-            int highestCost = 0;//####[454]####
-            for (Node node : currentNode.getPredecessors()) //####[457]####
-            {//####[457]####
-                int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();//####[459]####
-                if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) //####[460]####
-                {//####[460]####
-                    cost += currentNode.getInArc(node).getWeight();//####[462]####
-                }//####[463]####
-                if (cost > highestCost) //####[465]####
-                {//####[465]####
-                    highestCost = cost;//####[466]####
-                }//####[467]####
-            }//####[468]####
-            AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);//####[471]####
-            if (latestNode != null) //####[472]####
-            {//####[472]####
-                Node previousNode = _dag.getNodeByName(latestNode.getNodeName());//####[473]####
-                int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));//####[474]####
-                if (cost > highestCost) //####[475]####
-                {//####[475]####
-                    highestCost = cost;//####[476]####
-                }//####[477]####
-            }//####[478]####
-            latestAlgNodeInSchedules.set(currentAlgNode.getCore() - 1, currentAlgNode);//####[481]####
-            st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));//####[484]####
-        }//####[485]####
-        setTimeForSchedule(latestAlgNodeInSchedules, algNodes, st);//####[487]####
-        return st;//####[489]####
-    }//####[490]####
-//####[500]####
+	 *///####[405]####
+    @Deprecated//####[405]####
+    private ScheduleImp calculateTotalTime(List<AlgorithmNode> algNodes) {//####[405]####
+        List<Node> nodes = new ArrayList<Node>();//####[407]####
+        for (AlgorithmNode algNode : algNodes) //####[410]####
+        {//####[410]####
+            nodes.add(_dag.getNodeByName(algNode.getNodeName()));//####[411]####
+        }//####[412]####
+        List<AlgorithmNode> latestAlgNodeInSchedules = Arrays.asList(new AlgorithmNode[_numberOfCores]);//####[416]####
+        ScheduleImp st = new ScheduleImp(algNodes, _numberOfCores);//####[419]####
+        for (AlgorithmNode currentAlgNode : algNodes) //####[422]####
+        {//####[422]####
+            Node currentNode = nodes.get(algNodes.indexOf(currentAlgNode));//####[423]####
+            int highestCost = 0;//####[424]####
+            for (Node node : currentNode.getPredecessors()) //####[427]####
+            {//####[427]####
+                int cost = st.getNodeStartTime(getIndexOfList(node, algNodes)) + node.getWeight();//####[429]####
+                if (!(algNodes.get(getIndexOfList(node, algNodes)).getCore() == currentAlgNode.getCore())) //####[430]####
+                {//####[430]####
+                    cost += currentNode.getInArc(node).getWeight();//####[432]####
+                }//####[433]####
+                if (cost > highestCost) //####[435]####
+                {//####[435]####
+                    highestCost = cost;//####[436]####
+                }//####[437]####
+            }//####[438]####
+            AlgorithmNode latestNode = latestAlgNodeInSchedules.get(currentAlgNode.getCore() - 1);//####[441]####
+            if (latestNode != null) //####[442]####
+            {//####[442]####
+                Node previousNode = _dag.getNodeByName(latestNode.getNodeName());//####[443]####
+                int cost = previousNode.getWeight() + st.getNodeStartTime(algNodes.indexOf(latestNode));//####[444]####
+                if (cost > highestCost) //####[445]####
+                {//####[445]####
+                    highestCost = cost;//####[446]####
+                }//####[447]####
+            }//####[448]####
+            latestAlgNodeInSchedules.set(currentAlgNode.getCore() - 1, currentAlgNode);//####[451]####
+            st.setStartTimeForNode(highestCost, algNodes.indexOf(currentAlgNode));//####[454]####
+        }//####[455]####
+        setTimeForSchedule(latestAlgNodeInSchedules, algNodes, st);//####[457]####
+        return st;//####[459]####
+    }//####[460]####
+//####[470]####
     /**
 	 * Calculates and sets the total time in the {@code ScheduleImp} object given.
 	 * Main purpose is to make the code more readable.
 	 * @param latestAlgNodeInSchedules - {@code List<AlgorithmNode>} containing the last node in each processor
 	 * @param algNodes - the same {@code List<AlgorithmnNode>} used to construct the {@code ScheduleImp} object
 	 * @param st - {@code ScheduleImp} object to set the total time of
-	 *///####[500]####
-    @Deprecated//####[500]####
-    private void setTimeForSchedule(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, ScheduleImp st) {//####[500]####
-        int totalTime = 0;//####[501]####
-        for (int i = 1; i <= _numberOfCores; i++) //####[502]####
-        {//####[502]####
-            AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i - 1);//####[503]####
-            int timeTaken = 0;//####[505]####
-            if (latestAlgNode != null) //####[506]####
-            {//####[506]####
-                timeTaken = st.getNodeStartTime(algNodes.indexOf(latestAlgNode)) + _dag.getNodeByName(latestAlgNode.getNodeName()).getWeight();//####[507]####
-            }//####[508]####
-            if (timeTaken > totalTime) //####[510]####
-            {//####[510]####
-                totalTime = timeTaken;//####[511]####
-            }//####[512]####
-        }//####[513]####
-        st.setTotalTime(totalTime);//####[515]####
-    }//####[516]####
-//####[525]####
+	 *///####[470]####
+    @Deprecated//####[470]####
+    private void setTimeForSchedule(List<AlgorithmNode> latestAlgNodeInSchedules, List<AlgorithmNode> algNodes, ScheduleImp st) {//####[470]####
+        int totalTime = 0;//####[471]####
+        for (int i = 1; i <= _numberOfCores; i++) //####[472]####
+        {//####[472]####
+            AlgorithmNode latestAlgNode = latestAlgNodeInSchedules.get(i - 1);//####[473]####
+            int timeTaken = 0;//####[475]####
+            if (latestAlgNode != null) //####[476]####
+            {//####[476]####
+                timeTaken = st.getNodeStartTime(algNodes.indexOf(latestAlgNode)) + _dag.getNodeByName(latestAlgNode.getNodeName()).getWeight();//####[477]####
+            }//####[478]####
+            if (timeTaken > totalTime) //####[480]####
+            {//####[480]####
+                totalTime = timeTaken;//####[481]####
+            }//####[482]####
+        }//####[483]####
+        st.setTotalTime(totalTime);//####[485]####
+    }//####[486]####
+//####[495]####
     /**
 	 * Finds and returns the index position of the corresponding {@code AlgorithmNode} within the given {@code List<AlgorithmNode}
 	 * @param node - {@code Node} to find the corresponding index position for
 	 * @param algNodes - {@code List<AlgorithmNode>} to find the index for
 	 * @return the index position of the corresponding {@code AlgorithmNode} object
-	 *///####[525]####
-    @Deprecated//####[525]####
-    private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {//####[525]####
-        for (AlgorithmNode algNode : algNodes) //####[526]####
-        {//####[526]####
-            if (node.getName().equals(algNode.getNodeName())) //####[527]####
-            {//####[527]####
-                return algNodes.indexOf(algNode);//####[528]####
-            }//####[529]####
-        }//####[530]####
-        return -1;//####[531]####
-    }//####[532]####
-//####[535]####
-    @Override//####[535]####
-    public HashMap<String, NodeSchedule> getCurrentBestSchedule() {//####[535]####
-        return _currentBestSchedule;//####[536]####
-    }//####[537]####
-//####[540]####
-    @Override//####[540]####
-    public int getBestTotalTime() {//####[540]####
-        return _bestTime;//####[541]####
-    }//####[542]####
-//####[550]####
+	 *///####[495]####
+    @Deprecated//####[495]####
+    private int getIndexOfList(Node node, List<AlgorithmNode> algNodes) {//####[495]####
+        for (AlgorithmNode algNode : algNodes) //####[496]####
+        {//####[496]####
+            if (node.getName().equals(algNode.getNodeName())) //####[497]####
+            {//####[497]####
+                return algNodes.indexOf(algNode);//####[498]####
+            }//####[499]####
+        }//####[500]####
+        return -1;//####[501]####
+    }//####[502]####
+//####[505]####
+    @Override//####[505]####
+    public HashMap<String, NodeSchedule> getCurrentBestSchedule() {//####[505]####
+        return _currentBestSchedule;//####[506]####
+    }//####[507]####
+//####[510]####
+    @Override//####[510]####
+    public int getBestTotalTime() {//####[510]####
+        return _bestTime;//####[511]####
+    }//####[512]####
+//####[520]####
     /**
 	 * The wrapper methods purely for testing. (as the methods were declared to be private)
 	 * @param algNodes
 	 * @return
-	 *///####[550]####
-    @Deprecated//####[550]####
-    public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {//####[550]####
-        return calculateTotalTime(algNodes);//####[551]####
-    }//####[552]####
-//####[554]####
-    public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {//####[554]####
-        return checkValidSchedule(s1);//####[555]####
-    }//####[556]####
-}//####[556]####
+	 *///####[520]####
+    @Deprecated//####[520]####
+    public ScheduleImp calculateTotalTimeWrapper(List<AlgorithmNode> algNodes) {//####[520]####
+        return calculateTotalTime(algNodes);//####[521]####
+    }//####[522]####
+//####[524]####
+    public boolean checkValidScheduleWrapper(List<AlgorithmNode> s1) {//####[524]####
+        return checkValidSchedule(s1);//####[525]####
+    }//####[526]####
+}//####[526]####
