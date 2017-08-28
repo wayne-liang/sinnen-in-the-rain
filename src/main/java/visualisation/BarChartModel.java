@@ -147,8 +147,7 @@ public class BarChartModel extends JPanel {
 		plot.setRangeGridlinePaint(Color.white);
 		
 		// configure renderer to switch between two colors
-		final CategoryItemRenderer renderer = new CustomRenderer(
-				);
+		final CategoryItemRenderer renderer = new CustomRenderer();
 		
 		//renderer.drawOutline(arg0, arg1, arg2);
 
