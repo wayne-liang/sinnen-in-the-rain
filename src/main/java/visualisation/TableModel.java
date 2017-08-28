@@ -83,7 +83,7 @@ public class TableModel extends AbstractTableModel {
 		_data = new String[_bestTime][_cores+1];
 		// Initializing array with time values and empty strings.
 		for (int i =0; i < _bestTime;i++){
-			_data[i][0] = (i + 1) + "";
+			_data[i][0] = (i) + "";
 			for (int j = 1; j < _cores+1;j++){
 				_data[i][j] = "";
 			}

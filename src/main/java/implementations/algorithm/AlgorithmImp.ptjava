@@ -64,7 +64,6 @@ public class AlgorithmImp implements Algorithm {
 		_threads = new Semaphore(_numberOfThreads);
 		
 		if (_visualisation){
-			// TODO: Check if visualization is true, only then do we create the gui. 
 			_model = TableModel.getInstance();
 			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
 			// Initialize BarChart Model:
@@ -81,7 +80,7 @@ public class AlgorithmImp implements Algorithm {
 		produceGreedySchedule();
 
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
-		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
+		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getStartNodes()), emptySchedule);
 		
 		try {
 			_threads.acquire(_numberOfThreads);
@@ -234,40 +233,41 @@ public class AlgorithmImp implements Algorithm {
 	 * function as the original recursiveScheduleGeneration method, but on a new
 	 * thread.
 	 
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 */
-	TASK private void recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		recursiveScheduleGeneration(processed, remainingNodes, prev);
+	TASK private void recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {
+		recursiveScheduleGeneration(processed, remainingNodes, quasiReachableNodes, prev);
 		_threads.release();
 	}
 
 	/**
 	 * This method recursively does the branch and bound traversal.
-	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
-	 * or checking if it's better than the current time.
+	 * It takes the lists of processed, remaining, and quasi-reachable nodes, along with the previous schedule.
+	 * From there, it determines if we need to keep going by checking if it's better than the current time.
 	 *
 	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
 	 * to decide whether to bound.
 	 *
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 */
-	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
+	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {
 		if (_visualisation){
 			_schedule.setCallsButtonText(_recursiveCalls++); // Updating visualisation.
 		}
 
 		//Base Case when there are no remaining nodes left to process
-		if (remainingNodes.size() == 0) {
+		if (quasiReachableNodes.size() == 0) {
 			Schedule finalSchedule = prev;
-			//Found a new best schedule, 
-			//or the same time but no current best schedule (the first time reaching a trivial schedule)
+			//Found a new schedule
 			compareSchedules(finalSchedule);
 		} else {
-			for (int i = 0; i < remainingNodes.size(); i++) {
+			for (int i = 0; i < quasiReachableNodes.size(); i++) {
 				Schedule newSchedule;
 
 				//Assign the node to each core and continue recursive call down the branch
@@ -276,7 +276,7 @@ public class AlgorithmImp implements Algorithm {
 					//Create a clone of the next node and assign it to a core. Place that new node
 					//on a copy of the processed list
 					List<AlgorithmNode> newProcessed = new ArrayList<AlgorithmNode>(processed);
-					AlgorithmNode node = remainingNodes.get(i).createClone();
+					AlgorithmNode node = quasiReachableNodes.get(i).createClone();
 					node.setCore(j);
 					newProcessed.add(node);
 
@@ -346,7 +346,16 @@ public class AlgorithmImp implements Algorithm {
 
 					//Create a new remaining list and remove the node that has been added to the processed list
 					List<AlgorithmNode> newRemaining = new ArrayList<AlgorithmNode>(remainingNodes);
-					newRemaining.remove(i);
+					newRemaining.remove(quasiReachableNodes.get(i));
+					
+					List<AlgorithmNode> newReachable = new ArrayList<AlgorithmNode>(quasiReachableNodes);
+					newReachable.remove(i);
+					List<AlgorithmNode> toAdd = AlgorithmNode.convertNodetoAlgorithmNode(_dag.getNodeByName(node.getNodeName()).getSuccessors());
+					for (AlgorithmNode algNode : toAdd) {
+						if (!newReachable.contains(algNode)) {
+							newReachable.add(algNode);
+						}
+					}
 
 					/*
 					 * Pruning:
@@ -368,7 +377,7 @@ public class AlgorithmImp implements Algorithm {
 
 					if (!coresAssigned.contains(node.getCore())) {
 						//Explore the current tree, then break
-						recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
+						recursiveScheduleGeneration(newProcessed, newRemaining, newReachable, newSchedule);
 						break;
 					} else {
 						/**
@@ -376,9 +385,9 @@ public class AlgorithmImp implements Algorithm {
 						 *into new thread. Otherwise, continue on this thread.
 						 */
 						if (_dag.getNodeByName(node.getNodeName()).getSuccessors().size() > 1 && _threads.tryAcquire()) {
-							recursiveScheduleGenerationTask(newProcessed, newRemaining, newSchedule);
+							recursiveScheduleGenerationTask(newProcessed, newRemaining, newReachable, newSchedule);
 						} else {
-							recursiveScheduleGeneration(newProcessed, newRemaining, newSchedule);
+							recursiveScheduleGeneration(newProcessed, newRemaining, newReachable, newSchedule);
 						}
 					}
 				}
