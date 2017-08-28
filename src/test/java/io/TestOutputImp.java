@@ -31,7 +31,7 @@ public class TestOutputImp {
 		Input input = new InputImp(FILENAME, "2");
 		Conversion conversion = new Conversion(input);
 
-		AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
+		AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount(),true,1);
 		OutputImp outputImp = new OutputImp(alg.getCurrentBestSchedule(), FILENAME);
 		outputImp.printOutput();
 	}

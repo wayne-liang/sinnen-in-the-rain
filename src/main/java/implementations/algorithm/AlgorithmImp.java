@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import implementations.structures.DAGImp;
 import implementations.structures.NodeScheduleImp;
@@ -48,14 +47,16 @@ public class AlgorithmImp implements Algorithm {
 
 	private Set<Set<AlgorithmNode>> _uniqueProcessed;
 
-	boolean visualisation = true;
+	private boolean _visualisation;
+	
 
-	public AlgorithmImp(int numberOfCores) {
+	public AlgorithmImp(int numberOfCores, boolean visualisation, int noOfParallerCores) {
 		_dag = DAGImp.getInstance();
 		_numberOfCores = numberOfCores;
 		_currentBestSchedule = new HashMap<>();
-
-		if (visualisation){
+		_visualisation = visualisation;
+		
+		if (_visualisation){
 			// TODO: Check if visualization is true, only then do we create the gui. 
 			_model = TableModel.getInstance();
 			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
@@ -64,6 +65,7 @@ public class AlgorithmImp implements Algorithm {
 			// set-up the GUI
 			_schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 		}
+		
 
 		_uniqueProcessed = new HashSet<Set<AlgorithmNode>>();
 
@@ -213,7 +215,9 @@ public class AlgorithmImp implements Algorithm {
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_schedule.setCallsButtonText(_recursiveCalls++); // Updating visualisation.
+		if (_visualisation){
+			_schedule.setCallsButtonText(_recursiveCalls++); // Updating visualisation.
+		}
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
@@ -306,7 +310,7 @@ public class AlgorithmImp implements Algorithm {
 			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
 		}
 		
-		if (visualisation) {
+		if (_visualisation) {
 			fireUpdateToGUI(finalSchedule.getTotalTime());
 		}
 	}

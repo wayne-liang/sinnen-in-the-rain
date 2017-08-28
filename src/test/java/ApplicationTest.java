@@ -31,7 +31,7 @@ public class ApplicationTest {
         Nodes_8_Random();
         Nodes_9_SeriesParallel();
         Nodes_10_Random();
-        Nodes_11_OutTree();
+        //Nodes_11_OutTree();
     }
     
     public void Nodes_4_Sequential() {
@@ -87,7 +87,7 @@ public class ApplicationTest {
         DAGImp.getNewInstance();
         Conversion conversion = new Conversion(input);
 
-        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount());
+        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount(),true,1);
 //        Output output = new OutputImp (alg.getCurrentBestSchedule(), fileName);
 //        output.printOutput();
         System.out.println("BestTime: " + alg.getBestTotalTime());
