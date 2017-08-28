@@ -11,7 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /** 
- * Clock class instantiates a global variable - Timer which can print and update time in the format:
+ * Single Clock class instantiates a global variable - Timer which can print and update time in the format:
  * minutes:seconds:milliseconds.
  * @author Pulkit
  */
@@ -26,9 +26,6 @@ public class Clock extends JPanel {
     private ProcessStatus _processStatus;
     private static Clock instance = null;
     
-    /**
-     * Constructor initialises the JPanel and the associated JLabel.
-     */
     protected Clock(){
     	// exists only to defeat instantiation.
     }
@@ -41,10 +38,12 @@ public class Clock extends JPanel {
 		}
 		return instance;
     }
-    
+    /**
+     * sets up the clock label, sets up the timer
+     */
     private void initClock() {
         setLayout(new BorderLayout());
-        _timeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 26));
+        _timeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 35));
         add(_timeLabel,BorderLayout.NORTH);
         setProcessStatus(ProcessStatus.INPROGRESS);
 
@@ -54,14 +53,12 @@ public class Clock extends JPanel {
     /**
      * Private inner class is used to specify the update code that is run by the timer periodically.
      * @author Pulkit
-     *
      */
     private class UpdateUITask extends TimerTask {
 
         @Override
         public void run() {
             EventQueue.invokeLater(new Runnable() {
-
                 @Override
                 public void run() {
                     _timeLabel.setText(formatTime());
@@ -112,26 +109,43 @@ public class Clock extends JPanel {
     	int time = _milliseconds + _seconds*1000 + _minutes*60*1000;
     	return time;
     }
-    
+    /**
+     * Returns an instance of the singleton instance of the timer
+     * @return Timer singleton object.
+     */
     public Timer getTimer(){
     	return _timer;
     }
     
+    /**
+     * returns the JLabel that contains the color and text of the JLabel.
+     * @return JLabel for the clock
+     */
     public JLabel getTimeLabel(){
     	return _timeLabel;
     }
     
+    /**
+     * Method used to stop the clock when program is finished.
+     */
     public void stopClock(){
     	setProcessStatus(ProcessStatus.COMPLETED);
     	Clock.getInstance().getTimer().cancel();
 		Clock.getInstance().getTimer().purge();
 		_timeLabel.setForeground(new Color(37, 200, 19));
     }
-
+    /**
+     * Gets the current status of the process.
+     * @return Enum for process status.
+     */
 	public ProcessStatus getProcessStatus() {
 		return _processStatus;
 	}
-
+	
+	/**
+	 * Set the status of the process.
+	 * @param processStatus
+	 */
 	public void setProcessStatus(ProcessStatus processStatus) {
 		_processStatus = processStatus;
 	}

@@ -64,6 +64,7 @@ public class AlgorithmImp implements Algorithm {
 			_chartModel = new BarChartModel();
 			// set-up the GUI
 			_schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+			_schedule.setParallelLabel(noOfParallerCores);
 		}
 		
 
@@ -77,7 +78,8 @@ public class AlgorithmImp implements Algorithm {
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
 		
 		// update view once we have our final schedule:
-		if (visualisation) {
+		if (_visualisation) {
+			
 			_model.changeData(_currentBestSchedule, _bestTime);
 			// reset model once we're done with it - to help with testing.
 			_model = TableModel.resetInstance();
