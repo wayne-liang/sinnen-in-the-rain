@@ -89,149 +89,149 @@ public class AlgorithmImp implements Algorithm {//####[39]####
         _threads = new Semaphore(_numberOfThreads);//####[64]####
         if (_visualisation) //####[66]####
         {//####[66]####
-            _model = TableModel.getInstance();//####[68]####
-            _model.initModel(_currentBestSchedule, _dag, _numberOfCores);//####[69]####
-            _chartModel = new BarChartModel();//####[71]####
-            _schedule = new ComboView(_model, _dag, _numberOfCores, _chartModel);//####[73]####
-            _schedule.setParallelLabel(noOfParallerCores);//####[74]####
-        }//####[75]####
-        _uniqueProcessed = Collections.synchronizedSet(new HashSet<Set<AlgorithmNode>>());//####[78]####
-        produceSequentialSchedule();//####[80]####
-        produceGreedySchedule();//####[81]####
-        Schedule emptySchedule = new ScheduleImp(_numberOfCores);//####[83]####
-        recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getStartNodes()), emptySchedule);//####[84]####
-        try {//####[86]####
-            _threads.acquire(_numberOfThreads);//####[87]####
-        } catch (InterruptedException ex) {//####[88]####
-            ex.printStackTrace();//####[89]####
-        }//####[90]####
-        if (_visualisation) //####[93]####
-        {//####[93]####
-            _model.changeData(_currentBestSchedule, _bestTime);//####[95]####
-            _model = TableModel.resetInstance();//####[97]####
-            Clock.getInstance().stopClock();//####[99]####
-            _schedule.setStatusLabel(Clock.getInstance().getProcessStatus());//####[100]####
-        }//####[101]####
-    }//####[102]####
-//####[107]####
+            _model = TableModel.getInstance();//####[67]####
+            _model.initModel(_currentBestSchedule, _dag, _numberOfCores);//####[68]####
+            _chartModel = new BarChartModel();//####[70]####
+            _schedule = new ComboView(_model, _dag, _numberOfCores, _chartModel);//####[72]####
+            _schedule.setParallelLabel(noOfParallerCores);//####[73]####
+        }//####[74]####
+        _uniqueProcessed = Collections.synchronizedSet(new HashSet<Set<AlgorithmNode>>());//####[77]####
+        produceSequentialSchedule();//####[79]####
+        produceGreedySchedule();//####[80]####
+        Schedule emptySchedule = new ScheduleImp(_numberOfCores);//####[82]####
+        recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getStartNodes()), emptySchedule);//####[83]####
+        try {//####[85]####
+            _threads.acquire(_numberOfThreads);//####[86]####
+        } catch (InterruptedException ex) {//####[87]####
+            ex.printStackTrace();//####[88]####
+        }//####[89]####
+        if (_visualisation) //####[92]####
+        {//####[92]####
+            _model.changeData(_currentBestSchedule, _bestTime);//####[94]####
+            _model = TableModel.resetInstance();//####[96]####
+            Clock.getInstance().stopClock();//####[98]####
+            _schedule.setStatusLabel(Clock.getInstance().getProcessStatus());//####[99]####
+        }//####[100]####
+    }//####[101]####
+//####[106]####
     /**
 	 * helper method for firing update.
-	 *///####[107]####
-    private void fireUpdateToGUI(int bestTime) {//####[107]####
-        _chartModel.addDataToSeries(bestTime);//####[109]####
-        _model.changeData(_currentBestSchedule, bestTime);//####[110]####
-        _schedule.setBestTimeText(bestTime);//####[111]####
-    }//####[112]####
-//####[120]####
+	 *///####[106]####
+    private void fireUpdateToGUI(int bestTime) {//####[106]####
+        _chartModel.addDataToSeries(bestTime);//####[108]####
+        _model.changeData(_currentBestSchedule, bestTime);//####[109]####
+        _schedule.setBestTimeText(bestTime);//####[110]####
+    }//####[111]####
+//####[119]####
     /**
 	 * This method will produce a sequential schedule to set the lower bound.
 	 * 
 	 * This will be used together will the greedy schedule to bound
 	 * the DFS.
-	 *///####[120]####
-    private void produceSequentialSchedule() {//####[120]####
-        List<Node> reachableNodes = new ArrayList<Node>();//####[121]####
-        List<Node> completedNodes = new ArrayList<Node>();//####[122]####
-        List<Node> remainingNodes = new ArrayList<Node>();//####[123]####
-        reachableNodes.addAll(_dag.getStartNodes());//####[125]####
-        remainingNodes.addAll(_dag.getAllNodes());//####[126]####
-        Schedule schedule = new ScheduleImp(_numberOfCores);//####[128]####
-        while (!reachableNodes.isEmpty()) //####[130]####
-        {//####[130]####
-            Node toBeScheduled = reachableNodes.get(0);//####[131]####
-            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[133]####
-            algNode.setCore(1);//####[134]####
-            schedule = schedule.getNextSchedule(algNode);//####[135]####
-            completedNodes.add(toBeScheduled);//####[138]####
-            reachableNodes.remove(toBeScheduled);//####[139]####
-            remainingNodes.remove(toBeScheduled);//####[140]####
-            for (Node rn : remainingNodes) //####[141]####
-            {//####[141]####
-                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[142]####
-                {//####[142]####
-                    reachableNodes.add(rn);//####[143]####
-                }//####[144]####
-            }//####[145]####
-        }//####[146]####
-        setNewBestSchedule(schedule);//####[149]####
-        _bestTime = schedule.getTotalTime();//####[150]####
-    }//####[151]####
-//####[159]####
+	 *///####[119]####
+    private void produceSequentialSchedule() {//####[119]####
+        List<Node> reachableNodes = new ArrayList<Node>();//####[120]####
+        List<Node> completedNodes = new ArrayList<Node>();//####[121]####
+        List<Node> remainingNodes = new ArrayList<Node>();//####[122]####
+        reachableNodes.addAll(_dag.getStartNodes());//####[124]####
+        remainingNodes.addAll(_dag.getAllNodes());//####[125]####
+        Schedule schedule = new ScheduleImp(_numberOfCores);//####[127]####
+        while (!reachableNodes.isEmpty()) //####[129]####
+        {//####[129]####
+            Node toBeScheduled = reachableNodes.get(0);//####[130]####
+            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[132]####
+            algNode.setCore(1);//####[133]####
+            schedule = schedule.getNextSchedule(algNode);//####[134]####
+            completedNodes.add(toBeScheduled);//####[137]####
+            reachableNodes.remove(toBeScheduled);//####[138]####
+            remainingNodes.remove(toBeScheduled);//####[139]####
+            for (Node rn : remainingNodes) //####[140]####
+            {//####[140]####
+                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[141]####
+                {//####[141]####
+                    reachableNodes.add(rn);//####[142]####
+                }//####[143]####
+            }//####[144]####
+        }//####[145]####
+        setNewBestSchedule(schedule);//####[148]####
+        _bestTime = schedule.getTotalTime();//####[149]####
+    }//####[150]####
+//####[158]####
     /**
 	 * This method will produce a greedy schedule to set the lower bound.
 	 * 
 	 * This will be used together will the sequential schedule to bound
 	 * the DFS.
-	 *///####[159]####
-    private void produceGreedySchedule() {//####[159]####
-        List<Node> reachableNodes = new ArrayList<Node>();//####[160]####
-        List<Node> completedNodes = new ArrayList<Node>();//####[161]####
-        List<Node> remainingNodes = new ArrayList<Node>();//####[162]####
-        reachableNodes.addAll(_dag.getStartNodes());//####[164]####
-        remainingNodes.addAll(_dag.getAllNodes());//####[165]####
-        Schedule schedule = new ScheduleImp(_numberOfCores);//####[167]####
-        while (!reachableNodes.isEmpty()) //####[169]####
-        {//####[169]####
-            List<Integer> reachableAmount = new ArrayList<Integer>();//####[171]####
-            for (Node n : reachableNodes) //####[172]####
-            {//####[172]####
-                reachableAmount.add(n.getSuccessors().size());//####[173]####
-            }//####[174]####
-            int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));//####[175]####
-            Node toBeScheduled = reachableNodes.get(maxIndex);//####[176]####
-            List<Integer> earliestStartTimes = new ArrayList<Integer>();//####[179]####
-            for (int i = 1; i <= _numberOfCores; i++) //####[180]####
-            {//####[180]####
-                int coreStart = schedule.getFinishTimeForCore(i);//####[181]####
-                AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[182]####
-                algNode.setCore(i);//####[183]####
-                int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);//####[184]####
-                earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);//####[185]####
-            }//####[186]####
-            int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;//####[187]####
-            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[189]####
-            algNode.setCore(earliestCoreNo);//####[190]####
-            schedule = schedule.getNextSchedule(algNode);//####[191]####
-            completedNodes.add(toBeScheduled);//####[194]####
-            reachableNodes.remove(toBeScheduled);//####[195]####
-            remainingNodes.remove(toBeScheduled);//####[196]####
-            for (Node rn : remainingNodes) //####[197]####
-            {//####[197]####
-                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[198]####
-                {//####[198]####
-                    reachableNodes.add(rn);//####[199]####
-                }//####[200]####
-            }//####[201]####
-        }//####[202]####
-        if (schedule.getTotalTime() < _bestTime) //####[204]####
-        {//####[204]####
-            setNewBestSchedule(schedule);//####[205]####
-            _bestTime = schedule.getTotalTime();//####[206]####
-        }//####[207]####
-    }//####[208]####
-//####[215]####
+	 *///####[158]####
+    private void produceGreedySchedule() {//####[158]####
+        List<Node> reachableNodes = new ArrayList<Node>();//####[159]####
+        List<Node> completedNodes = new ArrayList<Node>();//####[160]####
+        List<Node> remainingNodes = new ArrayList<Node>();//####[161]####
+        reachableNodes.addAll(_dag.getStartNodes());//####[163]####
+        remainingNodes.addAll(_dag.getAllNodes());//####[164]####
+        Schedule schedule = new ScheduleImp(_numberOfCores);//####[166]####
+        while (!reachableNodes.isEmpty()) //####[168]####
+        {//####[168]####
+            List<Integer> reachableAmount = new ArrayList<Integer>();//####[170]####
+            for (Node n : reachableNodes) //####[171]####
+            {//####[171]####
+                reachableAmount.add(n.getSuccessors().size());//####[172]####
+            }//####[173]####
+            int maxIndex = reachableAmount.indexOf(Collections.max(reachableAmount));//####[174]####
+            Node toBeScheduled = reachableNodes.get(maxIndex);//####[175]####
+            List<Integer> earliestStartTimes = new ArrayList<Integer>();//####[178]####
+            for (int i = 1; i <= _numberOfCores; i++) //####[179]####
+            {//####[179]####
+                int coreStart = schedule.getFinishTimeForCore(i);//####[180]####
+                AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[181]####
+                algNode.setCore(i);//####[182]####
+                int depStart = schedule.getDependencyBasedStartTime(toBeScheduled, algNode);//####[183]####
+                earliestStartTimes.add((coreStart > depStart) ? coreStart : depStart);//####[184]####
+            }//####[185]####
+            int earliestCoreNo = earliestStartTimes.indexOf(Collections.min(earliestStartTimes)) + 1;//####[186]####
+            AlgorithmNode algNode = new AlgorithmNodeImp(toBeScheduled.getName());//####[188]####
+            algNode.setCore(earliestCoreNo);//####[189]####
+            schedule = schedule.getNextSchedule(algNode);//####[190]####
+            completedNodes.add(toBeScheduled);//####[193]####
+            reachableNodes.remove(toBeScheduled);//####[194]####
+            remainingNodes.remove(toBeScheduled);//####[195]####
+            for (Node rn : remainingNodes) //####[196]####
+            {//####[196]####
+                if (completedNodes.containsAll(rn.getPredecessors()) && !reachableNodes.contains(rn)) //####[197]####
+                {//####[197]####
+                    reachableNodes.add(rn);//####[198]####
+                }//####[199]####
+            }//####[200]####
+        }//####[201]####
+        if (schedule.getTotalTime() < _bestTime) //####[203]####
+        {//####[203]####
+            setNewBestSchedule(schedule);//####[204]####
+            _bestTime = schedule.getTotalTime();//####[205]####
+        }//####[206]####
+    }//####[207]####
+//####[214]####
     /**
 	 * Purely for benchmarking purposes
 	 *
 	 * @return number of times the recursive method was called
-	 *///####[215]####
-    public int getRecursiveCalls() {//####[215]####
-        return _recursiveCalls;//####[216]####
-    }//####[217]####
-//####[225]####
+	 *///####[214]####
+    public int getRecursiveCalls() {//####[214]####
+        return _recursiveCalls;//####[215]####
+    }//####[216]####
+//####[224]####
     /**
 	 * This method is a thread-safe way of comparing a schedule against the current 
 	 * best schedule so far, replacing it if the new one is better.
 	 * 
 	 * @param newSchedule 	- The new Schedule to compare 
-	 *///####[225]####
-    private synchronized void compareSchedules(Schedule newSchedule) {//####[225]####
-        if (newSchedule.getTotalTime() < _bestTime) //####[226]####
-        {//####[226]####
-            setNewBestSchedule(newSchedule);//####[227]####
-            _bestTime = newSchedule.getTotalTime();//####[228]####
-        }//####[229]####
-    }//####[230]####
+	 *///####[224]####
+    private synchronized void compareSchedules(Schedule newSchedule) {//####[224]####
+        if (newSchedule.getTotalTime() < _bestTime) //####[225]####
+        {//####[225]####
+            setNewBestSchedule(newSchedule);//####[226]####
+            _bestTime = newSchedule.getTotalTime();//####[227]####
+        }//####[228]####
+    }//####[229]####
 //####[241]####
     private static volatile Method __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_ListAlgorithmNode_Schedule_method = null;//####[241]####
     private synchronized static void __pt__recursiveScheduleGenerationTask_ListAlgorithmNode_ListAlgorithmNode_ListAlgorithmNode_Schedule_ensureMethodVarSet() {//####[241]####
@@ -250,9 +250,10 @@ public class AlgorithmImp implements Algorithm {//####[39]####
 	 * function as the original recursiveScheduleGeneration method, but on a new
 	 * thread.
 	 
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 *///####[241]####
     private TaskID<Void> recursiveScheduleGenerationTask(Object processed, Object remainingNodes, Object quasiReachableNodes, Object prev) {//####[241]####
         //-- execute asynchronously by enqueuing onto the taskpool//####[241]####
@@ -263,9 +264,10 @@ public class AlgorithmImp implements Algorithm {//####[39]####
 	 * function as the original recursiveScheduleGeneration method, but on a new
 	 * thread.
 	 
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 *///####[241]####
     private TaskID<Void> recursiveScheduleGenerationTask(Object processed, Object remainingNodes, Object quasiReachableNodes, Object prev, TaskInfo taskinfo) {//####[241]####
         // ensure Method variable is set//####[241]####
@@ -325,36 +327,38 @@ public class AlgorithmImp implements Algorithm {//####[39]####
 	 * function as the original recursiveScheduleGeneration method, but on a new
 	 * thread.
 	 
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 *///####[241]####
     public void __pt__recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {//####[241]####
         recursiveScheduleGeneration(processed, remainingNodes, quasiReachableNodes, prev);//####[242]####
         _threads.release();//####[243]####
     }//####[244]####
 //####[244]####
-//####[258]####
+//####[259]####
     /**
 	 * This method recursively does the branch and bound traversal.
-	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
-	 * or checking if it's better than the current time.
+	 * It takes the lists of processed, remaining, and quasi-reachable nodes, along with the previous schedule.
+	 * From there, it determines if we need to keep going by checking if it's better than the current time.
 	 *
 	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
 	 * to decide whether to bound.
 	 *
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
-	 *///####[258]####
-    private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {//####[258]####
-        if (_visualisation) //####[259]####
-        {//####[259]####
-            _schedule.setCallsButtonText(_recursiveCalls++);//####[260]####
-        }//####[261]####
-        if (quasiReachableNodes.size() == 0) //####[264]####
-        {//####[264]####
-            Schedule finalSchedule = prev;//####[265]####
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
+	 *///####[259]####
+    private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {//####[259]####
+        if (_visualisation) //####[260]####
+        {//####[260]####
+            _schedule.setCallsButtonText(_recursiveCalls++);//####[261]####
+        }//####[262]####
+        if (quasiReachableNodes.size() == 0) //####[265]####
+        {//####[265]####
+            Schedule finalSchedule = prev;//####[266]####
             compareSchedules(finalSchedule);//####[268]####
         } else {//####[269]####
             for (int i = 0; i < quasiReachableNodes.size(); i++) //####[270]####

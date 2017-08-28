@@ -64,7 +64,6 @@ public class AlgorithmImp implements Algorithm {
 		_threads = new Semaphore(_numberOfThreads);
 		
 		if (_visualisation){
-			// TODO: Check if visualization is true, only then do we create the gui. 
 			_model = TableModel.getInstance();
 			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
 			// Initialize BarChart Model:
@@ -234,9 +233,10 @@ public class AlgorithmImp implements Algorithm {
 	 * function as the original recursiveScheduleGeneration method, but on a new
 	 * thread.
 	 
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 */
 	TASK private void recursiveScheduleGenerationTask(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {
 		recursiveScheduleGeneration(processed, remainingNodes, quasiReachableNodes, prev);
@@ -245,15 +245,16 @@ public class AlgorithmImp implements Algorithm {
 
 	/**
 	 * This method recursively does the branch and bound traversal.
-	 * It takes the list of processed, remaining and previous schedule and from there determines if we need to keep going
-	 * or checking if it's better than the current time.
+	 * It takes the lists of processed, remaining, and quasi-reachable nodes, along with the previous schedule.
+	 * From there, it determines if we need to keep going by checking if it's better than the current time.
 	 *
 	 * Branch down by adding each node to all the cores and then branching. Check times against heuristics and best time
 	 * to decide whether to bound.
 	 *
-	 * @param processed      - A list of processed nodes
-	 * @param remainingNodes - A list of nodes remaining to be processed
-	 * @param prev			 - The previous schedule. 
+	 * @param processed             - A list of processed nodes
+	 * @param remainingNodes        - A list of nodes remaining to be processed
+	 * @param quasiReachableNodes   - A list of nodes which are a superset of currently reachable nodes
+	 * @param prev			        - The previous schedule.
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, List<AlgorithmNode> quasiReachableNodes, Schedule prev) {
 		if (_visualisation){
@@ -263,8 +264,7 @@ public class AlgorithmImp implements Algorithm {
 		//Base Case when there are no remaining nodes left to process
 		if (quasiReachableNodes.size() == 0) {
 			Schedule finalSchedule = prev;
-			//Found a new best schedule, 
-			//or the same time but no current best schedule (the first time reaching a trivial schedule)
+			//Found a new schedule
 			compareSchedules(finalSchedule);
 		} else {
 			for (int i = 0; i < quasiReachableNodes.size(); i++) {
