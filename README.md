@@ -32,6 +32,8 @@ SOFTENG306 Project One
 The JAR file can be run with the command:  
 >`java -jar scheduler.jar <path-to-input.dot> P [OPTION]`  
 
+**Optional Note**: To run the User Interface with visual enhancements (icons and images added) - download the images directory at the top of this repository and place it in the same folder as the jar file.
+
 Where:  
     `<path-to-input.dot>` is the path to a task graph in dot format  
     `P` is the number of processors to schedule the input graph on  
