@@ -31,7 +31,7 @@ public class ApplicationTest {
         Nodes_8_Random();
         Nodes_9_SeriesParallel();
         Nodes_10_Random();
-        //Nodes_11_OutTree();
+        Nodes_11_OutTree();
     }
     
     public void Nodes_4_Sequential() {
