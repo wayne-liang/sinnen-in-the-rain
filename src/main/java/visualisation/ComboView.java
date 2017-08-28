@@ -49,6 +49,7 @@ public class ComboView extends JFrame {
 	// Button-Labels:
 	private JButton _callsLabel;
 	private JButton _bestTimeLabel; 
+	private JButton _parallelLabel;
 	// Model:
 	private TableModel _tableModel;
 	private int _cores;
@@ -204,10 +205,9 @@ public class ComboView extends JFrame {
 		coresLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 		coresLabel.setBackground(new Color(255, 193, 193));
 
-		// TODO: This will be orange when parallel = off, and green when parallel = on.
-		JButton parallelLabel = new JButton("Parallelisation: \nFALSE");
-		parallelLabel.setBackground(new Color(255, 190, 79));
-		parallelLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+		_parallelLabel = new JButton();
+		_parallelLabel.setBackground(new Color(255, 190, 79));
+		_parallelLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 
 		
 		_callsLabel = new JButton("Recursive Calls");
@@ -221,7 +221,7 @@ public class ComboView extends JFrame {
 		
 		
 		_panelBottom.add(coresLabel);
-		_panelBottom.add(parallelLabel);
+		_panelBottom.add(_parallelLabel);
 		_panelBottom.add(_callsLabel);
 		_panelBottom.add(_bestTimeLabel);
 		
@@ -285,7 +285,23 @@ public class ComboView extends JFrame {
     public void setBestTimeText(int time){
     	_bestTimeLabel.setText("Best Schedule Time: "+time);
     }
+    /**
+     * Method used to change the Parallelisation label depending on whether it is on or not.
+     * @param noOfParallel
+     */
+    public void setParallelLabel(int noOfParallel){
+    	if (noOfParallel > 1){
+    		_parallelLabel.setText("Parallelisation: \nTRUE");
+    		_parallelLabel.setBackground(new Color(162, 237, 139));
+    	} else {
+    		_parallelLabel.setText("Parallelisation: \nFALSE");
+    	}
+    }
     
+    /**
+     * Method used to set the label of the status of our program.
+     * @param status
+     */
     public void setStatusLabel(ProcessStatus status){
     	_stopBtn.setEnabled(false);
     	_statusLabel.setIcon(_iconDone);
