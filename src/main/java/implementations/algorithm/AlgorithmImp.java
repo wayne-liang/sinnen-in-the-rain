@@ -42,7 +42,8 @@ public class AlgorithmImp implements Algorithm {
 
 	private TableModel _model;
 	private BarChartModel _chartModel;
-
+	private ComboView _schedule;
+	
 	private int _bestTime = Integer.MAX_VALUE;
 
 	private Set<Set<AlgorithmNode>> _uniqueProcessed;
@@ -55,13 +56,13 @@ public class AlgorithmImp implements Algorithm {
 		_currentBestSchedule = new HashMap<>();
 
 		if (visualisation){
-			// Check if visualisation is true, only then do we create the gui. 
+			// TODO: Check if visualization is true, only then do we create the gui. 
 			_model = TableModel.getInstance();
 			_model.initModel(_currentBestSchedule, _dag, _numberOfCores);
-			// initialise BarChart Model:
+			// Initialize BarChart Model:
 			_chartModel = new BarChartModel();
-
-			ComboView schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
+			// set-up the GUI
+			_schedule = new ComboView(_model,_dag, _numberOfCores,_chartModel);
 		}
 
 		_uniqueProcessed = new HashSet<Set<AlgorithmNode>>();
@@ -72,27 +73,26 @@ public class AlgorithmImp implements Algorithm {
 
 		Schedule emptySchedule = new ScheduleImp(_numberOfCores);
 		recursiveScheduleGeneration(new ArrayList<AlgorithmNode>(), AlgorithmNode.convertNodetoAlgorithmNode(_dag.getAllNodes()), emptySchedule);
-
+		
+		// update view once we have our final schedule:
 		if (visualisation) {
 			_model.changeData(_currentBestSchedule, _bestTime);
-
-			_model = TableModel.setInstance();
+			// reset model once we're done with it - to help with testing.
+			_model = TableModel.resetInstance();
+			// STOP THE CLOCK, now that we're done with it and set Label to done.
+			Clock.getInstance().stopClock();
+			_schedule.setStatusLabel(Clock.getInstance().getProcessStatus());
 		}
 	}
 
 	/**
 	 * helper method for firing update.
 	 */
-	private void fireUpdateToGUI() {
-		// update view, now that a new schedule is available. This is too fast for small schedules
-		// slowing down (Temporary) to visualise. Will be done using a form of timer in the future.
-
-		// GUI does not update faster than 50 ms.  
-		_chartModel.addDataToSeries(_bestTime);
-		int timeNow = Clock.getInstance().getMilliseconds();
-
-		Clock.lastUpdate = timeNow;
-		_model.changeData(_currentBestSchedule, _bestTime);
+	private void fireUpdateToGUI(int bestTime) {
+		/// update view, now that a new schedule is available
+		_chartModel.addDataToSeries(bestTime);
+		_model.changeData(_currentBestSchedule, bestTime);
+		_schedule.setBestTimeText(bestTime);
 	}
 
 	/**
@@ -132,10 +132,6 @@ public class AlgorithmImp implements Algorithm {
 		//Set the best time to be sequential.
 		setNewBestSchedule(schedule);
 		_bestTime = schedule.getTotalTime();
-
-		if (visualisation) {
-			fireUpdateToGUI();
-		}
 	}
 
 	/**
@@ -192,10 +188,6 @@ public class AlgorithmImp implements Algorithm {
 		if (schedule.getTotalTime() < _bestTime) {
 			setNewBestSchedule(schedule);
 			_bestTime = schedule.getTotalTime();
-
-			if (visualisation){
-				fireUpdateToGUI();
-			}
 		}
 	}
 
@@ -221,7 +213,7 @@ public class AlgorithmImp implements Algorithm {
 	 * @param prev			 - The previous schedule. 
 	 */
 	private void recursiveScheduleGeneration(List<AlgorithmNode> processed, List<AlgorithmNode> remainingNodes, Schedule prev) {
-		_recursiveCalls++; //For debugging and for updating visualisation.
+		_schedule.setCallsButtonText(_recursiveCalls++); // Updating visualisation.
 
 		//Base Case when there are no remaining nodes left to process
 		if (remainingNodes.size() == 0) {
@@ -231,10 +223,6 @@ public class AlgorithmImp implements Algorithm {
 			if (finalSchedule.getTotalTime() < _bestTime) {
 				setNewBestSchedule(finalSchedule);
 				_bestTime = finalSchedule.getTotalTime();
-
-				if (visualisation){
-					fireUpdateToGUI();
-				}
 			}
 		} else {
 			for (int i = 0; i < remainingNodes.size(); i++) {
@@ -316,8 +304,10 @@ public class AlgorithmImp implements Algorithm {
 		for (int i = 0; i < finalSchedule.getSizeOfSchedule(); i++) {
 			NodeSchedule nodeSchedule = new NodeScheduleImp(finalSchedule.getNodeStartTime(i), finalSchedule.getNodeCore(i));
 			_currentBestSchedule.put(finalSchedule.getNodeName(i), nodeSchedule);
-
-			//TODO fireUpdates to visualisation
+		}
+		
+		if (visualisation) {
+			fireUpdateToGUI(finalSchedule.getTotalTime());
 		}
 	}
 

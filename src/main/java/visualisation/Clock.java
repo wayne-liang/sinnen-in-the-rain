@@ -1,15 +1,12 @@
 package visualisation;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -18,6 +15,7 @@ import javax.swing.JPanel;
  * minutes:seconds:milliseconds.
  * @author Pulkit
  */
+@SuppressWarnings("serial")
 public class Clock extends JPanel {
 
     private Timer _timer = new Timer();
@@ -27,7 +25,6 @@ public class Clock extends JPanel {
     private int _milliseconds;
     private ProcessStatus _processStatus;
     private static Clock instance = null;
-    public static int lastUpdate = 0;
     
     /**
      * Constructor initialises the JPanel and the associated JLabel.
@@ -47,31 +44,12 @@ public class Clock extends JPanel {
     
     private void initClock() {
         setLayout(new BorderLayout());
-        _timeLabel.setFont(new Font("Serif", Font.BOLD, 20)); 
+        _timeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 26));
         add(_timeLabel,BorderLayout.NORTH);
         setProcessStatus(ProcessStatus.INPROGRESS);
-        /*
-        // button to stop timer.
-        JButton btnStop = new JButton("Stop");
-        btnStop.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				timer.cancel();
-				timer.purge();
-			}
-        });
-        
-        f.add(btnStop,BorderLayout.SOUTH);
-        
-        f.pack();
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);*/
         _minutes = 0; _seconds = 0; _milliseconds = 0;
         _timer.schedule(new UpdateUITask(), 0, 10);
-        // stopping the timer:
-        //timer.cancel();
-        //timer.purge();
     }
     /**
      * Private inner class is used to specify the update code that is run by the timer periodically.
@@ -147,8 +125,8 @@ public class Clock extends JPanel {
     	setProcessStatus(ProcessStatus.COMPLETED);
     	Clock.getInstance().getTimer().cancel();
 		Clock.getInstance().getTimer().purge();
+		_timeLabel.setForeground(new Color(37, 200, 19));
     }
-
 
 	public ProcessStatus getProcessStatus() {
 		return _processStatus;

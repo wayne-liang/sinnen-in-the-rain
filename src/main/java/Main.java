@@ -85,11 +85,7 @@ public class Main {
 		} else {
 			outputImp = new OutputImp(alg.getCurrentBestSchedule(), filePath);
 		}
-		//Clock.getInstance();
-		
-		// STOP THE CLOCK!!
-		Clock.getInstance().stopClock();
-		
+	
 		outputImp.outputToFile();
 	}
 }

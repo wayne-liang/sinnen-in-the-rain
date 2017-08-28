@@ -3,6 +3,7 @@ package visualisation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Paint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,159 +28,143 @@ import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
 /**
- * A simple demonstration application showing how to create a bar chart with a custom item
- * label generator.
- *
+ * Model for the Bar Chart that shows the improvements in the schedules as better schedules 
+ * become available. 
+ * Adapted from : http://www.java2s.com/Code/Java/Chart/JFreeChartBarChartDemo.htm
+ * @author Pulkit
  */
 @SuppressWarnings("serial")
 public class BarChartModel extends JPanel {
-	
+
 	private DefaultCategoryDataset _dataset;
-	private String series1;
-	private String series2;
-	private int scheduleCounter;
+	private String _series1;
+	private int _scheduleCounter;
+
+	/**
+	 * A custom renderer that returns a different color for each item in a single series.
+	 */
+	class CustomRenderer extends BarRenderer {
+
+		/** The colors. */
+		private Paint[] colors;
+
+		/**
+		 * Creates a new renderer with two colors and other specified properties.
+		 *
+		 * @param colors  the colors.
+		 */
+		public CustomRenderer() {
+			this.colors = new Paint[] {Color.ORANGE, new Color(128,0,128)};
+			setShadowVisible(false);
+			this.setBaseFillPaint(Color.BLACK);
 	
-	 /**
-     * A custom renderer that returns a different color for each item in a single series.
-     */
-    class CustomRenderer extends BarRenderer {
+		}
 
-        /** The colors. */
-        private Paint[] colors;
+		/**
+		 * Returns the paint for an item.  If last bar then, we color it red;
+		 * otherwise we switch between two colors.
+		 *
+		 * @param row  the series.
+		 * @param column  the category.
+		 *
+		 * @return The item color.
+		 */
+		public Paint getItemPaint(final int row, final int column) {
+			if (column == _dataset.getColumnCount()-1){
+				return Color.red;
+			} else {
+				return this.colors[column % this.colors.length];
+			}
+		}
+	}
 
-        /**
-         * Creates a new renderer.
-         *
-         * @param colors  the colors.
-         */
-        public CustomRenderer(final Paint[] colors) {
-            this.colors = colors;
-        }
+	public BarChartModel() {
 
-        /**
-         * Returns the paint for an item.  Overrides the default behaviour inherited from
-         * AbstractSeriesRenderer.
-         *
-         * @param row  the series.
-         * @param column  the category.
-         *
-         * @return The item color.
-         */
-        public Paint getItemPaint(final int row, final int column) {
-            return this.colors[column % this.colors.length];
-        }
-    }
-    
-    public BarChartModel() {
+		_dataset = createDataset();
+		final JFreeChart chart = createChart(_dataset);
+		final ChartPanel chartPanel = new ChartPanel(chart);
 
-    	//setLayout
-        _dataset = createDataset();
-        final JFreeChart chart = createChart(_dataset);
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        //chartPanel.p
-        //chartPanel.s
-        chartPanel.setPreferredSize(new Dimension(600, 450));
-        this.add(chartPanel);
-        //setContentPane(chartPanel);
-    }
+		chartPanel.setPreferredSize(new Dimension(630, 435));
+		this.add(chartPanel);
 
-    /**
-     * Returns a sample dataset.
-     * 
-     * @return The dataset.
-     */
-    private DefaultCategoryDataset createDataset() {
+	}
+
+	/**
+	 * Returns a dataset with 2 series (different colours)
+	 * 
+	 * @return The dataset.
+	 */
+	private DefaultCategoryDataset createDataset() {
+
+		// create the dataset...
+		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		// keys for the rows
+		_series1 = "First";
+
+		return dataset;
+
+	}
+	/**
+	 * Add a data value (double) to the bar graph.
+	 * 
+	 * @param value
+	 */
+	public void addDataToSeries(double value){
+		final String category = "S " + _scheduleCounter++;
+		_dataset.addValue(value, _series1, category);
+
+	}
+
+	/**
+	 * Creates a sample chart and defines the properties of the chart
+	 * 
+	 * @param dataset  the dataset.
+	 * 
+	 * @return A plot of the barchart with specified properties.
+	 */
+	private JFreeChart createChart(final CategoryDataset dataset) {
+
+		// create the chart...
+		final JFreeChart chart = ChartFactory.createBarChart(
+				"Improvements in Schedules",       // chart title
+				"Schedules",                   // domain axis label
+				"Best Time",                  // range axis label
+				dataset,                  // data
+				PlotOrientation.VERTICAL, // orientation
+				false,                    // include legend
+				true,                     // tooltips?
+				false                     // URLs?
+				);
+
+		// set the background color of chart
+		chart.setBackgroundPaint(Color.white);
+
+		// setting grid and background of grid
+		final CategoryPlot plot = chart.getCategoryPlot();
+		plot.setBackgroundPaint(Color.lightGray);
+		plot.setDomainGridlinePaint(Color.white);
+		plot.setRangeGridlinePaint(Color.white);
+		
+		// configure renderer to switch between two colors
+		final CategoryItemRenderer renderer = new CustomRenderer(
+				);
+		
+		//renderer.drawOutline(arg0, arg1, arg2);
+
+		plot.setRenderer(renderer);
+		
+		final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+		rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+		rangeAxis.setUpperMargin(0.15);
+
+		final CategoryAxis domainAxis = plot.getDomainAxis();
+		domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+		
+		
         
-    	// create the dataset...
-        final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		return chart;
 
-        // row keys...
-        series1 = "First";
-        series2 = "Second";
-        /*final String series2 = "Second";
-        final String series3 = "Third";*/
-
-        // column keys...
-        /*final String category1 = "Category 1";
-        final String category2 = "Category 2";
-        final String category3 = "Category 3";
-        final String category4 = "Category 4";
-        final String category5 = "Category 5";*/
-
-        // create the dataset...
-        //final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-        //dataset.addValue(500, series1, category1);
-        /*dataset.addValue(4.0, series1, category2);
-        dataset.addValue(3.0, series1, category3);
-        dataset.addValue(5.0, series1, category4);
-        dataset.addValue(5.0, series1, category5);*/
-        
-        return dataset;
-        
-    }
-    
-    public void addDataToSeries(double value){
-    	final String category = "Category " + scheduleCounter++;
-  
-    		_dataset.addValue(value, series1, category);
-
-    }
-    
-    /**
-     * Creates a sample chart.
-     * 
-     * @param dataset  the dataset.
-     * 
-     * @return The chart.
-     */
-    private JFreeChart createChart(final CategoryDataset dataset) {
-        
-        // create the chart...
-        final JFreeChart chart = ChartFactory.createBarChart(
-            "Improvements in Schedules",       // chart title
-            "Schedules",                   // domain axis label
-            "Best Time",                  // range axis label
-            dataset,                  // data
-            PlotOrientation.VERTICAL, // orientation
-            false,                    // include legend
-            true,                     // tooltips?
-            false                     // URLs?
-        );
-
-        // NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
-
-        // set the background color for the chart...
-        chart.setBackgroundPaint(Color.white);
-
-        // get a reference to the plot for further customization...
-        final CategoryPlot plot = chart.getCategoryPlot();
-        plot.setBackgroundPaint(Color.lightGray);
-        plot.setDomainGridlinePaint(Color.white);
-        plot.setRangeGridlinePaint(Color.white);
-        
-        final CategoryItemRenderer renderer = new CustomRenderer(
-                new Paint[] {Color.red, Color.blue}
-            );
-
-        plot.setRenderer(renderer);
-        renderer.setSeriesItemLabelsVisible(0, Boolean.TRUE);
-        // set the range axis to display integers only...
-        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        rangeAxis.setUpperMargin(0.15);
-        
-        // disable bar outlines...
-        /*final CategoryItemRenderer renderer = plot.getRenderer();
-        renderer.setSeriesItemLabelsVisible(0, Boolean.TRUE);*/
-        
-        final CategoryAxis domainAxis = plot.getDomainAxis();
-        domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-
-        // OPTIONAL CUSTOMISATION COMPLETED.
-        
-        return chart;
-        
-    }
+	}
 
 }      

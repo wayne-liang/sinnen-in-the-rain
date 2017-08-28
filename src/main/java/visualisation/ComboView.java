@@ -1,6 +1,8 @@
 package visualisation;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.HashMap;
@@ -9,17 +11,22 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import implementations.structures.DAGImp;
 import interfaces.structures.DAG;
@@ -28,24 +35,32 @@ import net.miginfocom.swing.MigLayout;
 import scala.xml.include.sax.Main;
 /**
  * Common GUI Interface to be used to display all visualisation components.
- * @author Pulkit
+ * @author Pulkit AND Darius.
  *
  */
 @SuppressWarnings("serial")
 public class ComboView extends JFrame {
-	
+	//Panels:
 	private JPanel _contentPane;
 	private JPanel _panelTop;
 	private JPanel _panelLeft;
 	private JPanel _panelRight;
 	private JPanel _panelBottom;
-	
+	// Button-Labels:
+	private JButton _callsLabel;
+	private JButton _bestTimeLabel; 
+	// Model:
 	private TableModel _tableModel;
 	private int _cores;
-	private JLabel statusLabel;
+	// Labels
+	private JLabel _statusLabel;
 	private static String _fileName;
-	
+	// Extra JFrame:
 	private JFrame _tableFrame;
+	// Icons
+	private ImageIcon _iconDone;
+	// Buttons
+	private JButton _stopBtn;
 
 	/**
 	 * Create the frame.
@@ -77,7 +92,7 @@ public class ComboView extends JFrame {
 		//Clock.getInstance().setProcessStatus(ProcessStatus.INPROGRESS);
 		
     	//Sinnen-in-the-rain group logo
-    	ImageIcon image = new ImageIcon("sinnen-logo.png");
+    	ImageIcon image = new ImageIcon("images/sinnen-logo.png");
     	Image largeLogo = image.getImage();
     	Image smallLogo = largeLogo.getScaledInstance(200, 50, java.awt.Image.SCALE_SMOOTH);
     	ImageIcon newLogo = new ImageIcon(smallLogo);
@@ -87,11 +102,40 @@ public class ComboView extends JFrame {
     	Clock c = Clock.getInstance();
     	JLabel titleLabel = c.getTimeLabel();   
     	
-    	//Label for displaying the program's current status
-    	statusLabel = new JLabel(Clock.getInstance().getProcessStatus().toString(),JLabel.RIGHT);
+    	// Add Label for displaying the program's current status inside a JPanel.
+    	
+    	JPanel statusPanel = new JPanel(new BorderLayout());
+    	statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    	
+    	// setting up image icons
+    	ImageIcon iconLoader = new ImageIcon("images/ajax-loader.gif");
+    	// Icon made by Maxim Basinski from www.flaticon.com
+    	_iconDone = new ImageIcon("images/checked.png");
+    	// Icon made by Freepik from www.flaticon.com
+    	ImageIcon iconSchedule = new ImageIcon("images/tableIcon.png");
+    	// Icon made by Madebyoliver from www.flaticon.com
+    	ImageIcon iconStop = new ImageIcon("images/stopIcon.png"); 
+    	
+    	_statusLabel = new JLabel("In Progress");
+    	_statusLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+    	_statusLabel.setIcon(iconLoader);
+      	_statusLabel.setHorizontalTextPosition(JLabel.CENTER);
+    	_statusLabel.setVerticalTextPosition(JLabel.TOP);
+    	
+    	statusPanel.add(_statusLabel, BorderLayout.EAST);
+    	
+    	// Panels to put buttons in:
+    	JPanel panelScheduleBtn = new JPanel(new BorderLayout());
+    	panelScheduleBtn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    	JPanel panelStopBtn = new JPanel(new BorderLayout());
+    	panelStopBtn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     	
         //Button to open schedule
         JButton openScheduleBtn = new JButton("See Schedule");
+        openScheduleBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
+        openScheduleBtn.setIcon(iconSchedule);
+        openScheduleBtn.setIconTextGap(10);
+        openScheduleBtn.setPreferredSize(new Dimension(200,15));
         openScheduleBtn.addActionListener(new ActionListener() 
         {
         	@Override
@@ -99,22 +143,42 @@ public class ComboView extends JFrame {
         		_tableFrame.setVisible(true); 
         	}
         });
+        panelScheduleBtn.add(openScheduleBtn, BorderLayout.WEST);
         
         //Button to stop algorithm
-        JButton stopBtn = new JButton("Stop Process");
+        _stopBtn = new JButton("Stop Process");
+        _stopBtn.setFont(new Font("Trebuchet MS", Font.PLAIN, 16));
+        _stopBtn.setIcon(iconStop);
+        _stopBtn.setIconTextGap(10);
+        _stopBtn.setPreferredSize(new Dimension(200,15));
+        _stopBtn.addActionListener(new ActionListener() 
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		int confirmDialog = JOptionPane.YES_NO_OPTION;
+        		confirmDialog = JOptionPane.showConfirmDialog (null, "Are you sure you want to stop the"
+        				+ " process? \nThis will end the current program and exit the interface.","Warning",confirmDialog);
+        		if(confirmDialog == JOptionPane.YES_OPTION){
+        			System.exit(0);
+        		}
+        	}
+        });
+        panelStopBtn.add(_stopBtn, BorderLayout.EAST);
+        
         
         //Label to represent the .dot file that is being processed
         JLabel fileNameLabel = new JLabel(""+ _fileName, JLabel.CENTER);
+        fileNameLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 20));
         
         // First row of top panel
         _panelTop.add(logo);
     	_panelTop.add(fileNameLabel);
-    	_panelTop.add(statusLabel);
+    	_panelTop.add(statusPanel);
     	
     	// Second row of top panel
-    	_panelTop.add(openScheduleBtn);
+    	_panelTop.add(panelScheduleBtn);
     	_panelTop.add(titleLabel);
-    	_panelTop.add(stopBtn);
+    	_panelTop.add(panelStopBtn);
     	
 		// Adding GraphStream to left side
 		GraphStreamView gv = new GraphStreamView(_cores);
@@ -125,6 +189,7 @@ public class ComboView extends JFrame {
 		// Making JFrame to display the schedule
 		GraphViewImp table = new GraphViewImp(_tableModel);
 		JScrollPane pane = table.getPane();
+		pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		_tableFrame = new JFrame();
 		_tableFrame.setSize(500, 520);
 		_tableFrame.add(pane);
@@ -132,44 +197,60 @@ public class ComboView extends JFrame {
 
 		// Adding Bar Chart
 		_panelRight.add(chart);
+		
+		// Populating Bottom Panel:
+		JButton coresLabel = new JButton();
+		coresLabel.setText("Scheduling Cores: "+ (_tableModel.getColumnCount()-1));
+		coresLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+		coresLabel.setBackground(new Color(255, 193, 193));
+
+		// TODO: This will be orange when parallel = off, and green when parallel = on.
+		JButton parallelLabel = new JButton("Parallelisation: \nFALSE");
+		parallelLabel.setBackground(new Color(255, 190, 79));
+		parallelLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 
 		
-		// Other info here:
+		_callsLabel = new JButton("Recursive Calls");
+		_callsLabel.setBackground(new Color(178, 219, 255));
+		_callsLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
 
+		
+		_bestTimeLabel = new JButton("Best Schedule Time");
+		_bestTimeLabel.setBackground(new Color(209, 168, 255));
+		_bestTimeLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 18));
+		
+		
+		_panelBottom.add(coresLabel);
+		_panelBottom.add(parallelLabel);
+		_panelBottom.add(_callsLabel);
+		_panelBottom.add(_bestTimeLabel);
+		
 		//JLabel randomText = new JLabel();
 		//randomText.setText("Some random text here");
-		
-		// Add components to Panel
-		//_panelRight.add(openSchedule,BorderLayout.NORTH);
-		//_panelRight.add(randomText,BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);
     	setVisible(true);
 	}
 	
-	
+	/**
+	 * Method called by constructor to specify main panel and it's layout.
+	 * @return JPanel with MigLayout.
+	 */
 	private JPanel buildPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new MigLayout("fill"));
         buildView(panel);
         return panel;
     }
-
+	/**
+	 * Method called by buildPanel to contruct the main panel with the several components
+	 * @param panel
+	 */
     private void buildView(JPanel panel) {
     	//Creating the panel for the top part. This will contain the logo, the file name, the 
     	//program status, the schedule button, the timer and the stop button.
     	_panelTop = new JPanel();
     	_panelTop.setLayout(new GridLayout(2,3, 20,20));
-    	
-
-    	
-    	//titleLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-
-    	/*
-        JLabel progressLabel = new JLabel("Progress Test");
-        JProgressBar progressBar = new JProgressBar(0,100);
-        progressBar.setValue(20);
-        */
         
         // JPanel for Graph Stream:
         _panelLeft = new JPanel();
@@ -182,40 +263,35 @@ public class ComboView extends JFrame {
         // JPanel for additional information at the bottom
         _panelBottom = new JPanel();
         _panelBottom.setLayout(new GridLayout());
-        
-        // JPanel for "console":
-        //_panelRight = new JPanel();
-        //_panelRight.setLayout(new BorderLayout());
-
-        //JButton stopBttn = new JButton("Stop Process");
-        //JButton helpBttn = new JButton("Help");
-        //JButton quitBttn = new JButton("Quit");
-
-
-
+ 
         panel.add(_panelTop, "span, center, width 100%, height 10%, wrap");
 
-        //wrap keyword starts a new row
-        //panel.add(openSchedule, "align label, width 25%, height 10%");
-        //panel.add(progressBar, "wrap");
-
         //align label triggers platform-specific label alignment
-        panel.add(_panelLeft, "width 50%,height 70%");
-        panel.add(_panelRight, "width 50%, height 70%, wrap");
-        
-        //panel.add(_panelRight, "wrap, width 15%, height 70%");
+        panel.add(_panelLeft, "width 50%,height 67%");
+        panel.add(_panelRight, "width 50%, height 67%, wrap");
 
-        //tag identifies the type of button
-        //panel.add(stopBttn, "tag ok, span, split 3, sizegroup bttn, height 10%");
-
-        //sizegroups set all members to the size of the biggest member
-        //panel.add(helpBttn, "tag help2, sizegroup bttn");
-        //panel.add(quitBttn, "tag ok, sizegroup bttn");
         
-        panel.add(_panelBottom, "span, center, width 100%, height 10%");
+        panel.add(_panelBottom, "span, center, width 100%, height 13%");
     }
 
     public static void setFileName(String name){
     	_fileName = name;
+    }
+    
+    public void setCallsButtonText(int calls){
+    	_callsLabel.setText("Recursive Calls: " + calls);
+    }
+    
+    public void setBestTimeText(int time){
+    	_bestTimeLabel.setText("Best Schedule Time: "+time);
+    }
+    
+    public void setStatusLabel(ProcessStatus status){
+    	_stopBtn.setEnabled(false);
+    	_statusLabel.setIcon(_iconDone);
+    	_statusLabel.setText(status.toString());
+    	_statusLabel.setHorizontalTextPosition(JLabel.LEFT);
+    	_statusLabel.setVerticalTextPosition(JLabel.TOP);
+    	_statusLabel.setIconTextGap(10);
     }
 }
