@@ -1,13 +1,14 @@
 package interfaces.structures;
 
 /**
- * This interface represents the concept of a Node schedule.
- * (See node schedule implementation for more details)
+ * This interface represent a node scheduler object.
+ * (That is, when a node should start to execute and on which core)
  * 
- * @see implementations.structures.NodeScheduleImp
- * 
- * @author Victor
+ * Whenever a new best schedule is found, objects of this class
+ * will be created in the algorithm class, and stored into a hashmap 
+ * of Node / NodeSchedule. 
  *
+ * @author Victor
  */
 public interface NodeSchedule {
 

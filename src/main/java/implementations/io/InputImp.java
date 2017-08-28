@@ -36,7 +36,7 @@ public class InputImp implements Input {
 	}
 
 	/**
-	 * See {@link Input#getProcessorCount()};
+	 * {@inheritDoc}
 	 */
 	@Override
 	public int getProcessorCount() {
@@ -44,7 +44,7 @@ public class InputImp implements Input {
 	}
 	
 	/**
-	 * See {@link Input#getGraphData()}
+	 * {@inheritDoc}
 	 */
 	@Override
 	public List<String[]> getGraphData() {

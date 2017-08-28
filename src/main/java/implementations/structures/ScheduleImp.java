@@ -57,7 +57,10 @@ public class ScheduleImp implements Schedule {
 
 	/**
 	 * This constructor complies with the old way of creating a scheudle
-	 * (that is pass in all the algNodes generated as a "valid schedule"
+	 * (that is pass in all the algNodes generated as a "valid schedule")
+	 * This is only used in old test cases, and should no longer be used in 
+	 * final code.  
+	 * 
 	 * @param algNodes
 	 * @param numberOfCores
 	 */
@@ -144,12 +147,7 @@ public class ScheduleImp implements Schedule {
 
 
 	/**
-	 * This method should take the current node that's being processed,
-	 * and add it to the schedule. 
-	 * 
-	 * The method will return a new schedule with all the old info +
-	 * the new current node. 
-	 * 
+	 *  {@inheritDoc}
 	 */
 	public Schedule getNextSchedule(AlgorithmNode currentAlgNode) {
 		Schedule newSchedule;
@@ -181,7 +179,7 @@ public class ScheduleImp implements Schedule {
 	}
 
 	/**
-	 * Finds and returns the index position of the corresponding {@code AlgorithmNode} 
+	 * Private method for finding and returning the index position of the corresponding {@code AlgorithmNode} 
 	 * within the given {@code List<AlgorithmNode}
 	 * 
 	 * @param node - {@code Node} to find the corresponding index position for
@@ -197,11 +195,7 @@ public class ScheduleImp implements Schedule {
 	}
 	
 	/**
-	 * This method returns the finish time for a particular core
-	 * based on "this" schedule. 
-	 * 
-	 * @param coreNo
-	 * @return
+	 * {@inheritDoc}
 	 */
 	public int getFinishTimeForCore (int coreNo) {
 		AlgorithmNode lastNodeOnCore = this.getLastNodeOnCore(coreNo);
@@ -221,14 +215,9 @@ public class ScheduleImp implements Schedule {
 	}
 	
 	/**
-	 * This method calculates the earliest start time for the current node, 
-	 * based on the dependencies (predecessors) it has and where they have
-	 * been scheduled.
-	 * 
-	 * @param currentNode
-	 * @param currentAlgNode
-	 * @return
+	 * {@inheritDoc}
 	 */
+	@Override
 	public int getDependencyBasedStartTime (Node currentNode, AlgorithmNode currentAlgNode) {
 		//Check for predecessors of this currentNode and see when they've been scheduled
 		//Predecessors on a different core also has an arc weight to be added on top. 
@@ -251,14 +240,7 @@ public class ScheduleImp implements Schedule {
 	}
 
 	/**
-	 * This method sets the start time for an algorithm node.
-	 * 
-	 * If the index is equal to the size, in which case this is the first 
-	 * time a start time has been assigned to this object, it would add
-	 * it to the List<Integer>.
-	 * Otherwise, an update is done. 
-	 * @param startTime
-	 * @param index --- The index should match the index for the List<AlgorithmNodes>.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void setStartTimeForNode (int startTime, int index) {
@@ -270,10 +252,7 @@ public class ScheduleImp implements Schedule {
 	}
 
 	/**
-	 * The use of this method may break encapsulation.
-	 * Use the methods getNodeName(), getNodeStartTime(),
-	 * getNodeCore() instead.
-	 * @return
+	 * {@inheritDoc}
 	 */
 	@Deprecated
 	public List<AlgorithmNode> getAlgorithmNodes() {
@@ -281,16 +260,13 @@ public class ScheduleImp implements Schedule {
 	}
 
 	/**
-	 * The use of this method may break encapsulation. 
-	 * Use the methods getNodeName(), getNodeStartTime(), 
-	 * getNodeCore() instead. 
-	 * @return
+	 * {@inheritDoc}
 	 */
 	@Deprecated
 	public List<Integer> getstartTimeForNodes() {
 		return _startTimeForNodes;
 	}
-	
+
 	/**
 	 * The getters below should be called
 	 * when processing node time information.
@@ -321,19 +297,27 @@ public class ScheduleImp implements Schedule {
 	public int getTotalTime() {
 		return _totalTime;
 	}
+	/*==========END OF GETTERS===========*/
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Deprecated
 	@Override
 	public void setTotalTime(int totalTime) {
 		_totalTime = totalTime;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public AlgorithmNode getLastNodeOnCore (int core) {
 		return _lastAlgNodeOnCore.get(core);
 	}
 
 	/**
-	 * Debug method for printing schedule contents.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void printSchedule() {
