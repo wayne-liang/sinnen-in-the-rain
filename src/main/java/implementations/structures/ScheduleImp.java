@@ -307,6 +307,19 @@ public class ScheduleImp implements Schedule {
 	public void setTotalTime(int totalTime) {
 		_totalTime = totalTime;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getTotalIdleTime() {
+		int idleTimes = 0;
+		for (int i = 1; i <= _numberOfCores; i++) {
+			int processorIdleTime = _totalTime - getFinishTimeForCore(i);
+			idleTimes += processorIdleTime;
+		}
+		return idleTimes;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -327,4 +340,6 @@ public class ScheduleImp implements Schedule {
 		}
 		System.out.println();
 	}
+	
+	
 }

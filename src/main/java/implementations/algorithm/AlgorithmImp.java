@@ -247,6 +247,43 @@ public class AlgorithmImp implements Algorithm {
 					Set<AlgorithmNode> algNodesSet = new HashSet<AlgorithmNode>(newProcessed);
 
 					if (checkValidSchedule(newProcessed)) {
+						/*
+						 * Bounding using the cost function:
+						 * 
+						 * The cost function is defined as, the maximum of:
+						 * 
+						 * 1. (Sum of all remaining nodes weight - totalIdleTime ) / Cores
+						 * 2. The largest node - largest idle time of any processor
+						 */
+						int idleTime = prev.getTotalIdleTime();
+						
+						int remainingTime = remainingNodes.stream()
+								.map(rn -> _dag.getNodeByName(rn.getNodeName()))
+								.map(n -> n.getWeight())
+								.reduce(0, (a, b) -> a+b);
+						
+						double maxIdleTime = 0;
+						for (int k = 1; k <= _numberOfCores; k++) {
+							int processorIdleTime = prev.getTotalTime() - prev.getFinishTimeForCore(i);
+							if (maxIdleTime < processorIdleTime) {
+								maxIdleTime = processorIdleTime;
+							}
+						}
+						
+						double maxNodeWeight = 0;
+						for (AlgorithmNode algNode : remainingNodes) {
+							Node coNode = _dag.getNodeByName(algNode.getNodeName());
+							if (maxNodeWeight < coNode.getWeight()) {
+								maxNodeWeight = coNode.getWeight();
+							}
+						}
+						
+						double shortestTimePossible = Math.max(Math.ceil((remainingTime - idleTime + 0.0) / _numberOfCores), maxNodeWeight - maxIdleTime);
+						if (prev.getTotalTime() + shortestTimePossible >= _bestTime){
+							continue;
+						}
+						//=============END OF COST FUNCTION BOUNDING===============//
+						
 						newSchedule = prev.getNextSchedule(node);
 
 						//If current >= best time, bound by moving to the next processor.

@@ -128,4 +128,11 @@ public interface Schedule {
 	 */
     int getDependencyBasedStartTime (Node currentNode, AlgorithmNode currentAlgNode);
     
+    /**
+     * This method gets the total idle time of all processors.
+     * The idle time is defined as: the difference between this processor's
+     * finish time to the schedule time. 
+     * @return
+     */
+    int getTotalIdleTime();
 }
