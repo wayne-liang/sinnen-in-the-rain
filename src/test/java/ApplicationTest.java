@@ -87,7 +87,7 @@ public class ApplicationTest {
         DAGImp.getNewInstance();
         Conversion conversion = new Conversion(input);
 
-        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount(),true,8);
+        AlgorithmImp alg = new AlgorithmImp(input.getProcessorCount(),true,4);
 //        Output output = new OutputImp (alg.getCurrentBestSchedule(), fileName);
 //        output.printOutput();
         System.out.println("BestTime: " + alg.getBestTotalTime());
