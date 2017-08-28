@@ -4,21 +4,19 @@ import implementations.io.InputImp;
 import implementations.io.OutputImp;
 import interfaces.algorithm.Algorithm;
 import interfaces.io.Input;
-import visualisation.Clock;
-import visualisation.ComboView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Main {
-	// these for for future use, not used at the moment
-	private static boolean visualisation = false;
-	private static boolean processorInfo = false;
-	private static boolean outputSpec = false;
-	private static String outputPath;
-
 	public static void main(String args[]) {
+		// these for for future use, not used at the moment
+		boolean visualisation = false;
+		boolean outputSpec = false;
+		String outputFileName= "";
+		int noOfParallerCores = 1;
+		
 		//java jar scheduler.jar INPUT.dot P [OPTION]
 		//Optional :
 		//-p N
@@ -47,26 +45,24 @@ public class Main {
 		//optional options
 		//hard-coded for now
 		if (argsList.size() > 2) {
-
-
-			for (int i = 0; i < argsList.size() - 1; i++) {
+			for (int i = 2; i < argsList.size(); i++) {
 				String str = argsList.get(i);
 
 				if (str.contains("-v")) {
 					visualisation = true;
 				} else if (str.contains("-p")) {
-					processorInfo = true;
 
-					final String noOfParallerCores = argsList.get(i + 1);
+					String tempInt = argsList.get(i + 1);
+					
 					try {
 						// test if it is an int
-						Integer.parseInt(noOfParallerCores);
+						noOfParallerCores = Integer.parseInt(tempInt);
 					} catch (NumberFormatException e) {
-						throw new IllegalArgumentException("no Of parallel cores not a valid integer");
+						throw new IllegalArgumentException("no of parallel cores not a valid integer");
 					}
 
 				} else if (str.contains("-o")) {
-					outputPath = argsList.get(i + 1);
+					outputFileName = argsList.get(i + 1);
 					outputSpec = true;
 				}
 			}
@@ -76,12 +72,12 @@ public class Main {
 
 		Conversion conversion = new Conversion(input);
 
-		Algorithm alg = new AlgorithmImp(input.getProcessorCount());
+		Algorithm alg = new AlgorithmImp(input.getProcessorCount(),visualisation,noOfParallerCores);
 
 		OutputImp outputImp;
 
 		if (outputSpec){
-			outputImp = new OutputImp(alg.getCurrentBestSchedule(), filePath, outputPath);
+			outputImp = new OutputImp(alg.getCurrentBestSchedule(), filePath, outputFileName);
 		} else {
 			outputImp = new OutputImp(alg.getCurrentBestSchedule(), filePath);
 		}
@@ -89,4 +85,3 @@ public class Main {
 		outputImp.outputToFile();
 	}
 }
-

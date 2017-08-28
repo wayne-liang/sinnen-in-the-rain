@@ -652,6 +652,6 @@ public class TestAlgorithmImp {
 	private AlgorithmImp computeAlgorithmFromInput(String path, String core) {
 		Input input = new InputImp(path, core);
 		Conversion conversion = new Conversion(input);
-		return new AlgorithmImp(input.getProcessorCount());
+		return new AlgorithmImp(input.getProcessorCount(),false,1);
 	}
 }
